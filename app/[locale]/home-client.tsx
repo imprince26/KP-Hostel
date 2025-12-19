@@ -58,8 +58,8 @@ export function HomeClient({ locale }: HomeClientProps) {
   ];
 
   const stats = [
-    { label: t("statsStudents"), value: "150+", icon: FaGraduationCap },
-    { label: t("statsRooms"), value: "60+", icon: FaBed },
+    { label: t("statsStudents"), value: "1000+", icon: FaGraduationCap },
+    { label: t("statsRooms"), value: "500+", icon: FaBed },
     { label: t("statsBlocks"), value: "4", icon: FaBuilding },
     { label: t("statsYears"), value: "90+", icon: FaUsers },
   ];
@@ -69,69 +69,90 @@ export function HomeClient({ locale }: HomeClientProps) {
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden mt-0">
-        <div className="absolute inset-0 z-0">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
           <Image
-            src="/2.png"
-            alt="KP Vidhyarthi Bhavan"
+            src="/003.png"
+            alt="KP Vidhyarthi Bhavan - Student Community"
             fill
             className="object-cover"
             priority
+            sizes="100vw"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-slate-900/80 via-slate-900/50 to-slate-900/80" />
+          <div className="absolute inset-0 bg-linear-to-r from-slate-900/85 via-slate-900/75 to-slate-900/85" />
+          <div className="absolute inset-0 bg-linear-to-t from-slate-900/60 via-transparent to-slate-900/40" />
         </div>
 
-        <motion.div
-          className="container relative z-10 px-4 text-center text-white"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-8 inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-2 backdrop-blur-md border border-white/20"
-          >
-            {/* <span className="flex h-2 w-2 rounded-full bg-green-400 animate-pulse" /> */}
-            <span className="text-sm font-medium tracking-wider uppercase text-white/90">
-              {t("heroSubtitle")}
-            </span>
-          </motion.div>
-          
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight mb-6 md:mb-8 leading-tight px-4">
-            {t("heroTitle")} <br />
-            <span className="text-transparent bg-clip-text bg-linear-to-r from-orange-200 to-amber-100">
-              KP Vidhyarthi Bhavan
-            </span>
-          </h1>
-          
-          <p className="mx-auto max-w-2xl text-base md:text-lg lg:text-xl text-gray-300 mb-8 md:mb-12 leading-relaxed font-light px-4">
-            {t("heroDescription")}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-5 justify-center items-center px-4">
-            <Button
-              size="lg"
-              className="bg-white text-slate-900 hover:bg-gray-100 text-base md:text-lg px-8 md:px-10 py-6 md:py-7 rounded-full shadow-2xl transition-all hover:scale-105 font-semibold w-full sm:w-auto"
-              asChild
+        {/* Content Container */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-12"
             >
-              <Link href={`/${locale}/admission`}>
-                {t("applyNow")} <FaArrowRight className="ml-2" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="bg-transparent hover:bg-white/10 text-white border-white/30 text-base md:text-lg px-8 md:px-10 py-6 md:py-7 rounded-full backdrop-blur-sm transition-all hover:scale-105 w-full sm:w-auto"
-              asChild
+              <span className="text-sm font-medium tracking-wide text-white/90 uppercase">
+                {t("heroSubtitle")}
+              </span>
+            </motion.div>
+
+            {/* Main Heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 sm:mb-8 leading-tight"
             >
-              <Link href={`/${locale}/about`}>
-                {t("about")}
-              </Link>
-            </Button>
+              {t("heroTitle")}
+              <br />
+              <span className="bg-linear-to-r from-orange-300 via-amber-200 to-yellow-200 bg-clip-text text-transparent">
+                KP Vidhyarthi Bhavan
+              </span>
+            </motion.h1>
+
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4"
+            >
+              {t("heroDescription")}
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4"
+            >
+              <Button
+                size="lg"
+                className="bg-linear-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl w-full sm:w-auto"
+                asChild
+              >
+                <Link href={`/${locale}/admission`} className="flex items-center justify-center gap-2">
+                  {t("applyNow")}
+                  <FaArrowRight className="text-sm sm:text-base" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                asChild
+              >
+                <Link href={`/${locale}/about`}>
+                  {t("about")}
+                </Link>
+              </Button>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Stats Section - Clean & Minimal */}

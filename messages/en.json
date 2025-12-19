@@ -35,10 +35,10 @@
       "rooms": { "title": "Comfortable Rooms", "desc": "Well-furnished rooms with modern amenities" }
     },
     "blocks": {
-      "a": { "name": "Block A", "type": "Boys", "capacity": "50+ Students" },
-      "b": { "name": "Block B", "type": "Girls", "capacity": "40+ Students" },
-      "c": { "name": "Block C", "type": "Girls", "capacity": "40+ Students" },
-      "d": { "name": "Block D", "type": "Boys", "capacity": "50+ Students" }
+      "a": { "name": "Block A", "type": "Boys", "capacity": "440+ Students" },
+      "b": { "name": "Block B", "type": "Girls", "capacity": "200+ Students" },
+      "c": { "name": "Block C", "type": "Girls", "capacity": "200+ Students" },
+      "d": { "name": "Block D", "type": "Boys", "capacity": "200+ Students" }
     }
   },
   "about": {

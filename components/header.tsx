@@ -77,8 +77,8 @@ export function Header() {
                   priority
                 />
               </div>
-              <div className="hidden sm:flex flex-col">
-                <span className="font-bold text-base md:text-xl leading-none tracking-tight text-gray-900">
+              <div className="flex flex-col">
+                <span className="font-bold text-sm md:text-base xl:text-xl leading-none tracking-tight text-gray-900">
                   KP Vidhyarthi Bhavan
                 </span>
                 <span className="text-xs font-medium tracking-wider uppercase text-primary">
@@ -175,7 +175,7 @@ export function Header() {
               className="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl z-70 xl:hidden flex flex-col"
             >
               {/* Sidebar Header */}
-              <div className="bg-linear-to-br from-primary to-orange-600 text-white p-6 shadow-lg shrink-0">
+              <div className="bg-slate-50 text-gray-900 p-6 border-b border-gray-100 shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="relative overflow-hidden rounded-lg shadow-md">
@@ -188,20 +188,20 @@ export function Header() {
                       />
                     </div>
                     <div>
-                      <h2 className="font-bold text-lg leading-tight">KP Bhavan</h2>
-                      <p className="text-xs opacity-90">Est. 1930</p>
+                      <h2 className="font-bold text-lg leading-tight text-gray-900">KP Bhavan</h2>
+                      <p className="text-xs text-gray-600">Est. 1930</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full text-white hover:bg-white/20 shrink-0"
+                    className="rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900 shrink-0"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <FaTimes className="size-5" />
                   </Button>
                 </div>
-                <p className="text-sm opacity-90 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   Your home away from home for over 90 years
                 </p>
               </div>
@@ -225,19 +225,19 @@ export function Header() {
                         className={cn(
                           "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 group",
                           isActive
-                            ? "bg-primary text-white shadow-md"
+                            ? "bg-primary/5 text-primary border border-primary/10"
                             : "text-gray-700 hover:bg-slate-50 hover:text-primary"
                         )}
                       >
                         <item.icon className={cn(
                           "size-5 transition-transform group-hover:scale-110",
-                          isActive ? "text-white" : "text-primary"
+                          isActive ? "text-primary" : "text-gray-500 group-hover:text-primary"
                         )} />
                         <span className="font-medium text-base">{item.name}</span>
                         {isActive && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="ml-auto w-2 h-2 rounded-full bg-white"
+                            className="ml-auto w-2 h-2 rounded-full bg-primary"
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                           />
                         )}
