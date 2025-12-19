@@ -19,19 +19,27 @@ import {
 export const users = pgTable(
   "users",
   {
-    id: text("id").primaryKey(),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     name: text("name"),
     email: text("email"),
     emailVerified: timestamp("emailVerified", { mode: "date" }),
     image: text("image"),
     passwordHash: text("passwordHash"),
-    role: text("role").notNull().default("student"), // student | staff | admin | superadmin
+    role: text("role").notNull().default("student"), // student | admin
+    phone: text("phone"),
+    resetToken: text("resetToken"),
+    resetTokenExpiry: timestamp("resetTokenExpiry", { mode: "date" }),
+    emailVerificationOtp: text("emailVerificationOtp"),
+    emailVerificationOtpExpiry: timestamp("emailVerificationOtpExpiry", { mode: "date" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("users_email_unique").on(t.email),
     index("users_role_idx").on(t.role),
+    index("users_resetToken_idx").on(t.resetToken),
   ]
 );
 
@@ -133,6 +141,7 @@ export const admissionApplications = pgTable(
     phone: text("phone").notNull(),
     email: text("email"),
     address: text("address"),
+    passportPhoto: text("passportPhoto"), // Cloudinary URL
     
     // Educational Details
     collegeName: text("collegeName"),
