@@ -98,31 +98,31 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 py-8 px-4">
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Welcome back, {session?.user?.name || "Student"}!
           </h1>
-          <p className="text-gray-600">Here&apos;s your hostel dashboard overview</p>
+          <p className="text-muted-foreground">Here&apos;s your hostel dashboard overview</p>
         </div>
 
         {/* Room Details Alert (if active) */}
         {stats?.roomDetails && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <FiHome className="h-5 w-5 text-green-600" />
-            <AlertDescription className="text-green-800">
+          <Alert className="mb-6">
+            <FiHome className="h-5 w-5" />
+            <AlertDescription>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                   <strong className="block text-lg mb-1">Your Room Details</strong>
@@ -137,7 +137,6 @@ export default function StudentDashboard() {
                 <Button 
                   onClick={() => router.push("/student/applications")}
                   variant="outline"
-                  className="border-green-600 text-green-700 hover:bg-green-100"
                 >
                   View Details
                 </Button>
@@ -148,68 +147,68 @@ export default function StudentDashboard() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Applications</CardTitle>
-                <FiFileText className="w-5 h-5 text-blue-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Applications</CardTitle>
+                <FiFileText className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-gray-900">{stats?.totalApplications || 0}</p>
-              <p className="text-sm text-gray-500 mt-1">All time</p>
+              <p className="text-3xl font-bold text-foreground">{stats?.totalApplications || 0}</p>
+              <p className="text-sm text-muted-foreground mt-1">All time</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-                <FiClock className="w-5 h-5 text-yellow-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
+                <FiClock className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-yellow-600">{stats?.pendingApplications || 0}</p>
-              <p className="text-sm text-gray-500 mt-1">Under review</p>
+              <p className="text-3xl font-bold text-foreground">{stats?.pendingApplications || 0}</p>
+              <p className="text-sm text-muted-foreground mt-1">Under review</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Approved</CardTitle>
-                <FiCheck className="w-5 h-5 text-green-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
+                <FiCheck className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">{stats?.approvedApplications || 0}</p>
-              <p className="text-sm text-gray-500 mt-1">Accepted</p>
+              <p className="text-3xl font-bold text-foreground">{stats?.approvedApplications || 0}</p>
+              <p className="text-sm text-muted-foreground mt-1">Accepted</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Rejected</CardTitle>
-                <FiX className="w-5 h-5 text-red-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
+                <FiX className="w-5 h-5 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-red-600">{stats?.rejectedApplications || 0}</p>
-              <p className="text-sm text-gray-500 mt-1">Not approved</p>
+              <p className="text-3xl font-bold text-foreground">{stats?.rejectedApplications || 0}</p>
+              <p className="text-sm text-muted-foreground mt-1">Not approved</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
-          <Card className="lg:col-span-2 border-0 shadow-lg">
-            <CardHeader className="bg-linear-to-r from-orange-600 to-orange-500 text-white">
+          <Card className="lg:col-span-2 border-0 shadow-sm bg-card">
+            <CardHeader className="border-b border-border">
               <CardTitle className="flex items-center gap-2">
                 <FiCalendar className="w-5 h-5" />
                 Quick Actions
               </CardTitle>
-              <CardDescription className="text-orange-50">
+              <CardDescription>
                 Common tasks and actions
               </CardDescription>
             </CardHeader>
@@ -217,37 +216,37 @@ export default function StudentDashboard() {
               <div className="grid md:grid-cols-2 gap-4">
                 <Button
                   onClick={() => router.push("/en/admission")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-orange-200 text-gray-900 hover:bg-orange-50 hover:border-orange-400"
+                  className="h-24 flex-col gap-2"
                   variant="outline"
                 >
-                  <FiFileText className="w-6 h-6 text-orange-600" />
+                  <FiFileText className="w-6 h-6" />
                   <span className="font-semibold">Apply for Admission</span>
                 </Button>
 
                 <Button
                   onClick={() => router.push("/student/applications")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-blue-200 text-gray-900 hover:bg-blue-50 hover:border-blue-400"
+                  className="h-24 flex-col gap-2"
                   variant="outline"
                 >
-                  <FiClock className="w-6 h-6 text-blue-600" />
+                  <FiClock className="w-6 h-6" />
                   <span className="font-semibold">View Applications</span>
                 </Button>
 
                 <Button
                   onClick={() => router.push("/student/settings")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-purple-200 text-gray-900 hover:bg-purple-50 hover:border-purple-400"
+                  className="h-24 flex-col gap-2"
                   variant="outline"
                 >
-                  <FiSettings className="w-6 h-6 text-purple-600" />
+                  <FiSettings className="w-6 h-6" />
                   <span className="font-semibold">Settings</span>
                 </Button>
 
                 <Button
                   onClick={() => router.push("/")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-green-200 text-gray-900 hover:bg-green-50 hover:border-green-400"
+                  className="h-24 flex-col gap-2"
                   variant="outline"
                 >
-                  <FiHome className="w-6 h-6 text-green-600" />
+                  <FiHome className="w-6 h-6" />
                   <span className="font-semibold">Hostel Info</span>
                 </Button>
               </div>
@@ -255,20 +254,20 @@ export default function StudentDashboard() {
           </Card>
 
           {/* Recent Notifications */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-linear-to-r from-orange-600 to-orange-500 text-white">
+          <Card className="border-0 shadow-sm bg-card">
+            <CardHeader className="border-b border-border">
               <CardTitle className="flex items-center gap-2">
                 <FiBell className="w-5 h-5" />
                 Recent Notifications
               </CardTitle>
-              <CardDescription className="text-orange-50">
+              <CardDescription>
                 Latest updates
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               {notifications.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <FiBell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <div className="text-center py-8 text-muted-foreground">
+                  <FiBell className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">No notifications yet</p>
                 </div>
               ) : (
@@ -278,18 +277,18 @@ export default function StudentDashboard() {
                       key={notif.id}
                       className={`p-3 rounded-lg border ${
                         notif.read 
-                          ? "bg-gray-50 border-gray-200" 
-                          : "bg-blue-50 border-blue-200"
+                          ? "bg-muted/30 border-border" 
+                          : "bg-primary/5 border-primary/20"
                       }`}
                     >
                       <div className="flex items-start gap-2">
                         {!notif.read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
                         )}
                         <div className="flex-1">
-                          <p className="font-semibold text-sm text-gray-900">{notif.title}</p>
-                          <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="font-semibold text-sm text-foreground">{notif.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
                             {new Date(notif.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -303,56 +302,56 @@ export default function StudentDashboard() {
         </div>
 
         {/* Important Information */}
-        <Card className="mt-6 border-0 shadow-lg">
-          <CardHeader className="bg-linear-to-r from-blue-600 to-blue-500 text-white">
-            <CardTitle>📋 Important Information</CardTitle>
+        <Card className="mt-6 border-0 shadow-sm bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle>Important Information</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <FiFileText className="text-orange-600" />
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <FiFileText className="text-primary" />
                   Application Process
                 </h4>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex gap-2">
-                    <span className="text-orange-600">1.</span>
+                    <span className="text-primary">1.</span>
                     Submit online application with required documents
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-orange-600">2.</span>
+                    <span className="text-primary">2.</span>
                     Visit hostel office after approval notification
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-orange-600">3.</span>
+                    <span className="text-primary">3.</span>
                     Complete offline formalities and payment
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-orange-600">4.</span>
+                    <span className="text-primary">4.</span>
                     Receive room allocation confirmation
                   </li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <FiDollarSign className="text-green-600" />
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <FiDollarSign className="text-primary" />
                   Payment Information
                 </h4>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex gap-2">
-                    <span className="text-green-600">•</span>
+                    <span className="text-primary">•</span>
                     Payment accepted via Demand Draft (DD) only
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600">•</span>
+                    <span className="text-primary">•</span>
                     Semester fees must be paid before deadline
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600">•</span>
+                    <span className="text-primary">•</span>
                     Bring DD to hostel office during working hours
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600">•</span>
+                    <span className="text-primary">•</span>
                     Receipt will be provided after payment verification
                   </li>
                 </ul>

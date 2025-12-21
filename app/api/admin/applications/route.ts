@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
+    const limit = searchParams.get("limit");
 
     let query = db
       .select({
@@ -31,7 +32,11 @@ export async function GET(req: NextRequest) {
       .$dynamic();
 
     if (status && status !== "all") {
-      query = query.where(eq(admissionApplications.status, status));
+      query = query.where(eq(admissionApplications.status, status as any));
+    }
+
+    if (limit) {
+      query = query.limit(parseInt(limit));
     }
 
     const applications = await query;

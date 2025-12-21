@@ -12,6 +12,10 @@ export const admissionFormSchema = z.object({
   
   gender: z.enum(["male", "female", "other"]),
   
+  caste: z.string().min(2, "Caste is required"),
+  
+  subCaste: z.string().min(2, "Sub-caste is required"),
+  
   phone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number"),
@@ -19,13 +23,19 @@ export const admissionFormSchema = z.object({
   email: z
     .string()
     .email("Please enter a valid email")
-    .optional()
-    .or(z.literal("")),
+    .min(1, "Email is required"),
   
+  // Address
   address: z
     .string()
     .min(10, "Address must be at least 10 characters")
     .max(500, "Address is too long"),
+  
+  city: z.string().min(2, "City is required"),
+  
+  state: z.string().min(2, "State is required"),
+  
+  pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
   
   // Educational Details
   collegeName: z
@@ -40,6 +50,8 @@ export const admissionFormSchema = z.object({
   
   year: z.enum(["1", "2", "3", "4"]),
   
+  studentId: z.string().optional(),
+  
   // Guardian Details
   guardianName: z
     .string()
@@ -50,6 +62,11 @@ export const admissionFormSchema = z.object({
   guardianPhone: z
     .string()
     .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit mobile number"),
+  
+  guardianRelation: z.string().min(2, "Guardian relation is required"),
+  
+  // Photo Upload
+  passportPhoto: z.string().min(1, "Passport photo is required"),
   
   // Block Preference
   blockPreference: z.enum(["A", "B", "C", "D"]).optional(),

@@ -83,7 +83,6 @@ export async function POST(req: NextRequest) {
         guardianPhone: data.guardianPhone,
         guardianRelation: data.guardianRelation,
         blockPreference: data.blockPreference,
-        roomType: data.roomType,
         status: "submitted",
       })
       .returning();

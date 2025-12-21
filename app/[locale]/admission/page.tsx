@@ -100,7 +100,7 @@ export default function AdmissionPage() {
       guardianPhone: session?.user?.guardianPhone || "",
       collegeName: session?.user?.collegeName || "",
       course: session?.user?.course || "",
-      year: session?.user?.year || "",
+      year: (session?.user?.year as "1" | "2" | "3" | "4") || undefined,
     },
   });
 
@@ -540,7 +540,11 @@ export default function AdmissionPage() {
                           selected={dateOfBirth}
                           onSelect={(date) => {
                             setDateOfBirth(date);
-                            setValue("dateOfBirth", date ? format(date, "yyyy-MM-dd") : "");
+                            if (date && date instanceof Date && !isNaN(date.getTime())) {
+                              setValue("dateOfBirth", format(date, "yyyy-MM-dd"));
+                            } else {
+                              setValue("dateOfBirth", "");
+                            }
                           }}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")

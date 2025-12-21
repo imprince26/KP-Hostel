@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { users, admissionApplications } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { sendEmail } from "@/lib/email";
+import { adminMessageTemplate } from "@/lib/email-templates";
 
 // POST - Send bulk emails/SMS
 export async function POST(req: NextRequest) {
@@ -133,11 +134,18 @@ export async function POST(req: NextRequest) {
       try {
         // Send email
         if ((messageType === "email" || messageType === "both") && recipient.user.email) {
+          const template = adminMessageTemplate(
+            recipient.user.name || "Student",
+            emailSubject,
+            emailContent,
+            session.user.name || "K.P. Vidhyarthi Bhavan Administration"
+          );
+
           await sendEmail({
             to: recipient.user.email,
-            subject: emailSubject,
-            html: emailContent,
-            text: stripHtml(emailContent),
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
           });
           results.emailsSent++;
         }
@@ -190,13 +198,13 @@ export async function GET(req: NextRequest) {
       const applications = await db
         .select()
         .from(admissionApplications)
-        .where(eq(admissionApplications.assignedBlock, recipientFilter));
+        .where(eq(admissionApplications.assignedBlock, recipientFilter as any));
       count = applications.length;
     } else if (recipientType === "gender" && recipientFilter) {
       const applications = await db
         .select()
         .from(admissionApplications)
-        .where(eq(admissionApplications.gender, recipientFilter));
+        .where(eq(admissionApplications.gender, recipientFilter as any));
       count = applications.length;
     }
 

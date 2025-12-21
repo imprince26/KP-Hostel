@@ -241,7 +241,7 @@ export default function StudentApplications() {
                     </div>
                     <div className="flex flex-col gap-2">
                       <Button
-                        onClick={() => setSelectedApp(app)}
+                        onClick={() => router.push(`/student/applications/${app.id}`)}
                         className="bg-orange-600 hover:bg-orange-700"
                       >
                         <FiEye className="mr-2" />

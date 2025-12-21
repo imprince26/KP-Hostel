@@ -34,6 +34,7 @@ function emailWrapper(content: string, title: string): string {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, ${PRIMARY_COLOR} 0%, ${SECONDARY_COLOR} 100%); padding: 32px 24px; text-align: center;">
+              <img src="${APP_URL}/logo.jpg" alt="K.P. Vidhyarthi Bhavan" style="max-width: 120px; height: auto; margin-bottom: 16px; border-radius: 8px;" />
               <h1 style="margin: 0; color: #FFFFFF; font-size: 26px; font-weight: 600; letter-spacing: -0.5px;">
                 K.P. Vidhyarthi Bhavan
               </h1>
@@ -567,4 +568,94 @@ export function getWelcomeEmailTemplate(name: string): string {
   `;
 
   return emailWrapper(content, "Welcome to K.P. Vidhyarthi Bhavan");
+}
+
+/**
+ * Admin Message Template - For messages sent by admin to students
+ */
+export function adminMessageTemplate(
+  recipientName: string,
+  subject: string,
+  messageContent: string,
+  senderName: string = "K.P. Vidhyarthi Bhavan Administration"
+): EmailTemplate {
+  const content = `
+    <tr>
+      <td style="padding: 24px;">
+        <!-- Greeting -->
+        <h2 style="margin: 0 0 16px; color: #1F2937; font-size: 24px; font-weight: 600;">
+          Message from Administration
+        </h2>
+
+        <p style="margin: 0 0 24px; color: #4B5563; font-size: 16px; line-height: 1.6;">
+          Dear ${recipientName},
+        </p>
+
+        <!-- Message Content -->
+        <div style="background-color: #F9FAFB; border-left: 4px solid ${PRIMARY_COLOR}; padding: 20px; margin: 24px 0; border-radius: 6px;">
+          <h3 style="margin: 0 0 12px; color: #1F2937; font-size: 18px; font-weight: 600;">
+            ${subject}
+          </h3>
+          <div style="color: #374151; font-size: 15px; line-height: 1.7;">
+            ${messageContent}
+          </div>
+        </div>
+
+        <!-- Sender Info -->
+        <div style="background-color: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 24px 0;">
+          <p style="margin: 0; color: #92400E; font-size: 14px; font-weight: 500;">
+            📧 This message was sent by: <strong>${senderName}</strong>
+          </p>
+          <p style="margin: 8px 0 0; color: #92400E; font-size: 13px;">
+            If you have any questions about this message, please contact the administration office.
+          </p>
+        </div>
+
+        <!-- Contact Info -->
+        <div style="background-color: #F3F4F6; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+          <h4 style="margin: 0 0 12px; color: #1F2937; font-size: 16px; font-weight: 600;">
+            🏠 K.P. Vidhyarthi Bhavan
+          </h4>
+          <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">
+            Premier Student Hostel, Ahmedabad
+          </p>
+          <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">
+            📞 Contact: +91-XXXXXXXXXX | 📧 Email: info@kpvb.com
+          </p>
+          <p style="margin: 0; color: #6B7280; font-size: 13px;">
+            🕒 Office Hours: Monday to Saturday, 9:00 AM - 6:00 PM
+          </p>
+        </div>
+
+        <p style="margin: 24px 0 0; color: #6B7280; font-size: 14px; line-height: 1.6;">
+          This is an automated message from K.P. Vidhyarthi Bhavan administration.
+          Please do not reply to this email.
+        </p>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: `K.P. Vidhyarthi Bhavan - ${subject}`,
+    html: emailWrapper(content, `Message from ${senderName}`),
+    text: `
+Dear ${recipientName},
+
+${subject}
+
+${messageContent.replace(/<[^>]*>/g, '')}
+
+This message was sent by: ${senderName}
+
+If you have any questions about this message, please contact the administration office.
+
+K.P. Vidhyarthi Bhavan
+Premier Student Hostel, Ahmedabad
+Contact: +91-XXXXXXXXXX | Email: info@kpvb.com
+Office Hours: Monday to Saturday, 9:00 AM - 6:00 PM
+
+This is an automated message from K.P. Vidhyarthi Bhavan administration.
+Please do not reply to this email.
+    `.trim(),
+  };
 }

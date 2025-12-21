@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Search,
@@ -36,8 +37,34 @@ import {
   EyeOff,
   Bell,
   Calendar,
+  Filter,
+  SortAsc,
+  SortDesc,
+  MoreHorizontal,
+  Copy,
+  Globe,
+  Users,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Announcement {
   announcement: {
@@ -65,8 +92,12 @@ export default function AnnouncementsPage() {
   const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "public" | "private">("all");
+  const [audienceFilter, setAudienceFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "pinned">("newest");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
@@ -93,7 +124,7 @@ export default function AnnouncementsPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, announcements]);
+  }, [searchTerm, statusFilter, audienceFilter, sortBy, announcements]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAnnouncements = async () => {
     try {
@@ -118,14 +149,46 @@ export default function AnnouncementsPage() {
   const applyFilters = () => {
     let filtered = [...announcements];
 
+    // Search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (a) =>
           a.announcement.title.toLowerCase().includes(search) ||
-          a.announcement.content.toLowerCase().includes(search)
+          a.announcement.content.toLowerCase().includes(search) ||
+          a.author?.name?.toLowerCase().includes(search)
       );
     }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((a) =>
+        statusFilter === "public" ? a.announcement.isPublic : !a.announcement.isPublic
+      );
+    }
+
+    // Audience filter
+    if (audienceFilter !== "all") {
+      filtered = filtered.filter((a) =>
+        a.announcement.targetAudience === audienceFilter
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === "pinned") {
+        if (a.announcement.isPinned && !b.announcement.isPinned) return -1;
+        if (!a.announcement.isPinned && b.announcement.isPinned) return 1;
+      }
+
+      const dateA = new Date(a.announcement.createdAt).getTime();
+      const dateB = new Date(b.announcement.createdAt).getTime();
+
+      if (sortBy === "oldest") {
+        return dateA - dateB;
+      }
+      return dateB - dateA; // newest
+    });
 
     setFilteredAnnouncements(filtered);
   };
@@ -397,17 +460,120 @@ export default function AnnouncementsPage() {
         </Dialog>
       </div>
 
-      {/* Search Bar */}
-      <Card className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search announcements..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filters and Search */}
+      <Card className="p-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search announcements, content, or author..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="w-full lg:w-48">
+            <Select value={statusFilter} onValueChange={(value: "all" | "public" | "private") => setStatusFilter(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="public">Public Only</SelectItem>
+                <SelectItem value="private">Private Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Audience Filter */}
+          <div className="w-full lg:w-48">
+            <Select value={audienceFilter} onValueChange={setAudienceFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Audience" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Audience</SelectItem>
+                <SelectItem value="all">All Students</SelectItem>
+                <SelectItem value="male">Male Students</SelectItem>
+                <SelectItem value="female">Female Students</SelectItem>
+                <SelectItem value="block_A">Block A</SelectItem>
+                <SelectItem value="block_B">Block B</SelectItem>
+                <SelectItem value="block_C">Block C</SelectItem>
+                <SelectItem value="block_D">Block D</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sort By */}
+          <div className="w-full lg:w-48">
+            <Select value={sortBy} onValueChange={(value: "newest" | "oldest" | "pinned") => setSortBy(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="pinned">Pinned First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {/* Active Filters Display */}
+        {(searchTerm || statusFilter !== "all" || audienceFilter !== "all") && (
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+            <span className="text-sm text-muted-foreground">Active filters:</span>
+            {searchTerm && (
+              <Badge variant="secondary" className="gap-1">
+                Search: &quot;{searchTerm}&quot;
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            {statusFilter !== "all" && (
+              <Badge variant="secondary" className="gap-1">
+                Status: {statusFilter}
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            {audienceFilter !== "all" && (
+              <Badge variant="secondary" className="gap-1">
+                Audience: {audienceFilter}
+                <button
+                  onClick={() => setAudienceFilter("all")}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setAudienceFilter("all");
+                setSortBy("newest");
+              }}
+              className="text-xs"
+            >
+              Clear all
+            </Button>
+          </div>
+        )}
       </Card>
 
       {/* Announcements List */}
@@ -416,68 +582,111 @@ export default function AnnouncementsPage() {
           <Card className="p-12">
             <div className="text-center text-muted-foreground">
               <Megaphone className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No announcements found</p>
+              <p className="text-lg font-medium">No announcements found</p>
+              <p className="text-sm">Try adjusting your filters or create a new announcement</p>
             </div>
           </Card>
         ) : (
           filteredAnnouncements.map((a) => (
-            <Card key={a.announcement.id} className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-semibold">{a.announcement.title}</h3>
-                    {a.announcement.isPinned && (
-                      <Badge className="bg-blue-500">
-                        <Pin className="h-3 w-3 mr-1" />
-                        Pinned
-                      </Badge>
-                    )}
-                    {a.announcement.isPublic ? (
-                      <Badge className="bg-green-500">
-                        <Eye className="h-3 w-3 mr-1" />
-                        Public
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">
-                        <EyeOff className="h-3 w-3 mr-1" />
-                        Private
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground mb-3 line-clamp-2">
-                    {stripHtml(a.announcement.content)}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>By: {a.author?.name || "Unknown"}</span>
-                    <span>•</span>
-                    <span>{formatDate(a.announcement.createdAt)}</span>
-                    {a.announcement.expiresAt && (
-                      <>
-                        <span>•</span>
+            <Card key={a.announcement.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    {/* Header */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-semibold text-foreground truncate">
+                            {a.announcement.title}
+                          </h3>
+                          {a.announcement.isPinned && (
+                            <Badge className="bg-blue-500 hover:bg-blue-600 shrink-0">
+                              <Pin className="h-3 w-3 mr-1" />
+                              Pinned
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {a.announcement.isPublic ? (
+                            <Badge className="bg-green-500 hover:bg-green-600">
+                              <Globe className="h-3 w-3 mr-1" />
+                              Public
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              <EyeOff className="h-3 w-3 mr-1" />
+                              Private
+                            </Badge>
+                          )}
+                          {a.announcement.targetAudience && a.announcement.targetAudience !== "all" && (
+                            <Badge variant="secondary">
+                              <Users className="h-3 w-3 mr-1" />
+                              {a.announcement.targetAudience.replace("_", " ").toUpperCase()}
+                            </Badge>
+                          )}
+                          {a.announcement.expiresAt && (
+                            <Badge variant="outline" className="text-orange-600 border-orange-200">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Expires {formatDate(a.announcement.expiresAt)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content Preview */}
+                    <div className="mb-4">
+                      <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+                        {stripHtml(a.announcement.content)}
+                      </p>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Bell className="h-3 w-3" />
+                          By {a.author?.name || "Unknown"}
+                        </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          Expires: {formatDate(a.announcement.expiresAt)}
+                          {formatDate(a.announcement.createdAt)}
                         </span>
-                      </>
-                    )}
+                      </div>
+
+                      {/* Actions */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openViewDialog(a)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(a)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedAnnouncement(a);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2 ml-4">
-                  <Button size="sm" variant="ghost" onClick={() => openViewDialog(a)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => openEditDialog(a)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteAnnouncement(a.announcement.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              </div>
+              </CardContent>
             </Card>
           ))
         )}
@@ -598,6 +807,36 @@ export default function AnnouncementsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Delete Announcement
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedAnnouncement?.announcement.title}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedAnnouncement) {
+                  handleDeleteAnnouncement(selectedAnnouncement.announcement.id);
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

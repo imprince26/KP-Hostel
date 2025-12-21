@@ -87,19 +87,26 @@ export async function submitAdmissionApplication(formData: unknown) {
     // Insert application
     await db.insert(admissionApplications).values({
       applicationNumber,
-      otpCode,
       status: "submitted",
       fullName: validated.fullName.trim(),
-      dob: validated.dob,
+      dateOfBirth: validated.dob,
       gender: validated.gender,
+      caste: validated.caste.trim(),
+      subCaste: validated.subCaste.trim(),
       phone: validated.phone,
-      email: validated.email || null,
+      email: validated.email,
       address: validated.address.trim(),
+      city: validated.city.trim(),
+      state: validated.state.trim(),
+      pincode: validated.pincode,
       collegeName: validated.collegeName.trim(),
       course: validated.course.trim(),
       year: validated.year,
+      studentId: validated.studentId?.trim(),
       guardianName: validated.guardianName.trim(),
       guardianPhone: validated.guardianPhone,
+      guardianRelation: validated.guardianRelation.trim(),
+      passportPhoto: validated.passportPhoto,
       blockPreference: blockPreference || null,
     });
 
@@ -107,7 +114,6 @@ export async function submitAdmissionApplication(formData: unknown) {
       success: true,
       data: {
         applicationNumber,
-        otpCode,
       },
     };
   } catch (error) {

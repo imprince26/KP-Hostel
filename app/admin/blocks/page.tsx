@@ -186,40 +186,37 @@ export default function AdminBlocks() {
     const percentage = (block.currentOccupancy / block.capacity) * 100;
     
     if (percentage >= 90) {
-      return <Badge className="bg-red-100 text-red-700">Nearly Full</Badge>;
+      return <Badge variant="destructive">Nearly Full</Badge>;
     } else if (percentage >= 70) {
-      return <Badge className="bg-yellow-100 text-yellow-700">High Occupancy</Badge>;
+      return <Badge variant="secondary">High Occupancy</Badge>;
     } else if (percentage >= 40) {
-      return <Badge className="bg-green-100 text-green-700">Good</Badge>;
+      return <Badge variant="outline">Good</Badge>;
     } else {
-      return <Badge className="bg-blue-100 text-blue-700">Available</Badge>;
+      return <Badge variant="default">Available</Badge>;
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading blocks...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading blocks...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-8 px-4">
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Hostel Block Management</h1>
-            <p className="text-gray-600">Manage hostel blocks, capacity, and fees</p>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Hostel Block Management</h1>
+            <p className="text-muted-foreground">Manage hostel blocks, capacity, and fees</p>
           </div>
-          <Button
-            onClick={handleAddBlock}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
+          <Button onClick={handleAddBlock}>
             <FiPlus className="mr-2" />
             Add New Block
           </Button>
@@ -227,43 +224,43 @@ export default function AdminBlocks() {
 
         {/* Summary Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-sm bg-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Blocks</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Blocks</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-gray-900">{blocks.length}</p>
+              <p className="text-3xl font-bold text-foreground">{blocks.length}</p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-sm bg-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Capacity</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Capacity</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-3xl font-bold text-foreground">
                 {blocks.reduce((sum, b) => sum + b.capacity, 0)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-sm bg-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Current Occupancy</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Current Occupancy</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">
+              <p className="text-3xl font-bold text-foreground">
                 {blocks.reduce((sum, b) => sum + b.currentOccupancy, 0)}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-sm bg-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Available Rooms</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Available Rooms</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-purple-600">
+              <p className="text-3xl font-bold text-foreground">
                 {blocks.reduce((sum, b) => sum + (b.capacity - b.currentOccupancy), 0)}
               </p>
             </CardContent>
@@ -272,15 +269,12 @@ export default function AdminBlocks() {
 
         {/* Blocks Grid */}
         {blocks.length === 0 ? (
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-sm bg-card">
             <CardContent className="py-16 text-center">
-              <FiHome className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No blocks yet</h3>
-              <p className="text-gray-600 mb-6">Get started by adding your first hostel block</p>
-              <Button
-                onClick={handleAddBlock}
-                className="bg-orange-600 hover:bg-orange-700"
-              >
+              <FiHome className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No blocks yet</h3>
+              <p className="text-muted-foreground mb-6">Get started by adding your first hostel block</p>
+              <Button onClick={handleAddBlock}>
                 <FiPlus className="mr-2" />
                 Add First Block
               </Button>
@@ -289,11 +283,11 @@ export default function AdminBlocks() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blocks.map((block) => (
-              <Card key={block.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="bg-linear-to-r from-orange-600 to-orange-500 text-white">
+              <Card key={block.id} className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
+                <CardHeader className="border-b border-border">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-2xl">Block {block.name}</CardTitle>
-                    <FiHome className="w-6 h-6" />
+                    <FiHome className="w-6 h-6 text-muted-foreground" />
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
@@ -301,24 +295,18 @@ export default function AdminBlocks() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <FiUsers className="text-blue-600" />
+                        <FiUsers className="text-muted-foreground" />
                         <span className="font-semibold">Occupancy</span>
                       </div>
                       {getOccupancyBadge(block)}
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
                       <span>Occupied: {block.currentOccupancy}</span>
                       <span>Capacity: {block.capacity}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${
-                          (block.currentOccupancy / block.capacity) * 100 >= 90
-                            ? "bg-red-600"
-                            : (block.currentOccupancy / block.capacity) * 100 >= 70
-                            ? "bg-yellow-600"
-                            : "bg-green-600"
-                        }`}
+                        className="h-full bg-primary rounded-full transition-all"
                         style={{
                           width: `${Math.min((block.currentOccupancy / block.capacity) * 100, 100)}%`,
                         }}
@@ -329,17 +317,17 @@ export default function AdminBlocks() {
                   {/* Fees */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <FiDollarSign className="text-green-600" />
+                      <FiDollarSign className="text-muted-foreground" />
                       <span className="font-semibold">Semester Fees</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-green-50 border border-green-200 rounded p-2">
-                        <p className="text-xs text-green-700">Semester 1</p>
-                        <p className="font-semibold text-green-900">₹{block.semester1Fee.toLocaleString()}</p>
+                      <div className="bg-muted/50 border border-border rounded p-2">
+                        <p className="text-xs text-muted-foreground">Semester 1</p>
+                        <p className="font-semibold text-foreground">₹{block.semester1Fee.toLocaleString()}</p>
                       </div>
-                      <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                        <p className="text-xs text-blue-700">Semester 2</p>
-                        <p className="font-semibold text-blue-900">₹{block.semester2Fee.toLocaleString()}</p>
+                      <div className="bg-muted/50 border border-border rounded p-2">
+                        <p className="text-xs text-muted-foreground">Semester 2</p>
+                        <p className="font-semibold text-foreground">₹{block.semester2Fee.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
@@ -348,16 +336,18 @@ export default function AdminBlocks() {
                   <div className="flex gap-2 pt-2">
                     <Button
                       onClick={() => handleEditBlock(block)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      className="flex-1"
                       size="sm"
+                      variant="outline"
                     >
                       <FiEdit className="mr-2" />
                       Edit
                     </Button>
                     <Button
                       onClick={() => handleDeleteBlock(block)}
-                      className="flex-1 bg-red-600 hover:bg-red-700"
+                      className="flex-1"
                       size="sm"
+                      variant="destructive"
                       disabled={block.currentOccupancy > 0}
                     >
                       <FiTrash2 className="mr-2" />
@@ -376,7 +366,7 @@ export default function AdminBlocks() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FiHome className="text-orange-600" />
+              <FiHome className="text-primary" />
               {dialogMode === "add" ? "Add New Block" : `Edit Block ${name}`}
             </DialogTitle>
             <DialogDescription>

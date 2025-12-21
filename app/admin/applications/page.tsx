@@ -34,10 +34,10 @@ interface Application {
   applicationNumber: string;
   status: string;
   fullName: string;
-  fatherName: string;
-  motherName: string;
   dateOfBirth: string;
   gender: string;
+  caste: string;
+  subCaste: string;
   email: string;
   phone: string;
   address: string;
@@ -47,17 +47,26 @@ interface Application {
   collegeName: string;
   course: string;
   year: string;
+  studentId?: string;
   guardianName: string;
   guardianPhone: string;
   guardianRelation: string;
   passportPhoto: string;
+  blockPreference?: string;
   assignedBlock?: string;
   roomNumber?: string;
   admissionStartDate?: string;
   admissionEndDate?: string;
-  reviewComments?: string;
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
+  // User info from join
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 interface HostelBlock {
@@ -78,9 +87,23 @@ export default function AdminApplications() {
   const [blocks, setBlocks] = useState<HostelBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterBlock, setFilterBlock] = useState<string>("all");
+  const [filterGender, setFilterGender] = useState<string>("all");
+  const [filterCourse, setFilterCourse] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<string>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   
-  // Review modal state
+  // Pagination
+  const totalPages = Math.ceil(filteredApps.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentApps = filteredApps.slice(startIndex, endIndex);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
   const [reviewComments, setReviewComments] = useState("");
@@ -120,6 +143,21 @@ export default function AdminApplications() {
       filtered = filtered.filter(app => app.status === filterStatus);
     }
     
+    // Filter by block
+    if (filterBlock !== "all") {
+      filtered = filtered.filter(app => app.assignedBlock === filterBlock || (filterBlock === "unassigned" && !app.assignedBlock));
+    }
+    
+    // Filter by gender
+    if (filterGender !== "all") {
+      filtered = filtered.filter(app => app.gender === filterGender);
+    }
+    
+    // Filter by course
+    if (filterCourse !== "all") {
+      filtered = filtered.filter(app => app.course === filterCourse);
+    }
+    
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -127,12 +165,32 @@ export default function AdminApplications() {
         app.applicationNumber.toLowerCase().includes(query) ||
         app.fullName.toLowerCase().includes(query) ||
         app.email.toLowerCase().includes(query) ||
-        app.phone.includes(query)
+        app.phone.includes(query) ||
+        app.collegeName.toLowerCase().includes(query) ||
+        app.course.toLowerCase().includes(query) ||
+        app.guardianName.toLowerCase().includes(query)
       );
     }
     
+    // Sort applications
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "oldest":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "name":
+          return a.fullName.localeCompare(b.fullName);
+        case "applicationNumber":
+          return a.applicationNumber.localeCompare(b.applicationNumber);
+        default:
+          return 0;
+      }
+    });
+    
     setFilteredApps(filtered);
-  }, [filterStatus, searchQuery, applications]);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [filterStatus, filterBlock, filterGender, filterCourse, searchQuery, sortBy, applications]);
 
   const fetchData = async () => {
     try {
@@ -145,13 +203,21 @@ export default function AdminApplications() {
       const blocksData = await blocksRes.json();
 
       if (appsData.applications) {
-        setApplications(appsData.applications);
-        setFilteredApps(appsData.applications);
+        // Transform the data from API format to flat structure
+        const transformedApps = appsData.applications.map((item: any) => ({
+          ...item.application,
+          userName: item.user?.name,
+          userEmail: item.user?.email,
+          userPhone: item.user?.phone,
+        }));
+        
+        setApplications(transformedApps);
+        setFilteredApps(transformedApps);
         
         // Check if app ID in URL
         const appId = searchParams.get("id");
         if (appId) {
-          const app = appsData.applications.find((a: Application) => a.id === appId);
+          const app = transformedApps.find((a: Application) => a.id === appId);
           if (app) setSelectedApp(app);
         }
       }
@@ -262,26 +328,26 @@ export default function AdminApplications() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading applications...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading applications...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-8 px-4">
+    <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Application Review</h1>
-          <p className="text-gray-600">Review and manage hostel admission applications</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Application Review</h1>
+          <p className="text-muted-foreground">Review and manage hostel admission applications</p>
         </div>
 
         {/* Filters and Search */}
-        <Card className="mb-6 border-0 shadow-lg">
+        <Card className="mb-6 border-0 shadow-sm bg-card">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <FiFilter className="w-5 h-5" />
@@ -289,176 +355,272 @@ export default function AdminApplications() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Search */}
               <div>
-                <Label htmlFor="search">Search</Label>
+                <Label htmlFor="search">Search Applications</Label>
                 <Input
                   id="search"
-                  placeholder="Search by application #, name, email, or phone..."
+                  placeholder="Search by application #, name, email, phone, college, course, guardian..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="max-w-lg"
                 />
               </div>
 
-              {/* Status Filter */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={() => setFilterStatus("all")}
-                  variant={filterStatus === "all" ? "default" : "outline"}
-                  className={filterStatus === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
-                >
-                  All ({applications.length})
-                </Button>
-                <Button
-                  onClick={() => setFilterStatus("submitted")}
-                  variant={filterStatus === "submitted" ? "default" : "outline"}
-                  className={filterStatus === "submitted" ? "bg-blue-600 hover:bg-blue-700" : ""}
-                >
-                  New ({applications.filter(a => a.status === "submitted").length})
-                </Button>
-                <Button
-                  onClick={() => setFilterStatus("under_review")}
-                  variant={filterStatus === "under_review" ? "default" : "outline"}
-                  className={filterStatus === "under_review" ? "bg-yellow-600 hover:bg-yellow-700" : ""}
-                >
-                  Under Review ({applications.filter(a => a.status === "under_review").length})
-                </Button>
-                <Button
-                  onClick={() => setFilterStatus("approved")}
-                  variant={filterStatus === "approved" ? "default" : "outline"}
-                  className={filterStatus === "approved" ? "bg-green-600 hover:bg-green-700" : ""}
-                >
-                  Approved ({applications.filter(a => a.status === "approved").length})
-                </Button>
-                <Button
-                  onClick={() => setFilterStatus("rejected")}
-                  variant={filterStatus === "rejected" ? "default" : "outline"}
-                  className={filterStatus === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
-                >
-                  Rejected ({applications.filter(a => a.status === "rejected").length})
-                </Button>
-                <Button
-                  onClick={() => setFilterStatus("active")}
-                  variant={filterStatus === "active" ? "default" : "outline"}
-                  className={filterStatus === "active" ? "bg-purple-600 hover:bg-purple-700" : ""}
-                >
-                  Active ({applications.filter(a => a.status === "active").length})
-                </Button>
+              {/* Filters Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Status Filter */}
+                <div>
+                  <Label>Status</Label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses ({applications.length})</SelectItem>
+                      <SelectItem value="submitted">New ({applications.filter(a => a.status === "submitted").length})</SelectItem>
+                      <SelectItem value="under_review">Under Review ({applications.filter(a => a.status === "under_review").length})</SelectItem>
+                      <SelectItem value="approved">Approved ({applications.filter(a => a.status === "approved").length})</SelectItem>
+                      <SelectItem value="rejected">Rejected ({applications.filter(a => a.status === "rejected").length})</SelectItem>
+                      <SelectItem value="active">Active ({applications.filter(a => a.status === "active").length})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Block Filter */}
+                <div>
+                  <Label>Block Assignment</Label>
+                  <Select value={filterBlock} onValueChange={setFilterBlock}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Blocks" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Blocks</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {blocks.map(block => (
+                        <SelectItem key={block.id} value={block.name}>
+                          Block {block.name} ({applications.filter(a => a.assignedBlock === block.name).length})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Gender Filter */}
+                <div>
+                  <Label>Gender</Label>
+                  <Select value={filterGender} onValueChange={setFilterGender}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Genders" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Genders</SelectItem>
+                      <SelectItem value="male">Male ({applications.filter(a => a.gender === "male").length})</SelectItem>
+                      <SelectItem value="female">Female ({applications.filter(a => a.gender === "female").length})</SelectItem>
+                      <SelectItem value="other">Other ({applications.filter(a => a.gender === "other").length})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort By */}
+                <div>
+                  <Label>Sort By</Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                      <SelectItem value="oldest">Oldest First</SelectItem>
+                      <SelectItem value="name">Name (A-Z)</SelectItem>
+                      <SelectItem value="applicationNumber">Application #</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {/* Clear Filters */}
+              {(filterStatus !== "all" || filterBlock !== "all" || filterGender !== "all" || filterCourse !== "all" || searchQuery) && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFilterStatus("all");
+                      setFilterBlock("all");
+                      setFilterGender("all");
+                      setFilterCourse("all");
+                      setSearchQuery("");
+                      setSortBy("newest");
+                    }}
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Applications Table */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-linear-to-r from-orange-600 to-orange-500 text-white">
-            <CardTitle>📋 Applications ({filteredApps.length})</CardTitle>
+        <Card className="border-0 shadow-sm bg-card">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-lg">Applications ({filteredApps.length})</CardTitle>
+            <CardDescription>Manage student admission applications</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             {filteredApps.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <FiFileText className="w-16 h-16 mx-auto mb-4 opacity-30" />
+              <div className="text-center py-12 text-muted-foreground">
+                <FiFileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-semibold">No applications found</p>
                 <p className="text-sm">Try adjusting your filters or search query</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Application #
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Student Details
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        College/Course
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Status
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Submitted
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-sm text-gray-700">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredApps.map((app) => (
-                      <tr key={app.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-                            {app.applicationNumber}
-                          </code>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="font-semibold text-gray-900">{app.fullName}</p>
-                            <p className="text-xs text-gray-600">{app.email}</p>
-                            <p className="text-xs text-gray-600">{app.phone}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div>
-                            <p className="text-sm font-medium">{app.collegeName}</p>
-                            <p className="text-xs text-gray-600">{app.course} - {app.year}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{getStatusBadge(app.status)}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
-                          {new Date(app.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              onClick={() => setSelectedApp(app)}
-                              size="sm"
-                              variant="outline"
-                            >
-                              <FiEye className="mr-1" />
-                              View
-                            </Button>
-                            {(app.status === "submitted" || app.status === "under_review") && (
-                              <>
-                                <Button
-                                  onClick={() => handleReview(app, "approve")}
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <FiCheck className="mr-1" />
-                                  Approve
-                                </Button>
-                                <Button
-                                  onClick={() => handleReview(app, "reject")}
-                                  size="sm"
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  <FiX className="mr-1" />
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                            {app.status === "approved" && (
-                              <Button
-                                onClick={() => handleActivateAdmission(app.id)}
-                                size="sm"
-                                className="bg-purple-600 hover:bg-purple-700"
-                              >
-                                Activate
-                              </Button>
-                            )}
-                          </div>
-                        </td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 font-semibold text-sm text-foreground">
+                          Application #
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-sm text-foreground">
+                          Student Details
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-sm text-foreground">
+                          College/Course
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-sm text-foreground">
+                          Status
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-sm text-foreground">
+                          Submitted
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-sm text-foreground">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {currentApps.map((app) => (
+                        <tr key={app.id} className="border-b border-border hover:bg-muted/50">
+                          <td className="py-3 px-4">
+                            <code className="text-xs font-mono bg-muted px-2 py-1 rounded">
+                              {app.applicationNumber}
+                            </code>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="font-semibold text-foreground">{app.fullName}</p>
+                              <p className="text-xs text-muted-foreground">{app.email}</p>
+                              <p className="text-xs text-muted-foreground">{app.phone}</p>
+                              <p className="text-xs text-muted-foreground">{app.gender} • {app.caste}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="text-sm font-medium">{app.collegeName}</p>
+                              <p className="text-xs text-muted-foreground">{app.course} - {app.year}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{getStatusBadge(app.status)}</td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {new Date(app.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                onClick={() => setSelectedApp(app)}
+                                size="sm"
+                                variant="outline"
+                              >
+                                <FiEye className="mr-1" />
+                                View
+                              </Button>
+                              {(app.status === "submitted" || app.status === "under_review") && (
+                                <>
+                                  <Button
+                                    onClick={() => handleReview(app, "approve")}
+                                    size="sm"
+                                    variant="default"
+                                  >
+                                    <FiCheck className="mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleReview(app, "reject")}
+                                    size="sm"
+                                    variant="destructive"
+                                  >
+                                    <FiX className="mr-1" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {app.status === "approved" && (
+                                <Button
+                                  onClick={() => handleActivateAdmission(app.id)}
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={app.status === "active"}
+                                >
+                                  {app.status === "active" ? "Active" : "Activate"}
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredApps.length)} of {filteredApps.length} applications
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                          const distance = Math.abs(page - currentPage);
+                          return distance === 0 || distance === 1 || page === 1 || page === totalPages;
+                        })
+                        .map((page, index, array) => (
+                          <div key={page} className="flex items-center">
+                            {index > 0 && array[index - 1] !== page - 1 && (
+                              <span className="px-2 text-muted-foreground">...</span>
+                            )}
+                            <Button
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </Button>
+                          </div>
+                        ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

@@ -166,3 +166,80 @@
 .animate-scroll:hover {
   animation-play-state: paused;
 }
+
+/* Tiptap Editor Styles */
+.ProseMirror {
+  @apply min-h-[200px] p-4 focus:outline-none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-gray-400 float-left h-0 pointer-events-none;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl font-bold mt-6 mb-3;
+}
+
+.ProseMirror h3 {
+  @apply text-xl font-semibold mt-4 mb-2;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply pl-6 my-3;
+}
+
+.ProseMirror ul {
+  @apply list-disc;
+}
+
+.ProseMirror ol {
+  @apply list-decimal;
+}
+
+.ProseMirror li {
+  @apply my-1;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic my-3;
+}
+
+.ProseMirror code {
+  @apply bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.ProseMirror pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg my-3 overflow-x-auto;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+
+.ProseMirror a {
+  @apply text-blue-600 hover:text-blue-800 underline cursor-pointer;
+}
+
+.ProseMirror strong {
+  @apply font-bold;
+}
+
+.ProseMirror em {
+  @apply italic;
+}
+
+.ProseMirror u {
+  @apply underline;
+}
+
+/* Fix for text direction - ensures proper LTR display */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror li {
+  direction: ltr;
+  text-align: left;
+}

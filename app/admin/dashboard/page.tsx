@@ -4,15 +4,10 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { 
-  FiUsers, FiHome, FiFileText, FiDollarSign, 
-  FiClock, FiCheck, FiX, FiTrendingUp, FiAlertCircle 
-} from "react-icons/fi";
-import { LayoutDashboard, Users, FileText, CreditCard, Building2, TrendingUp } from "lucide-react";
+import { Users, FileText, Building2, TrendingUp, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/page-header";
 
 interface DashboardStats {
   totalStudents: number;
@@ -46,8 +41,7 @@ export default function AdminDashboard() {
     }
 
     if (status === "authenticated") {
-      // Check if user is admin
-      if ((session.user as any).role !== "admin") {
+      if (session?.user && "role" in session.user && session.user.role !== "admin") {
         router.push("/student/dashboard");
         return;
       }
@@ -60,9 +54,9 @@ export default function AdminDashboard() {
       // Fetch stats
       const statsRes = await fetch("/api/admin/stats");
       const statsData = await statsRes.json();
-      
+
       // Fetch recent applications
-      const appsRes = await fetch("/api/admin/applications?limit=10");
+      const appsRes = await fetch("/api/admin/applications?limit=5");
       const appsData = await appsRes.json();
 
       if (statsData.stats) {
@@ -70,7 +64,15 @@ export default function AdminDashboard() {
       }
 
       if (appsData.applications) {
-        setRecentApps(appsData.applications);
+        // Transform the data from API format to flat structure
+        const transformedApps = appsData.applications.map((item: any) => ({
+          ...item.application,
+          userName: item.user?.name,
+          userEmail: item.user?.email,
+          userPhone: item.user?.phone,
+        }));
+        
+        setRecentApps(transformedApps.slice(0, 5));
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -81,291 +83,227 @@ export default function AdminDashboard() {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      submitted: { label: "New", class: "bg-blue-100 text-blue-700" },
-      under_review: { label: "Review", class: "bg-yellow-100 text-yellow-700" },
-      approved: { label: "Approved", class: "bg-green-100 text-green-700" },
-      rejected: { label: "Rejected", class: "bg-red-100 text-red-700" },
-      active: { label: "Active", class: "bg-purple-100 text-purple-700" },
+      submitted: { label: "New", variant: "secondary" as const },
+      under_review: { label: "Review", variant: "outline" as const },
+      approved: { label: "Approved", variant: "default" as const },
+      rejected: { label: "Rejected", variant: "destructive" as const },
+      active: { label: "Active", variant: "default" as const },
     };
 
-    const { label, class: className } = config[status as keyof typeof config] || 
-      { label: status, class: "bg-gray-100 text-gray-700" };
+    const { label, variant } = config[status as keyof typeof config] ||
+      { label: status, variant: "secondary" as const };
 
-    return <Badge className={className}>{label}</Badge>;
+    return <Badge variant={variant}>{label}</Badge>;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      <PageHeader
-        title="Admin Dashboard"
-        description="Manage hostel operations and monitor key metrics"
-        icon={LayoutDashboard}
-        gradient="indigo"
-      />
+    <div className="min-h-screen bg-muted/30">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        {/* Statistics Cards */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group border-t-4 border-t-blue-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Users className="w-7 h-7 text-white" />
+      <div className="relative">
+        {/* Header */}
+        <div className="border-b border-border bg-card/50 backdrop-blur-sm">
+          <div className="container mx-auto px-6 py-8">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage hostel operations and monitor key metrics</p>
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-6 py-8">
+          {/* Statistics Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600">Total Students</p>
-                <h3 className="text-3xl font-bold text-slate-900">{stats?.totalStudents || 0}</h3>
-                <p className="text-xs text-slate-500">Registered users</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group border-t-4 border-t-green-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Building2 className="w-7 h-7 text-white" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Total Students</p>
+                  <h3 className="text-2xl font-bold text-foreground">{stats?.totalStudents || 0}</h3>
+                  <p className="text-xs text-muted-foreground">Registered users</p>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600">Active Admissions</p>
-                <h3 className="text-3xl font-bold text-green-600">{stats?.activeAdmissions || 0}</h3>
-                <p className="text-xs text-slate-500">Current residents</p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group border-t-4 border-t-yellow-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <FileText className="w-7 h-7 text-white" />
+            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-primary" />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600">Pending Applications</p>
-                <h3 className="text-3xl font-bold text-yellow-600">{stats?.pendingApplications || 0}</h3>
-                <p className="text-xs text-slate-500">Awaiting review</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden group border-t-4 border-t-purple-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <CreditCard className="w-7 h-7 text-white" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Active Admissions</p>
+                  <h3 className="text-2xl font-bold text-foreground">{stats?.activeAdmissions || 0}</h3>
+                  <p className="text-xs text-muted-foreground">Current residents</p>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-600">Total Revenue</p>
-                <h3 className="text-3xl font-bold text-purple-600">₹{(stats?.totalRevenue || 0).toLocaleString("en-IN")}</h3>
-                <p className="text-xs text-slate-500">Collected fees</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              </CardContent>
+            </Card>
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          {/* Quick Actions */}
-          <Card className="lg:col-span-2 border-0 shadow-lg">
-            <CardHeader className="bg-linear-to-r from-orange-600 to-orange-500 text-white">
-              <CardTitle>⚡ Quick Actions</CardTitle>
-              <CardDescription className="text-orange-50">
-                Common administrative tasks
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid md:grid-cols-3 gap-4">
+            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Pending Applications</p>
+                  <h3 className="text-2xl font-bold text-foreground">{stats?.pendingApplications || 0}</h3>
+                  <p className="text-xs text-muted-foreground">Awaiting review</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Occupancy Rate</p>
+                  <h3 className="text-2xl font-bold text-foreground">{stats?.occupancyRate || 0}%</h3>
+                  <p className="text-xs text-muted-foreground">Room utilization</p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Recent Applications */}
+            <Card className="lg:col-span-2 border-0 shadow-sm bg-card">
+              <CardHeader className="border-b border-border">
+                <CardTitle className="text-lg">Recent Applications</CardTitle>
+                <CardDescription>Latest student applications requiring attention</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {recentApps.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No recent applications</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {recentApps.map((app, index) => (
+                      <motion.div
+                        key={app.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => router.push("/admin/applications")}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-1">
+                              <p className="font-medium text-foreground">{app.fullName}</p>
+                              {getStatusBadge(app.status)}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {app.applicationNumber} • {new Date(app.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                {recentApps.length > 0 && (
+                  <div className="p-4 border-t border-border">
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => router.push("/admin/applications")}
+                    >
+                      View All Applications
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="border-0 shadow-sm bg-card">
+              <CardHeader className="border-b border-border">
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+                <CardDescription>Common administrative tasks</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <Button
                   onClick={() => router.push("/admin/applications")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-blue-200 text-gray-900 hover:bg-blue-50 hover:border-blue-400"
+                  className="w-full justify-start h-auto p-4"
                   variant="outline"
                 >
-                  <FiFileText className="w-6 h-6 text-blue-600" />
-                  <span className="font-semibold">Review Applications</span>
+                  <FileText className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Review Applications</div>
+                    <div className="text-xs text-muted-foreground">Process pending requests</div>
+                  </div>
                 </Button>
 
                 <Button
                   onClick={() => router.push("/admin/blocks")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-green-200 text-gray-900 hover:bg-green-50 hover:border-green-400"
+                  className="w-full justify-start h-auto p-4"
                   variant="outline"
                 >
-                  <FiHome className="w-6 h-6 text-green-600" />
-                  <span className="font-semibold">Manage Blocks</span>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/admin/payments")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-purple-200 text-gray-900 hover:bg-purple-50 hover:border-purple-400"
-                  variant="outline"
-                >
-                  <FiDollarSign className="w-6 h-6 text-purple-600" />
-                  <span className="font-semibold">Track Payments</span>
+                  <Building2 className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Manage Blocks</div>
+                    <div className="text-xs text-muted-foreground">Room assignments</div>
+                  </div>
                 </Button>
 
                 <Button
                   onClick={() => router.push("/admin/announcements")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-yellow-200 text-gray-900 hover:bg-yellow-50 hover:border-yellow-400"
+                  className="w-full justify-start h-auto p-4"
                   variant="outline"
                 >
-                  <FiAlertCircle className="w-6 h-6 text-yellow-600" />
-                  <span className="font-semibold">Announcements</span>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/admin/messaging")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-red-200 text-gray-900 hover:bg-red-50 hover:border-red-400"
-                  variant="outline"
-                >
-                  <FiUsers className="w-6 h-6 text-red-600" />
-                  <span className="font-semibold">Bulk Messaging</span>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/")}
-                  className="h-24 flex-col gap-2 bg-white border-2 border-slate-200 text-gray-900 hover:bg-slate-50 hover:border-slate-400"
-                  variant="outline"
-                >
-                  <FiHome className="w-6 h-6 text-slate-600" />
-                  <span className="font-semibold">View Website</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Actions */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-linear-to-r from-red-600 to-red-500 text-white">
-              <CardTitle className="flex items-center gap-2">
-                <FiAlertCircle className="w-5 h-5" />
-                Pending Actions
-              </CardTitle>
-              <CardDescription className="text-red-50">
-                Items requiring attention
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div>
-                    <p className="font-semibold text-sm">New Applications</p>
-                    <p className="text-xs text-gray-600">Awaiting review</p>
+                  <TrendingUp className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Announcements</div>
+                    <div className="text-xs text-muted-foreground">Broadcast messages</div>
                   </div>
-                  <Badge className="bg-yellow-600 text-white">
-                    {stats?.pendingApplications || 0}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div>
-                    <p className="font-semibold text-sm">Today&apos;s Applications</p>
-                    <p className="text-xs text-gray-600">Submitted today</p>
-                  </div>
-                  <Badge className="bg-blue-600 text-white">
-                    {recentApps.filter(app => {
-                      const today = new Date().toDateString();
-                      return new Date(app.createdAt).toDateString() === today;
-                    }).length}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Recent Applications Table */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-linear-to-r from-blue-600 to-blue-500 text-white">
-            <CardTitle>📋 Recent Applications</CardTitle>
-            <CardDescription className="text-blue-50">
-              Latest admission applications
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {recentApps.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <FiFileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No applications yet</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Application #
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Student Name
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Status
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-sm text-gray-700">
-                        Submitted
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-sm text-gray-700">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentApps.map((app) => (
-                      <tr key={app.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                            {app.applicationNumber}
-                          </code>
-                        </td>
-                        <td className="py-3 px-4 font-medium">{app.fullName}</td>
-                        <td className="py-3 px-4">{getStatusBadge(app.status)}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
-                          {new Date(app.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <Button
-                            onClick={() => router.push(`/admin/applications?id=${app.id}`)}
-                            size="sm"
-                            className="bg-orange-600 hover:bg-orange-700"
-                          >
-                            Review
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <div className="mt-4 text-center">
-              <Button
-                onClick={() => router.push("/admin/applications")}
-                variant="outline"
-                className="border-orange-600 text-orange-700 hover:bg-orange-50"
-              >
-                View All Applications →
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

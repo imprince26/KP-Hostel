@@ -12,7 +12,7 @@ import {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,6 +20,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const { status, rejectionReason, roomNumber, allotmentDate } =
       await req.json();
 
@@ -46,7 +47,7 @@ export async function PATCH(
     const [updated] = await db
       .update(admissionApplications)
       .set(updateData)
-      .where(eq(admissionApplications.id, params.id))
+      .where(eq(admissionApplications.id, id))
       .returning();
 
     // Fetch user details for email
@@ -64,8 +65,7 @@ export async function PATCH(
           subject: "Application Approved - KP Vidhyarthi Bhavan",
           html: applicationApprovedTemplate(
             user.name || "Student",
-            updated.applicationNumber,
-            roomNumber || "TBA"
+            updated.applicationNumber
           ),
         });
       } else {
@@ -91,7 +91,7 @@ export async function PATCH(
           status === "approved"
             ? `Your application ${updated.applicationNumber} has been approved. Room ${roomNumber} has been allotted.`
             : `Your application ${updated.applicationNumber} has been reviewed. ${rejectionReason || "Please contact office for details."}`,
-        type: status === "approved" ? "success" : "info",
+        type: status === "approved" ? "application_approved" : "application_rejected",
       });
     }
 
