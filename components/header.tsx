@@ -350,9 +350,14 @@ export function Header() {
               {/* Navigation Links */}
               <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
                 {navigation.map((item, index) => {
-                  const isActive = item.href === "/" 
-                    ? pathname === `/${locale}` || pathname === `/${locale}/`
-                    : pathname.startsWith(`/${locale}${item.href}`);
+                  // Check if route needs locale prefix (public routes) or not (admin/student routes)
+                  const needsLocale = item.href.startsWith(`/${locale}`);
+                  const isActive = needsLocale
+                    ? (item.href === `/${locale}` 
+                        ? pathname === `/${locale}` || pathname === `/${locale}/`
+                        : pathname.startsWith(item.href))
+                    : pathname.startsWith(item.href);
+                  
                   return (
                     <motion.div
                       key={item.href}
@@ -361,7 +366,7 @@ export function Header() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <Link
-                        href={`/${locale}${item.href}`}
+                        href={item.href}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                           "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 group",

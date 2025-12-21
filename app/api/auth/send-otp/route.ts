@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Send OTP email
-    const emailHtml = getOTPEmailTemplate(name, otp);
+    const emailTemplate = getOTPEmailTemplate(name, otp);
     await sendMail({
       to: email,
-      subject: "Your Verification Code",
-      html: emailHtml,
-      text: `Your OTP for email verification is: ${otp}. This code will expire in 10 minutes.`,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
     });
 
     return NextResponse.json({

@@ -80,8 +80,9 @@ export async function POST(req: NextRequest) {
         const emailTemplate = getOTPEmailTemplate(validatedData.name, otp);
         await sendMail({
           to: validatedData.email,
-          subject: "Email Verification - KP Vidhyarthi Bhavan",
-          html: emailTemplate,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text,
         });
       } catch (emailError) {
         console.error("Failed to send OTP email:", emailError);
@@ -141,8 +142,9 @@ export async function POST(req: NextRequest) {
       
       await sendMail({
         to: existingUser.email!,
-        subject: "Welcome to KP Vidhyarthi Bhavan",
-        html: emailTemplate,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
       });
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError);

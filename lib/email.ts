@@ -22,7 +22,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    from: `"KP Vidhyarthi Bhavan" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,

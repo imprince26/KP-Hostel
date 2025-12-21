@@ -89,10 +89,12 @@ export async function POST(req: NextRequest) {
 
     // Send email notification
     try {
+      const emailTemplate = applicationSubmittedTemplate(data.fullName, applicationNumber);
       await sendEmail({
         to: data.email,
-        subject: "Application Submitted - KP Vidhyarthi Bhavan",
-        html: applicationSubmittedTemplate(data.fullName, applicationNumber),
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
       });
     } catch (emailError) {
       console.error("Failed to send email:", emailError);

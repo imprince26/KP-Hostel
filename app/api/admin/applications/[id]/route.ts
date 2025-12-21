@@ -60,23 +60,27 @@ export async function PATCH(
     if (user && user.email) {
       // Send email notification
       if (status === "approved") {
+        const emailTemplate = applicationApprovedTemplate(
+          user.name || "Student",
+          updated.applicationNumber
+        );
         await sendEmail({
           to: user.email,
-          subject: "Application Approved - KP Vidhyarthi Bhavan",
-          html: applicationApprovedTemplate(
-            user.name || "Student",
-            updated.applicationNumber
-          ),
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text,
         });
       } else {
+        const emailTemplate = applicationRejectedTemplate(
+          user.name || "Student",
+          updated.applicationNumber,
+          rejectionReason || "Application did not meet requirements"
+        );
         await sendEmail({
           to: user.email,
-          subject: "Application Update - KP Vidhyarthi Bhavan",
-          html: applicationRejectedTemplate(
-            user.name || "Student",
-            updated.applicationNumber,
-            rejectionReason || "Application did not meet requirements"
-          ),
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text,
         });
       }
 

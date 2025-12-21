@@ -47,16 +47,16 @@ export async function POST(req: NextRequest) {
 
     // Send reset email
     const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`;
-    const emailHtml = passwordResetTemplate(
+    const emailTemplate = passwordResetTemplate(
       user.name || "User",
       resetLink
     );
 
     await sendMail({
       to: user.email!,
-      subject: "Reset Your Password - K.P. Vidhyarthi Bhavan",
-      html: emailHtml,
-      text: `Reset your password: ${resetLink}`,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+      text: emailTemplate.text,
     });
 
     return NextResponse.json(

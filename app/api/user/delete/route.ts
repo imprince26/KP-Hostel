@@ -16,10 +16,12 @@ export async function DELETE(req: NextRequest) {
 
     // Send warning email
     try {
+      const emailTemplate = accountDeletionTemplate(session.user.name || "User");
       await sendEmail({
         to: session.user.email!,
-        subject: "Account Deletion Request - KP Vidhyarthi Bhavan",
-        html: accountDeletionTemplate(session.user.name || "User"),
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
       });
     } catch (emailError) {
       console.error("Failed to send email:", emailError);

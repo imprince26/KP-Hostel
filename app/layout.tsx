@@ -57,14 +57,14 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/logo.jpg",
-        width: 1200,
-        height: 630,
+        width: 800,
+        height: 800,
         alt: "KP Vidhyarthi Bhavan Logo",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "KP Vidhyarthi Bhavan - Student Hostel in Ahmedabad",
     description:
       "Premier student hostel in Ahmedabad offering comfortable accommodation for college students. Apply online for admission.",
