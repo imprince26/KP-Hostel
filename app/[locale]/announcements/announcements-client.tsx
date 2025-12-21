@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
-import { FaBullhorn, FaCalendarAlt, FaExclamationCircle, FaUser, FaClock } from "react-icons/fa";
+import { FaBullhorn, FaCalendarAlt, FaExclamationCircle, FaUser, FaClock, FaInfoCircle } from "react-icons/fa";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,32 +68,12 @@ export default function AnnouncementsClient() {
     });
   };
 
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-  };
-
   const getPriorityLevel = (announcement: Announcement['announcement']) => {
     if (announcement.isPinned) return 'high';
-    if (announcement.expiresAt && new Date(announcement.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) return 'urgent';
+    const content = announcement.title.toLowerCase() + announcement.content.toLowerCase();
+    if (content.includes('urgent') || content.includes('important') || content.includes('critical')) return 'urgent';
+    if (announcement.expiresAt && new Date(announcement.expiresAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) return 'medium';
     return 'normal';
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'border-l-red-500 bg-red-500/10';
-      case 'urgent': return 'border-l-orange-500 bg-orange-500/10';
-      default: return 'border-l-primary bg-primary/10';
-    }
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high': return <FaExclamationCircle className="text-red-500 size-4" />;
-      case 'urgent': return <FaClock className="text-orange-500 size-4" />;
-      default: return <FaBullhorn className="text-primary size-4" />;
-    }
   };
 
   if (loading) {

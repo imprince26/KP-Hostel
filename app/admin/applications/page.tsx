@@ -21,6 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -61,6 +63,8 @@ interface Application {
   reviewedBy?: string;
   reviewedAt?: string;
   rejectionReason?: string;
+  fatherName?: string;
+  motherName?: string;
   createdAt: string;
   updatedAt: string;
   // User info from join
@@ -106,12 +110,19 @@ export default function AdminApplications() {
   };
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
-  const [reviewComments, setReviewComments] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
   const [selectedBlock, setSelectedBlock] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
   const [admissionStart, setAdmissionStart] = useState("");
   const [admissionEnd, setAdmissionEnd] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    variant?: "default" | "destructive";
+  }>({ open: false, title: "", description: "", onConfirm: () => {} });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -198,11 +209,10 @@ export default function AdminApplications() {
       const appsRes = await fetch("/api/admin/applications");
       const appsData = await appsRes.json();
       
-      // Fetch hostel blocks
-      const blocksRes = await fetch("/api/admin/blocks");
-      const blocksData = await blocksRes.json();
+      console.log("API Response:", appsData);
+      console.log("Applications:", appsData.applications);
 
-      if (appsData.applications) {
+      if (appsData.applications && appsData.applications.length > 0) {
         // Transform the data from API format to flat structure
         const transformedApps = appsData.applications.map((item: any) => ({
           ...item.application,
@@ -211,6 +221,7 @@ export default function AdminApplications() {
           userPhone: item.user?.phone,
         }));
         
+        console.log("Transformed Applications:", transformedApps);
         setApplications(transformedApps);
         setFilteredApps(transformedApps);
         
@@ -220,13 +231,14 @@ export default function AdminApplications() {
           const app = transformedApps.find((a: Application) => a.id === appId);
           if (app) setSelectedApp(app);
         }
-      }
-
-      if (blocksData.blocks) {
-        setBlocks(blocksData.blocks);
+      } else {
+        console.log("No applications found in response");
+        setApplications([]);
+        setFilteredApps([]);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      toast.error("Failed to load applications");
     } finally {
       setLoading(false);
     }
@@ -250,7 +262,7 @@ export default function AdminApplications() {
   const handleReview = (app: Application, action: "approve" | "reject") => {
     setSelectedApp(app);
     setReviewAction(action);
-    setReviewComments(app.reviewComments || "");
+    setAdminNotes(app.adminNotes || "");
     setSelectedBlock(app.assignedBlock || "");
     setRoomNumber(app.roomNumber || "");
     setAdmissionStart(app.admissionStartDate || "");
@@ -263,13 +275,13 @@ export default function AdminApplications() {
     // Validation
     if (reviewAction === "approve") {
       if (!selectedBlock || !roomNumber || !admissionStart || !admissionEnd) {
-        alert("Please fill all fields for approval");
+        toast.error("Please fill all fields for approval");
         return;
       }
     }
 
-    if (!reviewComments.trim()) {
-      alert("Please provide review comments");
+    if (!adminNotes.trim()) {
+      toast.error("Please provide review notes");
       return;
     }
 
@@ -280,7 +292,7 @@ export default function AdminApplications() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: reviewAction,
-          comments: reviewComments,
+          comments: adminNotes,
           assignedBlock: reviewAction === "approve" ? selectedBlock : null,
           roomNumber: reviewAction === "approve" ? roomNumber : null,
           admissionStartDate: reviewAction === "approve" ? admissionStart : null,
@@ -290,23 +302,32 @@ export default function AdminApplications() {
 
       const data = await res.json();
       if (res.ok) {
-        alert(`Application ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`);
+        toast.success(`Application ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`);
         setSelectedApp(null);
         setReviewAction(null);
         fetchData(); // Refresh data
       } else {
-        alert(data.error || "Failed to submit review");
+        toast.error(data.error || "Failed to submit review");
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Failed to submit review");
+      console.error("Review submission error:", error);
+      toast.error("Failed to submit review");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleActivateAdmission = async (appId: string) => {
-    if (!confirm("Activate this admission? Student will be marked as active resident.")) return;
+    setConfirmDialog({
+      open: true,
+      title: "Activate Admission",
+      description: "Are you sure you want to activate this admission? The student will be marked as an active resident.",
+      onConfirm: () => confirmActivateAdmission(appId),
+    });
+  };
+
+  const confirmActivateAdmission = async (appId: string) => {
+    setConfirmDialog({ ...confirmDialog, open: false });
 
     try {
       const res = await fetch(`/api/admin/applications/${appId}/activate`, {
@@ -314,11 +335,11 @@ export default function AdminApplications() {
       });
 
       if (res.ok) {
-        alert("Admission activated successfully!");
+        toast.success("Admission activated successfully!");
         fetchData();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to activate admission");
+        toast.error(data.error || "Failed to activate admission");
       }
     } catch (error) {
       console.error("Error activating admission:", error);
@@ -557,7 +578,7 @@ export default function AdminApplications() {
                                   </Button>
                                 </>
                               )}
-                              {app.status === "approved" && (
+                              {(app.status === "approved" || app.status === "active") && (
                                 <Button
                                   onClick={() => handleActivateAdmission(app.id)}
                                   size="sm"
@@ -821,11 +842,11 @@ export default function AdminApplications() {
                 </div>
               )}
 
-              {/* Review Comments */}
-              {selectedApp.reviewComments && (
+              {/* Admin Notes */}
+              {selectedApp.adminNotes && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">Review Comments</h4>
-                  <p className="text-blue-800">{selectedApp.reviewComments}</p>
+                  <h4 className="font-semibold text-blue-900 mb-2">Admin Notes</h4>
+                  <p className="text-blue-800">{selectedApp.adminNotes}</p>
                 </div>
               )}
             </div>
@@ -917,8 +938,8 @@ export default function AdminApplications() {
               </Label>
               <Textarea
                 id="comments"
-                value={reviewComments}
-                onChange={(e) => setReviewComments(e.target.value)}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder={
                   reviewAction === "approve"
                     ? "Congratulations! Your application has been approved..."
@@ -947,6 +968,16 @@ export default function AdminApplications() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        variant={confirmDialog.variant}
+      />
     </div>
   );
 }

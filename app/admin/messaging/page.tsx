@@ -29,6 +29,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface Student {
   id: string;
@@ -67,6 +68,12 @@ export default function MessagingPage() {
 
   // Results
   const [sendResults, setSendResults] = useState<any>(null);
+
+  // Confirmation dialog
+  const [sendConfirmDialog, setSendConfirmDialog] = useState<{
+    isOpen: boolean;
+    recipientCount: number;
+  }>({ isOpen: false, recipientCount: 0 });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -198,12 +205,14 @@ export default function MessagingPage() {
       return;
     }
 
-    if (!confirm(`Are you sure you want to send this message to ${recipientCount} recipient(s)?`)) {
-      return;
-    }
+    // Show confirmation dialog
+    setSendConfirmDialog({ isOpen: true, recipientCount });
+  };
 
+  const confirmSendMessage = async () => {
     try {
       setLoading(true);
+      setSendConfirmDialog({ isOpen: false, recipientCount: 0 });
       const res = await fetch("/api/admin/messaging/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -560,6 +569,17 @@ export default function MessagingPage() {
           </Card>
         </div>
       </div>
+
+      {/* Send Confirmation Dialog */}
+      <ConfirmationDialog
+        open={sendConfirmDialog.isOpen}
+        onOpenChange={(open) => !open && setSendConfirmDialog({ isOpen: false, recipientCount: 0 })}
+        onConfirm={confirmSendMessage}
+        title="Send Message"
+        description={`Are you sure you want to send this message to ${sendConfirmDialog.recipientCount} recipient(s)?`}
+        confirmText="Send"
+        variant="default"
+      />
     </div>
   );
 }

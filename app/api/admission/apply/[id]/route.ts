@@ -7,7 +7,7 @@ import { eq, and } from "drizzle-orm";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const applicationId = params.id;
+    const { id: applicationId } = await params;
 
     // Fetch the application with user information
     const [application] = await db
@@ -48,7 +48,6 @@ export async function GET(
         admissionStartDate: admissionApplications.admissionStartDate,
         admissionEndDate: admissionApplications.admissionEndDate,
         adminNotes: admissionApplications.adminNotes,
-        reviewComments: admissionApplications.reviewComments,
         reviewedBy: admissionApplications.reviewedBy,
         reviewedAt: admissionApplications.reviewedAt,
         rejectionReason: admissionApplications.rejectionReason,

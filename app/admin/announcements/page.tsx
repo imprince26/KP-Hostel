@@ -65,6 +65,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface Announcement {
   announcement: {
@@ -98,6 +99,10 @@ export default function AnnouncementsPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    isOpen: boolean;
+    announcementId: string | null;
+  }>({ isOpen: false, announcementId: null });
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
@@ -259,9 +264,15 @@ export default function AnnouncementsPage() {
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this announcement?")) return;
+    setDeleteConfirmDialog({ isOpen: true, announcementId: id });
+  };
+
+  const confirmDeleteAnnouncement = async () => {
+    const id = deleteConfirmDialog.announcementId;
+    if (!id) return;
 
     try {
+      setDeleteConfirmDialog({ isOpen: false, announcementId: null });
       const res = await fetch(`/api/admin/announcements/${id}`, {
         method: "DELETE",
       });
@@ -837,6 +848,17 @@ export default function AnnouncementsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete Confirmation Dialog (Custom) */}
+      <ConfirmationDialog
+        open={deleteConfirmDialog.isOpen}
+        onOpenChange={(open) => !open && setDeleteConfirmDialog({ isOpen: false, announcementId: null })}
+        onConfirm={confirmDeleteAnnouncement}
+        title="Delete Announcement"
+        description="Are you sure you want to delete this announcement? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }

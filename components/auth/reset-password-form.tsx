@@ -159,7 +159,6 @@ export function ResetPasswordForm() {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                error={errors.password}
                 required
               />
               <button
@@ -170,6 +169,9 @@ export function ResetPasswordForm() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
+            {errors.password && (
+              <p className="mt-1.5 text-sm text-red-600">{errors.password}</p>
+            )}
             <p className="mt-1.5 text-sm text-gray-500">
               Must be at least 8 characters
             </p>
@@ -186,7 +188,6 @@ export function ResetPasswordForm() {
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                error={errors.confirmPassword}
                 required
               />
               <button
@@ -197,6 +198,9 @@ export function ResetPasswordForm() {
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
+            {errors.confirmPassword && (
+              <p className="mt-1.5 text-sm text-red-600">{errors.confirmPassword}</p>
+            )}
           </div>
 
           <Button

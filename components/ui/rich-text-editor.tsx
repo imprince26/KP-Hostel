@@ -72,6 +72,13 @@ export default function RichTextEditor({
     },
   });
 
+  // Sync editor content when value changes externally (e.g., template applied)
+  useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
+    }
+  }, [value, editor]);
+
   if (!editor) {
     return null;
   }

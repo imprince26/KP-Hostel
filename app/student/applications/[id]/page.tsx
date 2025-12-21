@@ -61,6 +61,25 @@ export default function ApplicationView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchApplication = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/admission/apply/${params.id}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setApplication(data.application);
+      } else {
+        setError(data.error || "Failed to fetch application");
+      }
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      setError("An error occurred while fetching the application");
+    } finally {
+      setLoading(false);
+    }
+  }, [params.id]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
@@ -71,25 +90,6 @@ export default function ApplicationView() {
       fetchApplication();
     }
   }, [status, params.id, router, fetchApplication]);
-
-  const fetchApplication = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admission/apply/${params.id}`);
-      const data = await res.json();
-
-      if (res.ok && data.application) {
-        setApplication(data.application);
-      } else {
-        setError(data.error || "Application not found");
-      }
-    } catch (error) {
-      console.error("Error fetching application:", error);
-      setError("Failed to load application");
-    } finally {
-      setLoading(false);
-    }
-  }, [params.id]);
 
   const getStatusConfig = (status: string) => {
     const configs = {

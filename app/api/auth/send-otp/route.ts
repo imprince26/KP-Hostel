@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Send OTP email
-    const emailTemplate = getOTPEmailTemplate(name, otp);
+    const emailHtml = getOTPEmailTemplate(name, otp);
     await sendMail({
       to: email,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
+      subject: "Your Verification Code",
+      html: emailHtml,
+      text: `Your OTP for email verification is: ${otp}. This code will expire in 10 minutes.`,
     });
 
     return NextResponse.json({
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validation error", details: error.errors },
+        { error: "Validation error", details: error.issues },
         { status: 400 }
       );
     }
