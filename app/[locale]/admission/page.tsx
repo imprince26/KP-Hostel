@@ -234,15 +234,15 @@ export default function AdmissionPage() {
   // Success screen
   if (applicationNumber) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-muted via-background to-muted pt-28 pb-16 px-4">
+      <div className="min-h-screen bg-white pt-28 pb-16 px-4">
         <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <Card className="border-0 shadow-2xl overflow-hidden">
-              <div className="bg-linear-to-r from-green-500 via-emerald-500 to-teal-500 text-white p-12 text-center relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
+            <Card className="border-0 shadow-xl overflow-hidden">
+              <div className="bg-linear-to-r from-primary/10 to-primary/5 text-gray-900 p-12 text-center relative overflow-hidden border-b border-primary/10">
+                <div className="absolute inset-0 opacity-5">
                   <div
                     className="absolute inset-0"
                     style={{
@@ -255,12 +255,12 @@ export default function AdmissionPage() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-6 shadow-2xl"
+                    className="inline-flex items-center justify-center w-24 h-24 bg-primary rounded-full mb-6 shadow-2xl"
                   >
-                    <Check className="w-14 h-14 text-green-500" />
+                    <Check className="w-14 h-14 text-white" />
                   </motion.div>
-                  <h1 className="text-4xl font-bold mb-3">Application Submitted!</h1>
-                  <p className="text-green-50 text-xl">Your hostel admission application has been successfully submitted</p>
+                  <h1 className="text-4xl font-bold mb-3 text-gray-900">Application Submitted!</h1>
+                  <p className="text-gray-600 text-xl">Your hostel admission application has been successfully submitted</p>
                 </div>
               </div>
               
@@ -344,7 +344,7 @@ export default function AdmissionPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
       {/* Hero Header with proper top padding */}
-      <div className="relative bg-linear-to-r from-orange-500 via-red-500 to-pink-500 text-white pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24 overflow-hidden">
+      <div className="relative bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 text-white pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div
             className="absolute inset-0"
@@ -364,9 +364,9 @@ export default function AdmissionPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-background/20 backdrop-blur-sm mb-6 shadow-xl text-primary-foreground">
+            {/* <div className="inline-flex items-center justify-center w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-background/20 backdrop-blur-sm mb-6 shadow-xl text-primary-foreground">
               <FileText className="w-8 sm:w-10 h-8 sm:h-10" />
-            </div>
+            </div> */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-primary-foreground">Admission Application</h1>
             <p className="text-lg sm:text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto leading-relaxed">
               Complete your hostel admission application in 5 easy steps
@@ -401,15 +401,14 @@ export default function AdmissionPage() {
               <Alert className="border-destructive/50 bg-destructive/10 shadow-sm">
                 <AlertCircle className="h-5 w-5 text-destructive" />
                 <AlertDescription className="text-destructive">
-                  Please{" "}
+                  Please login to submit your application.{" "}
                   <Button
                     variant="link"
                     className="px-1 h-auto text-destructive font-semibold underline"
                     onClick={() => router.push("/auth/login")}
                   >
-                    login
-                  </Button>{" "}
-                  to submit your application.
+                    Login here
+                  </Button>
                 </AlertDescription>
               </Alert>
             </motion.div>

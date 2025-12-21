@@ -89,7 +89,7 @@ export async function submitAdmissionApplication(formData: unknown) {
       applicationNumber,
       status: "submitted",
       fullName: validated.fullName.trim(),
-      dateOfBirth: validated.dob,
+      dateOfBirth: validated.dateOfBirth,
       gender: validated.gender,
       caste: validated.caste.trim(),
       subCaste: validated.subCaste.trim(),
