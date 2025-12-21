@@ -567,6 +567,26 @@ export default function AdmissionPage() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-base font-medium">Gender *</Label>
+                    <Select onValueChange={(value) => setValue("gender", value as "male" | "female" | "other")}>
+                      <SelectTrigger className={cn("h-11", errors.gender && "border-destructive")}>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.gender.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="caste" className="text-base font-medium">Caste *</Label>
                     <Input
                       id="caste"
@@ -581,6 +601,7 @@ export default function AdmissionPage() {
                       </p>
                     )}
                   </div>
+                </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="subCaste" className="text-base font-medium">Sub-Caste *</Label>
@@ -597,7 +618,6 @@ export default function AdmissionPage() {
                       </p>
                     )}
                   </div>
-                </div>
               </CardContent>
             </Card>
           )}

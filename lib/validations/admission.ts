@@ -8,7 +8,7 @@ export const admissionFormSchema = z.object({
     .max(100, "Name is too long")
     .regex(/^[a-zA-Z\s]+$/, "Name should only contain letters"),
   
-  dob: z.string().min(1, "Date of birth is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
   
   gender: z.enum(["male", "female", "other"]),
   
