@@ -5,33 +5,68 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "motion/react";
-import { FaBars, FaTimes, FaGlobe, FaChevronDown, FaHome, FaInfoCircle, FaEye, FaConciergeBell, FaImages, FaPhoneAlt, FaBullhorn, FaUserGraduate } from "react-icons/fa";
+import { FaBars, FaTimes, FaGlobe, FaChevronDown, FaHome, FaInfoCircle, FaEye, FaConciergeBell, FaImages, FaPhoneAlt, FaBullhorn, FaUserGraduate, FaUser, FaSignOutAlt, FaUserShield, FaCog } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const { data: session } = useSession();
   const t = useTranslations("nav");
   const locale = useLocale();
   const pathname = usePathname();
 
-  const navigation = [
-    { name: t("home"), href: "/", icon: FaHome },
-    { name: t("about"), href: "/about", icon: FaInfoCircle },
-    { name: t("vision"), href: "/vision", icon: FaEye },
-    { name: t("facilities"), href: "/facilities", icon: FaConciergeBell },
-    { name: t("gallery"), href: "/gallery", icon: FaImages },
-    { name: t("contact"), href: "/contact", icon: FaPhoneAlt },
-    { name: t("announcements"), href: "/announcements", icon: FaBullhorn },
-    { name: t("admission"), href: "/admission", icon: FaUserGraduate },
+  // Public navigation
+  const publicNavigation = [
+    { name: t("home"), href: `/${locale}`, icon: FaHome },
+    { name: t("about"), href: `/${locale}/about`, icon: FaInfoCircle },
+    { name: t("vision"), href: `/${locale}/vision`, icon: FaEye },
+    { name: t("facilities"), href: `/${locale}/facilities`, icon: FaConciergeBell },
+    { name: t("gallery"), href: `/${locale}/gallery`, icon: FaImages },
+    { name: t("contact"), href: `/${locale}/contact`, icon: FaPhoneAlt },
+    { name: t("announcements"), href: `/${locale}/announcements`, icon: FaBullhorn },
+    { name: t("admission"), href: `/${locale}/admission`, icon: FaUserGraduate },
   ];
+
+  // Get navigation based on role
+  const getNavigation = () => {
+    if (!session) return publicNavigation;
+    
+    if (session.user.role === "admin") {
+      return [
+        { name: "Dashboard", href: "/admin/dashboard", icon: FaHome },
+        { name: "Applications", href: "/admin/applications", icon: FaUserGraduate },
+        { name: "Payments", href: "/admin/payments", icon: FaConciergeBell },
+        { name: "Announcements", href: "/admin/announcements", icon: FaBullhorn },
+        { name: "Messaging", href: "/admin/messaging", icon: FaPhoneAlt },
+        { name: "Blocks", href: "/admin/blocks", icon: FaHome },
+      ];
+    }
+    
+    if (session.user.role === "student") {
+      return [
+        { name: "Dashboard", href: "/student/dashboard", icon: FaHome },
+        { name: "My Applications", href: "/student/applications", icon: FaUserGraduate },
+        { name: "Apply", href: `/${locale}/admission`, icon: FaUserGraduate },
+        { name: t("announcements"), href: `/${locale}/announcements`, icon: FaBullhorn },
+        { name: t("facilities"), href: `/${locale}/facilities`, icon: FaConciergeBell },
+        { name: t("gallery"), href: `/${locale}/gallery`, icon: FaImages },
+      ];
+    }
+    
+    return publicNavigation;
+  };
+
+  const navigation = getNavigation();
 
   const switchLocale = (newLocale: string) => {
     const segments = pathname.split("/");
@@ -88,17 +123,17 @@ export function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden xl:flex items-center gap-1 bg-slate-50 p-1.5 rounded-full">
-              {navigation.map((item) => {
-                const isActive = item.href === "/" 
+            <nav className="hidden lg:flex items-center gap-1 bg-slate-50 p-1.5 rounded-full max-w-2xl">
+              {navigation.slice(0, 6).map((item) => {
+                const isActive = item.href === `/${locale}` 
                   ? pathname === `/${locale}` || pathname === `/${locale}/`
-                  : pathname.startsWith(`/${locale}${item.href}`);
+                  : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
-                    href={`/${locale}${item.href}`}
+                    href={item.href}
                     className={cn(
-                      "px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 relative",
+                      "px-3 py-2 text-sm font-medium rounded-full transition-all duration-300 relative whitespace-nowrap",
                       isActive 
                         ? "text-white bg-primary shadow-sm" 
                         : "text-gray-700 hover:text-primary hover:bg-white"
@@ -108,16 +143,47 @@ export function Header() {
                   </Link>
                 );
               })}
+              {navigation.length > 6 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="rounded-full px-3 py-2 text-sm font-medium text-gray-700 hover:text-primary hover:bg-white"
+                      suppressHydrationWarning={true}
+                    >
+                      More <FaChevronDown className="size-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-xl border-gray-100">
+                    {navigation.slice(6).map((item) => {
+                      const isActive = item.href === `/${locale}` 
+                        ? pathname === `/${locale}` || pathname === `/${locale}/`
+                        : pathname.startsWith(item.href);
+                      return (
+                        <DropdownMenuItem key={item.href} asChild className="rounded-lg cursor-pointer">
+                          <Link href={item.href} className="flex items-center gap-2 w-full">
+                            <item.icon className="size-4" />
+                            {item.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </nav>
 
             {/* Actions */}
             <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              {/* Language Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className="rounded-full gap-2 px-3 text-gray-700 hover:bg-gray-100 hover:text-primary"
+                    suppressHydrationWarning={true}
                   >
                     <FaGlobe className="size-4" />
                     <span className="hidden sm:inline uppercase text-xs font-bold">{locale}</span>
@@ -137,6 +203,81 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* User Menu or Auth Buttons */}
+              {session ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="rounded-full gap-2 px-3 text-gray-700 hover:bg-gray-100 hover:text-primary hidden xl:flex"
+                      suppressHydrationWarning={true}
+                    >
+                      {session.user.role === 'admin' ? <FaUserShield className="size-4" /> : <FaUser className="size-4" />}
+                      <span className="text-xs font-medium">{session.user.name || session.user.email}</span>
+                      <FaChevronDown className="size-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-xl border-gray-100">
+                    <div className="px-3 py-2 text-xs text-gray-500">
+                      <div className="font-medium text-gray-900">{session.user.name}</div>
+                      <div className="truncate">{session.user.email}</div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    {session.user.role === 'student' && (
+                      <>
+                        <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                          <Link href="/student/dashboard" className="flex items-center gap-2 w-full">
+                            <FaHome className="size-4" />
+                            Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                          <Link href="/student/settings" className="flex items-center gap-2 w-full">
+                            <FaCog className="size-4" />
+                            Settings
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    {session.user.role === 'admin' && (
+                      <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                        <Link href="/admin/dashboard" className="flex items-center gap-2 w-full">
+                          <FaUserShield className="size-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => signOut({ callbackUrl: `/${locale}` })}
+                      className="rounded-lg cursor-pointer text-red-600"
+                    >
+                      <FaSignOutAlt className="size-4 mr-2" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="hidden xl:flex items-center gap-2">
+                  <Button 
+                    asChild
+                    variant="ghost" 
+                    size="sm"
+                    className="rounded-full text-gray-700 hover:bg-gray-100 hover:text-primary"
+                  >
+                    <Link href="/auth/login">Login</Link>
+                  </Button>
+                  <Button 
+                    asChild
+                    size="sm"
+                    className="rounded-full bg-primary hover:bg-primary/90"
+                  >
+                    <Link href="/auth/register">Sign Up</Link>
+                  </Button>
+                </div>
+              )}
 
               {/* Mobile Menu Toggle */}
               <Button
@@ -249,19 +390,54 @@ export function Header() {
 
               {/* Sidebar Footer */}
               <div className="bg-slate-50 p-6 border-t border-gray-100 shrink-0">
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-gray-600">Need assistance?</p>
-                  <Button 
-                    asChild 
-                    className="w-full rounded-full bg-primary hover:bg-primary/90 shadow-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Link href={`/${locale}/contact`}>
-                      <FaPhoneAlt className="mr-2 size-4" />
-                      Contact Us
-                    </Link>
-                  </Button>
-                </div>
+                {session ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="flex items-center gap-3 mb-3">
+                        {session.user.role === 'admin' ? <FaUserShield className="size-5 text-primary" /> : <FaUser className="size-5 text-primary" />}
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-gray-900">{session.user.name}</div>
+                          <div className="text-xs text-gray-500 truncate">{session.user.email}</div>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          signOut({ callbackUrl: `/${locale}` });
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <FaSignOutAlt className="mr-2 size-4" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Button 
+                      asChild 
+                      className="w-full rounded-full bg-primary hover:bg-primary/90 shadow-md"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Link href="/auth/login">
+                        <FaUser className="mr-2 size-4" />
+                        Login
+                      </Link>
+                    </Button>
+                    <Button 
+                      asChild 
+                      variant="outline"
+                      className="w-full rounded-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Link href="/auth/register">
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </>

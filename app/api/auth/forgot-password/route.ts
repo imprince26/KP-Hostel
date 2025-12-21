@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { sendMail } from "@/lib/mail";
-import { getPasswordResetEmailTemplate } from "@/lib/email-templates";
+import { passwordResetTemplate } from "@/lib/email-templates";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -47,16 +47,16 @@ export async function POST(req: NextRequest) {
 
     // Send reset email
     const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${resetToken}`;
-    const emailTemplate = getPasswordResetEmailTemplate(
+    const emailHtml = passwordResetTemplate(
       user.name || "User",
       resetLink
     );
 
     await sendMail({
       to: user.email!,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      text: emailTemplate.text,
+      subject: "Reset Your Password - K.P. Vidhyarthi Bhavan",
+      html: emailHtml,
+      text: `Reset your password: ${resetLink}`,
     });
 
     return NextResponse.json(

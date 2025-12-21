@@ -13,8 +13,11 @@ export function Footer() {
   const quickLinks = [
     { name: tNav("home"), href: "/" },
     { name: tNav("about"), href: "/about" },
+    { name: tNav("vision"), href: "/vision" },
     { name: tNav("facilities"), href: "/facilities" },
     { name: tNav("admission"), href: "/admission" },
+    { name: tNav("gallery"), href: "/gallery" },
+    { name: tNav("announcements"), href: "/announcements" },
     { name: tNav("contact"), href: "/contact" },
   ];
 
@@ -107,9 +110,9 @@ export function Footer() {
           {/* Map or Extra Info */}
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-white">Location</h3>
-            <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-800 relative grayscale hover:grayscale-0 transition-all duration-500">
+            <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-800 relative transition-all duration-500">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.949944854684!2d72.5597!3d23.0258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDAxJzMyLjkiTiA3MsKwMzMnMzQuOSJF!5e0!3m2!1sen!2sin!4v1620000000000!5m2!1sen!2sin"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1054.575977372256!2d72.55586447755975!3d23.02678737328067!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e84e35da82901%3A0x5fe86d572d73a348!2sK.P.%20Vidhyarthi%20Bhavan!5e1!3m2!1sen!2sin!4v1766303650845!5m2!1sen!2sin"
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 

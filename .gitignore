@@ -42,3 +42,5 @@ next-env.d.ts
 
 /docs
 plan.md
+.github/copilot-instructions.md
+.copilot

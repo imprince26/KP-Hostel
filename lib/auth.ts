@@ -12,13 +12,43 @@ declare module "next-auth" {
     user: {
       id: string;
       role: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      phone?: string | null;
+      dateOfBirth?: string | null;
+      gender?: string | null;
+      caste?: string | null;
+      subCaste?: string | null;
+      address?: string | null;
+      city?: string | null;
+      state?: string | null;
+      pincode?: string | null;
+      guardianName?: string | null;
+      guardianPhone?: string | null;
+      collegeName?: string | null;
+      course?: string | null;
+      year?: string | null;
       needsProfileCompletion?: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: string;
-    phone?: string;
+    phone?: string | null;
+    dateOfBirth?: string | null;
+    gender?: string | null;
+    caste?: string | null;
+    subCaste?: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    pincode?: string | null;
+    guardianName?: string | null;
+    guardianPhone?: string | null;
+    collegeName?: string | null;
+    course?: string | null;
+    year?: string | null;
   }
 }
 
@@ -26,7 +56,20 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: string;
-    phone?: string;
+    phone?: string | null;
+    dateOfBirth?: string | null;
+    gender?: string | null;
+    caste?: string | null;
+    subCaste?: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    pincode?: string | null;
+    guardianName?: string | null;
+    guardianPhone?: string | null;
+    collegeName?: string | null;
+    course?: string | null;
+    year?: string | null;
   }
 }
 
@@ -112,7 +155,7 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role || "student";
-          token.phone = dbUser.phone;
+          token.phone = dbUser.phone
           
           // Set default role for OAuth users if not set
           if (account?.provider === "google" && !dbUser.role) {
@@ -135,9 +178,7 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && session) {
         token.name = session.name;
         token.email = session.email;
-        if (session.phone) {
-          token.phone = session.phone;
-        }
+        if (session.phone) token.phone = session.phone;
       }
       
       return token;
@@ -146,6 +187,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.phone = token.phone;
         
         // Check if user needs to complete profile (no phone)
         if (!token.phone && session.user.email) {

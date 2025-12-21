@@ -22,6 +22,7 @@ export default function proxy(request: NextRequest) {
     pathname.startsWith("/auth") ||
     pathname.startsWith("/student") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/admission") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/_vercel") ||
     pathname.includes(".");
