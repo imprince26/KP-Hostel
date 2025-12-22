@@ -1,12 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
+import {
+  FiDollarSign,
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiFilter,
+  FiCheckCircle,
+  FiClock,
+  FiAlertCircle,
+  FiTrendingUp,
+  FiX
+} from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -14,56 +47,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import {
-  Search,
-  Plus,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  Edit,
-  Trash2,
-  FileText,
-} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+interface Student {
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  application: {
+    id: string;
+    applicationNumber: string;
+    assignedBlock: string | null;
+    roomNumber: string | null;
+    status?: string;
+  } | null;
+}
 
 interface Payment {
   payment: {
     id: string;
+    studentId: string;
+    applicationId: string | null;
     semester: string;
     academicYear: string;
     ddNumber: string | null;
     bankName: string | null;
     amountPaid: number | null;
     paymentStatus: string;
-    paidDate: Date | null;
+    paidDate: string | null;
     notes: string | null;
-    createdAt: Date;
+    createdAt: string;
+    updatedAt: string;
   };
   student: {
     id: string;
     name: string | null;
     email: string | null;
     phone: string | null;
-  } | null;
+  };
   application: {
     id: string;
     applicationNumber: string;
@@ -80,9 +104,10 @@ interface Stats {
   totalAmount: number;
 }
 
-export default function PaymentsPage() {
+export default function AdminPaymentsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
   const [payments, setPayments] = useState<Payment[]>([]);
   const [filteredPayments, setFilteredPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<Stats>({
@@ -92,19 +117,24 @@ export default function PaymentsPage() {
     partial: 0,
     totalAmount: 0,
   });
+  
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSemester, setFilterSemester] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterYear, setFilterYear] = useState("");
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"add" | "edit">("add");
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<Payment | null>(null);
 
   // Form states
   const [studentSearch, setStudentSearch] = useState("");
-  const [students, setStudents] = useState<any[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({
     semester: "",
     academicYear: "",
@@ -115,16 +145,23 @@ export default function PaymentsPage() {
     paidDate: "",
     notes: "",
   });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (session?.user.role !== "admin") {
-      router.push("/");
-    } else {
+      return;
+    }
+
+    if (status === "authenticated") {
+      const userRole = (session.user as any).role;
+      if (userRole !== "admin") {
+        router.push("/student/dashboard");
+        return;
+      }
       fetchPayments();
     }
-  }, [session, status, router]);
+  }, [status, session, router]);
 
   useEffect(() => {
     applyFilters();
@@ -166,11 +203,11 @@ export default function PaymentsPage() {
       );
     }
 
-    if (filterSemester) {
+    if (filterSemester && filterSemester !== "all") {
       filtered = filtered.filter((p) => p.payment.semester === filterSemester);
     }
 
-    if (filterStatus) {
+    if (filterStatus && filterStatus !== "all") {
       filtered = filtered.filter((p) => p.payment.paymentStatus === filterStatus);
     }
 
@@ -192,91 +229,137 @@ export default function PaymentsPage() {
       const data = await res.json();
       
       if (res.ok) {
-        setStudents(data.students);
+        setStudents(data.students || []);
       }
     } catch (error) {
       console.error("Error searching students:", error);
     }
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      searchStudents(studentSearch);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [studentSearch]);
+  const handleAddPayment = () => {
+    setDialogMode("add");
+    setSelectedPayment(null);
+    setSelectedStudent(null);
+    setStudentSearch("");
+    setStudents([]);
+    setFormData({
+      semester: "",
+      academicYear: new Date().getFullYear().toString(),
+      ddNumber: "",
+      bankName: "",
+      amountPaid: "",
+      paymentStatus: "pending",
+      paidDate: "",
+      notes: "",
+    });
+    setDialogOpen(true);
+  };
 
-  const handleAddPayment = async () => {
-    if (!selectedStudent || !formData.semester || !formData.academicYear) {
-      toast.error("Please select student, semester, and academic year");
-      return;
+  const handleEditPayment = (payment: Payment) => {
+    setDialogMode("edit");
+    setSelectedPayment(payment);
+    setSelectedStudent({
+      user: payment.student,
+      application: payment.application,
+    });
+    setFormData({
+      semester: payment.payment.semester,
+      academicYear: payment.payment.academicYear,
+      ddNumber: payment.payment.ddNumber || "",
+      bankName: payment.payment.bankName || "",
+      amountPaid: payment.payment.amountPaid?.toString() || "",
+      paymentStatus: payment.payment.paymentStatus,
+      paidDate: payment.payment.paidDate ? new Date(payment.payment.paidDate).toISOString().split('T')[0] : "",
+      notes: payment.payment.notes || "",
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (dialogMode === "add") {
+      if (!selectedStudent) {
+        toast.error("Please select a student");
+        return;
+      }
+      if (!formData.semester || !formData.academicYear) {
+        toast.error("Please fill all required fields");
+        return;
+      }
     }
 
     try {
-      const res = await fetch("/api/admin/payments", {
-        method: "POST",
+      setSubmitting(true);
+      
+      const url = dialogMode === "add" 
+        ? "/api/admin/payments" 
+        : `/api/admin/payments/${selectedPayment?.payment.id}`;
+      
+      const method = dialogMode === "add" ? "POST" : "PATCH";
+      
+      const payload = dialogMode === "add"
+        ? {
+            studentId: selectedStudent?.user.id,
+            applicationId: selectedStudent?.application?.id || null,
+            semester: formData.semester,
+            academicYear: formData.academicYear,
+            ddNumber: formData.ddNumber || null,
+            bankName: formData.bankName || null,
+            amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
+            paymentStatus: formData.paymentStatus,
+            paidDate: formData.paidDate || null,
+            notes: formData.notes || null,
+          }
+        : {
+            ddNumber: formData.ddNumber || null,
+            bankName: formData.bankName || null,
+            amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
+            paymentStatus: formData.paymentStatus,
+            paidDate: formData.paidDate || null,
+            notes: formData.notes || null,
+          };
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId: selectedStudent.user.id,
-          applicationId: selectedStudent.application?.id || null,
-          ...formData,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Payment record added successfully");
-        setAddDialogOpen(false);
-        resetForm();
+        toast.success(data.message || `Payment ${dialogMode === "add" ? "added" : "updated"} successfully`);
+        setDialogOpen(false);
         fetchPayments();
       } else {
-        toast.error(data.error || "Failed to add payment");
+        toast.error(data.error || `Failed to ${dialogMode} payment`);
       }
     } catch (error) {
-      console.error("Error adding payment:", error);
-      toast.error("Failed to add payment");
+      console.error(`Error ${dialogMode}ing payment:`, error);
+      toast.error(`Failed to ${dialogMode} payment`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleUpdatePayment = async () => {
-    if (!selectedPayment) return;
-
-    try {
-      const res = await fetch(`/api/admin/payments/${selectedPayment.payment.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Payment updated successfully");
-        setEditDialogOpen(false);
-        resetForm();
-        fetchPayments();
-      } else {
-        toast.error(data.error || "Failed to update payment");
-      }
-    } catch (error) {
-      console.error("Error updating payment:", error);
-      toast.error("Failed to update payment");
-    }
+  const handleDeleteClick = (payment: Payment) => {
+    setPaymentToDelete(payment);
+    setDeleteDialogOpen(true);
   };
 
-  const handleDeletePayment = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this payment record?")) return;
+  const handleDeleteConfirm = async () => {
+    if (!paymentToDelete) return;
 
     try {
-      const res = await fetch(`/api/admin/payments/${id}`, {
+      const res = await fetch(`/api/admin/payments/${paymentToDelete.payment.id}`, {
         method: "DELETE",
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Payment deleted successfully");
+        toast.success("Payment record deleted successfully");
+        setDeleteDialogOpen(false);
+        setPaymentToDelete(null);
         fetchPayments();
       } else {
         toast.error(data.error || "Failed to delete payment");
@@ -287,135 +370,425 @@ export default function PaymentsPage() {
     }
   };
 
-  const openEditDialog = (payment: Payment) => {
-    setSelectedPayment(payment);
-    setFormData({
-      semester: payment.payment.semester,
-      academicYear: payment.payment.academicYear,
-      ddNumber: payment.payment.ddNumber || "",
-      bankName: payment.payment.bankName || "",
-      amountPaid: payment.payment.amountPaid?.toString() || "",
-      paymentStatus: payment.payment.paymentStatus,
-      paidDate: payment.payment.paidDate
-        ? new Date(payment.payment.paidDate).toISOString().split("T")[0]
-        : "",
-      notes: payment.payment.notes || "",
-    });
-    setEditDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setSelectedStudent(null);
-    setStudentSearch("");
-    setStudents([]);
-    setFormData({
-      semester: "",
-      academicYear: "",
-      ddNumber: "",
-      bankName: "",
-      amountPaid: "",
-      paymentStatus: "pending",
-      paidDate: "",
-      notes: "",
-    });
-  };
-
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "paid":
-        return <Badge className="bg-green-500">Paid</Badge>;
-      case "partial":
-        return <Badge className="bg-yellow-500">Partial</Badge>;
-      case "pending":
-        return <Badge className="bg-red-500">Pending</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
+    const styles = {
+      paid: "bg-green-100 text-green-700 border-green-300",
+      pending: "bg-yellow-100 text-yellow-700 border-yellow-300",
+      partial: "bg-blue-100 text-blue-700 border-blue-300",
+    };
+
+    const labels = {
+      paid: "Paid",
+      pending: "Pending",
+      partial: "Partial",
+    };
+
+    return (
+      <Badge className={`${styles[status as keyof typeof styles] || styles.pending} border`}>
+        {labels[status as keyof typeof labels] || status}
+      </Badge>
+    );
   };
 
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return "₹0";
-    return `₹${amount.toLocaleString("en-IN")}`;
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return "N/A";
-    return new Date(date).toLocaleDateString("en-IN");
+  const getSemesterLabel = (semester: string) => {
+    return semester === "sem1" ? "Semester 1" : "Semester 2";
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading payments...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Payment Tracking</h1>
-          <p className="text-muted-foreground">Manage semester fees and DD records</p>
+    <div className="min-h-screen bg-muted/30 py-4 sm:py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Payment Management</h1>
+          <p className="text-muted-foreground">Track and manage student semester payments</p>
         </div>
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Payment
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add Payment Record</DialogTitle>
-              <DialogDescription>Add a new semester payment record for a student</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Search Student</Label>
-                <Input
-                  placeholder="Search by name, email, or phone"
-                  value={studentSearch}
-                  onChange={(e) => setStudentSearch(e.target.value)}
-                />
-                {students.length > 0 && (
-                  <div className="mt-2 border rounded-md max-h-48 overflow-y-auto">
-                    {students.map((s) => (
-                      <div
-                        key={s.user.id}
-                        onClick={() => {
-                          setSelectedStudent(s);
-                          setStudentSearch(s.user.name || s.user.email || "");
-                          setStudents([]);
-                        }}
-                        className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                      >
-                        <div className="font-medium">{s.user.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {s.user.email} | {s.user.phone}
-                        </div>
-                        {s.application && (
-                          <div className="text-xs text-muted-foreground">
-                            App: {s.application.applicationNumber} | Block: {s.application.assignedBlock}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Records</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.total}</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <FiDollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Paid</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.paid}</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                  <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Pending</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
+                  <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Partial</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.partial}</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <FiAlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-2 lg:col-span-1 border-0 shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Amount</p>
+                  <p className="text-xl sm:text-2xl font-bold text-primary flex items-center">
+                    <FaRupeeSign className="w-4 h-4 sm:w-5 sm:h-5" />
+                    {stats.totalAmount.toLocaleString('en-IN')}
+                  </p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <FiTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters and Search */}
+        <Card className="mb-6 border-0 shadow-sm bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FiFilter className="w-4 h-4 sm:w-5 sm:h-5" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-2">
+                <Label className="text-sm">Search</Label>
+                <div className="relative">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, email, phone..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
 
-              {selectedStudent && (
-                <Card className="p-4 bg-blue-50">
-                  <div className="font-medium">{selectedStudent.user.name}</div>
-                  <div className="text-sm">{selectedStudent.user.email}</div>
-                </Card>
+              <div>
+                <Label className="text-sm">Semester</Label>
+                <Select value={filterSemester} onValueChange={setFilterSemester}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Semesters" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Semesters</SelectItem>
+                    <SelectItem value="sem1">Semester 1</SelectItem>
+                    <SelectItem value="sem2">Semester 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm">Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm">Academic Year</Label>
+                <Input
+                  placeholder="e.g., 2024-2025"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterSemester("");
+                  setFilterStatus("");
+                  setFilterYear("");
+                }}
+              >
+                <FiX className="w-4 h-4 mr-2" />
+                Clear Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Actions Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredPayments.length} of {payments.length} payment records
+            </p>
+          </div>
+          <Button onClick={handleAddPayment} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
+            <FiPlus className="w-4 h-4 mr-2" />
+            Add Payment Record
+          </Button>
+        </div>
+
+        {/* Payments Table */}
+        <Card className="border-0 shadow-sm bg-card">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Student Details
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                      Semester
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap hidden md:table-cell">
+                      Academic Year
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
+                      DD Details
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                      Amount
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap hidden xl:table-cell">
+                      Paid Date
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 sm:py-4 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-muted-foreground">
+                          <FiDollarSign className="w-12 h-12 mb-3 opacity-50" />
+                          <p className="text-lg font-medium">No payment records found</p>
+                          <p className="text-sm mt-1">Try adjusting your filters or add a new payment record</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredPayments.map((payment) => (
+                      <tr key={payment.payment.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 sm:px-6 py-4">
+                          <div>
+                            <p className="font-medium text-foreground">{payment.student?.name || "N/A"}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{payment.student?.email || "N/A"}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{payment.student?.phone || "N/A"}</p>
+                            {payment.application && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Room: {payment.application.roomNumber} - Block {payment.application.assignedBlock}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <Badge variant="outline" className="text-xs">{getSemesterLabel(payment.payment.semester)}</Badge>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
+                          <span className="text-sm text-foreground">{payment.payment.academicYear}</span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                          <div className="text-sm">
+                            {payment.payment.ddNumber ? (
+                              <>
+                                <p className="font-medium text-foreground">DD: {payment.payment.ddNumber}</p>
+                                <p className="text-muted-foreground">{payment.payment.bankName || "N/A"}</p>
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground">No DD info</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          {payment.payment.amountPaid ? (
+                            <span className="font-semibold text-foreground flex items-center text-sm">
+                              <FaRupeeSign className="w-3 h-3" />
+                              {payment.payment.amountPaid.toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(payment.payment.paymentStatus)}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
+                          <span className="text-sm text-foreground">
+                            {payment.payment.paidDate
+                              ? new Date(payment.payment.paidDate).toLocaleDateString('en-IN')
+                              : "-"}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditPayment(payment)}
+                              className="hover:bg-blue-50 hover:text-blue-600"
+                            >
+                              <FiEdit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteClick(payment)}
+                              className="hover:bg-red-50 hover:text-red-600"
+                            >
+                              <FiTrash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Add/Edit Payment Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {dialogMode === "add" ? "Add Payment Record" : "Edit Payment Record"}
+              </DialogTitle>
+              <DialogDescription>
+                {dialogMode === "add"
+                  ? "Create a new payment record for a student"
+                  : "Update the payment record details"}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {dialogMode === "add" && (
+                <div>
+                  <Label>Select Student *</Label>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Search student by name, email, or phone..."
+                      value={studentSearch}
+                      onChange={(e) => {
+                        setStudentSearch(e.target.value);
+                        searchStudents(e.target.value);
+                      }}
+                    />
+                    {selectedStudent ? (
+                      <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{selectedStudent.user.name}</p>
+                          <p className="text-sm text-muted-foreground">{selectedStudent.user.email}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedStudent(null)}
+                        >
+                          <FiX className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : students.length > 0 ? (
+                      <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
+                        {students.map((student) => (
+                          <div
+                            key={student.user.id}
+                            className="p-3 hover:bg-muted cursor-pointer transition-colors"
+                            onClick={() => {
+                              setSelectedStudent(student);
+                              setStudentSearch("");
+                              setStudents([]);
+                            }}
+                          >
+                            <p className="font-medium">{student.user.name}</p>
+                            <p className="text-sm text-muted-foreground">{student.user.email}</p>
+                            <p className="text-sm text-muted-foreground">{student.user.phone}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              {dialogMode === "edit" && selectedStudent && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Student</p>
+                  <p className="font-medium">{selectedStudent.user.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedStudent.user.email}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Semester *</Label>
-                  <Select value={formData.semester} onValueChange={(v) => setFormData({ ...formData, semester: v })}>
+                  <Select
+                    value={formData.semester}
+                    onValueChange={(value) => setFormData({ ...formData, semester: value })}
+                    disabled={dialogMode === "edit"}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select semester" />
                     </SelectTrigger>
@@ -425,58 +798,62 @@ export default function PaymentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label>Academic Year *</Label>
                   <Input
                     placeholder="e.g., 2024-2025"
                     value={formData.academicYear}
                     onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
+                    disabled={dialogMode === "edit"}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>DD Number</Label>
                   <Input
-                    placeholder="Demand Draft Number"
+                    placeholder="Enter DD number"
                     value={formData.ddNumber}
                     onChange={(e) => setFormData({ ...formData, ddNumber: e.target.value })}
                   />
                 </div>
+
                 <div>
                   <Label>Bank Name</Label>
                   <Input
-                    placeholder="Bank name"
+                    placeholder="Enter bank name"
                     value={formData.bankName}
                     onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Amount Paid (₹)</Label>
+                  <Label>Amount Paid</Label>
                   <Input
                     type="number"
-                    placeholder="Amount"
+                    placeholder="Enter amount"
                     value={formData.amountPaid}
                     onChange={(e) => setFormData({ ...formData, amountPaid: e.target.value })}
                   />
                 </div>
+
                 <div>
                   <Label>Payment Status</Label>
                   <Select
                     value={formData.paymentStatus}
-                    onValueChange={(v) => setFormData({ ...formData, paymentStatus: v })}
+                    onValueChange={(value) => setFormData({ ...formData, paymentStatus: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="partial">Partial</SelectItem>
                       <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -494,269 +871,54 @@ export default function PaymentsPage() {
               <div>
                 <Label>Notes</Label>
                 <Textarea
-                  placeholder="Additional notes"
+                  placeholder="Add any additional notes..."
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => {
-                  setAddDialogOpen(false);
-                  resetForm();
-                }}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAddPayment}>Add Payment</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Payments</p>
-              <h3 className="text-2xl font-bold">{stats.total}</h3>
-            </div>
-            <FileText className="h-8 w-8 text-blue-500" />
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Paid</p>
-              <h3 className="text-2xl font-bold text-green-600">{stats.paid}</h3>
-            </div>
-            <CheckCircle className="h-8 w-8 text-green-500" />
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Pending</p>
-              <h3 className="text-2xl font-bold text-red-600">{stats.pending}</h3>
-            </div>
-            <Clock className="h-8 w-8 text-red-500" />
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Amount</p>
-              <h3 className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</h3>
-            </div>
-            <TrendingUp className="h-8 w-8 text-purple-500" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, DD, or email..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Select value={filterSemester} onValueChange={setFilterSemester}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Semesters" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Semesters</SelectItem>
-              <SelectItem value="sem1">Semester 1</SelectItem>
-              <SelectItem value="sem2">Semester 2</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="partial">Partial</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Academic Year (2024-2025)"
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-          />
-        </div>
-      </Card>
-
-      {/* Payments Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Block/Room</TableHead>
-              <TableHead>Semester</TableHead>
-              <TableHead>Year</TableHead>
-              <TableHead>DD Number</TableHead>
-              <TableHead>Bank</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Paid Date</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPayments.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
-                  No payment records found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredPayments.map((p) => (
-                <TableRow key={p.payment.id}>
-                  <TableCell className="font-medium">{p.student?.name || "N/A"}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">{p.student?.email}</div>
-                    <div className="text-xs text-muted-foreground">{p.student?.phone}</div>
-                  </TableCell>
-                  <TableCell>
-                    {p.application?.assignedBlock || "N/A"} / {p.application?.roomNumber || "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    {p.payment.semester === "sem1" ? "Semester 1" : "Semester 2"}
-                  </TableCell>
-                  <TableCell>{p.payment.academicYear}</TableCell>
-                  <TableCell>{p.payment.ddNumber || "N/A"}</TableCell>
-                  <TableCell>{p.payment.bankName || "N/A"}</TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(p.payment.amountPaid)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(p.payment.paymentStatus)}</TableCell>
-                  <TableCell>{formatDate(p.payment.paidDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEditDialog(p)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeletePayment(p.payment.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Payment Record</DialogTitle>
-            <DialogDescription>Update payment details</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>DD Number</Label>
-                <Input
-                  placeholder="Demand Draft Number"
-                  value={formData.ddNumber}
-                  onChange={(e) => setFormData({ ...formData, ddNumber: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Bank Name</Label>
-                <Input
-                  placeholder="Bank name"
-                  value={formData.bankName}
-                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                />
-              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Amount Paid (₹)</Label>
-                <Input
-                  type="number"
-                  placeholder="Amount"
-                  value={formData.amountPaid}
-                  onChange={(e) => setFormData({ ...formData, amountPaid: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Payment Status</Label>
-                <Select
-                  value={formData.paymentStatus}
-                  onValueChange={(v) => setFormData({ ...formData, paymentStatus: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="partial">Partial</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label>Paid Date</Label>
-              <Input
-                type="date"
-                value={formData.paidDate}
-                onChange={(e) => setFormData({ ...formData, paidDate: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label>Notes</Label>
-              <Textarea
-                placeholder="Additional notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setEditDialogOpen(false);
-                  resetForm();
-                }}
-              >
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={submitting}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdatePayment}>Update Payment</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting ? "Saving..." : dialogMode === "add" ? "Add Payment" : "Update Payment"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Payment Record</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this payment record? This action cannot be undone.
+                {paymentToDelete && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="font-medium">{paymentToDelete.student?.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {getSemesterLabel(paymentToDelete.payment.semester)} - {paymentToDelete.payment.academicYear}
+                    </p>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
