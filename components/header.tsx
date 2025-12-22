@@ -61,7 +61,12 @@ export function Header() {
         { name: "Apply", href: `/${locale}/admission`, icon: FaUserGraduate },
         { name: t("announcements"), href: `/${locale}/announcements`, icon: FaBullhorn },
         { name: t("facilities"), href: `/${locale}/facilities`, icon: FaConciergeBell },
+        { name: t("about"), href: `/${locale}/about`, icon: FaInfoCircle },
+        { name: t("vision"), href: `/${locale}/vision`, icon: FaEye },
+        { name: t("facilities"), href: `/${locale}/facilities`, icon: FaConciergeBell },
         { name: t("gallery"), href: `/${locale}/gallery`, icon: FaImages },
+        { name: t("contact"), href: `/${locale}/contact`, icon: FaPhoneAlt },
+
       ];
     }
 

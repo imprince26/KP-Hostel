@@ -55,7 +55,7 @@ export default function SignOutPage() {
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.08),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--accent)/0.08),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(45deg,hsl(var(--muted)/0.05)_25%,transparent_25%),linear-gradient(-45deg,hsl(var(--muted)/0.05)_25%,transparent_25%)] bg-[length:20px_20px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(45deg,hsl(var(--muted)/0.05)_25%,transparent_25%),linear-gradient(-45deg,hsl(var(--muted)/0.05)_25%,transparent_25%)] bg-size-[20px_20px]" />
 
       <div className="relative z-10 max-w-lg w-full mx-4">
         <motion.div

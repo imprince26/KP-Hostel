@@ -51,10 +51,10 @@ export function HomeClient({ locale }: HomeClientProps) {
 
   // Elegant, understated block colors (Slate/Dark theme)
   const blocks = [
-    { key: "a", letter: "A", image: "/1.png" },
+    { key: "a", letter: "A", image: "/2.png" },
     { key: "b", letter: "B", image: "/1.png" },
-    { key: "c", letter: "C", image: "/3.png" },
-    { key: "d", letter: "D", image: "/4.png" },
+    { key: "c", letter: "C", image: "/gallery/Room3.png" },
+    { key: "d", letter: "D", image: "/gallery/Room1.png" },
   ];
 
   const stats = [
@@ -64,7 +64,7 @@ export function HomeClient({ locale }: HomeClientProps) {
     { label: t("statsYears"), value: "90+", icon: FaUsers },
   ];
 
-  const galleryImages = ["/001.png", "/002.png", "/003.png", "/004.png"];
+  const galleryImages = ["/001.png", "/003.png", "/004.png","/gallery/mess.png","/gallery/mandir.png","/gallery/Lobby.png","/gallery/1.png"];
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
@@ -185,7 +185,7 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               <div className="relative aspect-4/5 rounded-2xl overflow-hidden shadow-2xl">
                 <Image 
-                  src="/003.png" 
+                  src="/1.png" 
                   alt="Student Life" 
                   fill 
                   className="object-cover"
