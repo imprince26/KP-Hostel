@@ -176,7 +176,7 @@ export default function StudentLayout({
           <div className="p-4 border-b border-border">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
-                <AvatarImage src={session.user && "avatar" in session.user ? (session.user.avatar as string) : undefined} />
+                <AvatarImage src={session.user?.avatar || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                   {userInitials}
                 </AvatarFallback>

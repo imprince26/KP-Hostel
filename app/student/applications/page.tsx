@@ -116,26 +116,26 @@ export default function StudentApplications() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading applications...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading applications...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Applications</h1>
-          <p className="text-gray-600">Track and manage your hostel admission applications</p>
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">My Applications</h1>
+          <p className="text-muted-foreground">Track and manage your hostel admission applications</p>
         </div>
 
         {/* Filter Controls */}
-        <Card className="mb-6 border-0 shadow-lg">
+        <Card className="shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <FiFilter className="w-5 h-5" />
@@ -147,44 +147,37 @@ export default function StudentApplications() {
               <Button
                 onClick={() => setFilterStatus("all")}
                 variant={filterStatus === "all" ? "default" : "outline"}
-                className={filterStatus === "all" ? "bg-orange-600 hover:bg-orange-700" : ""}
+                size="sm"
               >
-                All ({applications.length})
+                All Applications
               </Button>
               <Button
                 onClick={() => setFilterStatus("submitted")}
                 variant={filterStatus === "submitted" ? "default" : "outline"}
-                className={filterStatus === "submitted" ? "bg-blue-600 hover:bg-blue-700" : ""}
+                size="sm"
               >
-                Submitted ({applications.filter(a => a.status === "submitted").length})
+                Submitted
               </Button>
               <Button
                 onClick={() => setFilterStatus("under_review")}
                 variant={filterStatus === "under_review" ? "default" : "outline"}
-                className={filterStatus === "under_review" ? "bg-yellow-600 hover:bg-yellow-700" : ""}
+                size="sm"
               >
-                Under Review ({applications.filter(a => a.status === "under_review").length})
+                Under Review
               </Button>
               <Button
                 onClick={() => setFilterStatus("approved")}
                 variant={filterStatus === "approved" ? "default" : "outline"}
-                className={filterStatus === "approved" ? "bg-green-600 hover:bg-green-700" : ""}
+                size="sm"
               >
-                Approved ({applications.filter(a => a.status === "approved").length})
+                Approved
               </Button>
               <Button
                 onClick={() => setFilterStatus("rejected")}
                 variant={filterStatus === "rejected" ? "default" : "outline"}
-                className={filterStatus === "rejected" ? "bg-red-600 hover:bg-red-700" : ""}
+                size="sm"
               >
-                Rejected ({applications.filter(a => a.status === "rejected").length})
-              </Button>
-              <Button
-                onClick={() => setFilterStatus("active")}
-                variant={filterStatus === "active" ? "default" : "outline"}
-                className={filterStatus === "active" ? "bg-purple-600 hover:bg-purple-700" : ""}
-              >
-                Active ({applications.filter(a => a.status === "active").length})
+                Rejected
               </Button>
             </div>
           </CardContent>
@@ -192,18 +185,18 @@ export default function StudentApplications() {
 
         {/* Applications List */}
         {filteredApps.length === 0 ? (
-          <Card className="border-0 shadow-lg">
+          <Card className="shadow-sm">
             <CardContent className="py-16 text-center">
-              <FiFileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No applications found</h3>
-              <p className="text-gray-600 mb-6">
-                {filterStatus === "all" 
-                  ? "You haven't submitted any applications yet." 
-                  : `No ${filterStatus} applications found.`}
+              <FiFileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No applications found</h3>
+              <p className="text-muted-foreground mb-6">
+                {filterStatus === "all"
+                  ? "You haven't submitted any applications yet."
+                  : `No ${filterStatus.replace("_", " ")} applications found.`}
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push("/en/admission")}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 Submit New Application
               </Button>
@@ -212,7 +205,7 @@ export default function StudentApplications() {
         ) : (
           <div className="space-y-4">
             {filteredApps.map((app) => (
-              <Card key={app.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={app.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex items-start gap-4">
@@ -221,16 +214,16 @@ export default function StudentApplications() {
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900">
+                          <h3 className="text-xl font-semibold text-foreground">
                             {app.applicationNumber}
                           </h3>
                           {getStatusBadge(app.status)}
                         </div>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p><strong>Name:</strong> {app.fullName}</p>
-                          <p><strong>College:</strong> {app.collegeName}</p>
-                          <p><strong>Course:</strong> {app.course} - {app.year}</p>
-                          <p><strong>Submitted:</strong> {new Date(app.createdAt).toLocaleDateString()}</p>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <p><strong className="text-foreground">Name:</strong> {app.fullName}</p>
+                          <p><strong className="text-foreground">College:</strong> {app.collegeName}</p>
+                          <p><strong className="text-foreground">Course:</strong> {app.course} - {app.year}</p>
+                          <p><strong className="text-foreground">Submitted:</strong> {new Date(app.createdAt).toLocaleDateString()}</p>
                           {app.assignedBlock && app.roomNumber && (
                             <p className="text-green-700">
                               <strong>Room:</strong> Block {app.assignedBlock}, Room {app.roomNumber}
@@ -242,7 +235,7 @@ export default function StudentApplications() {
                     <div className="flex flex-col gap-2">
                       <Button
                         onClick={() => router.push(`/student/applications/${app.id}`)}
-                        className="bg-orange-600 hover:bg-orange-700"
+                        variant="outline"
                       >
                         <FiEye className="mr-2" />
                         View Details
@@ -261,7 +254,7 @@ export default function StudentApplications() {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
-              <FiFileText className="text-orange-600" />
+              <FiFileText className="text-primary" />
               Application Details
             </DialogTitle>
             <DialogDescription>
@@ -273,10 +266,10 @@ export default function StudentApplications() {
             <div className="space-y-6">
               {/* Status */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Status</h4>
+                <h4 className="font-semibold text-foreground mb-2">Status</h4>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(selectedApp.status)}
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Last updated: {new Date(selectedApp.updatedAt).toLocaleString()}
                   </span>
                 </div>
@@ -284,38 +277,38 @@ export default function StudentApplications() {
 
               {/* Personal Information */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b">Personal Information</h4>
+                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Personal Information</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium">{selectedApp.fullName}</p>
+                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="font-medium text-foreground">{selectedApp.fullName}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{selectedApp.email}</p>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium text-foreground">{selectedApp.email}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="font-medium">{selectedApp.phone}</p>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium text-foreground">{selectedApp.phone}</p>
                   </div>
                 </div>
               </div>
 
               {/* Educational Information */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b">Educational Information</h4>
+                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Educational Information</h4>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">College/University</p>
-                    <p className="font-medium">{selectedApp.collegeName}</p>
+                    <p className="text-sm text-muted-foreground">College/University</p>
+                    <p className="font-medium text-foreground">{selectedApp.collegeName}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Course</p>
-                    <p className="font-medium">{selectedApp.course}</p>
+                    <p className="text-sm text-muted-foreground">Course</p>
+                    <p className="font-medium text-foreground">{selectedApp.course}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Academic Year</p>
-                    <p className="font-medium">{selectedApp.year}</p>
+                    <p className="text-sm text-muted-foreground">Academic Year</p>
+                    <p className="font-medium text-foreground">{selectedApp.year}</p>
                   </div>
                 </div>
               </div>
@@ -359,17 +352,17 @@ export default function StudentApplications() {
               {/* Review Comments (if any) */}
               {selectedApp.reviewComments && (
                 <div className={`${
-                  selectedApp.status === "rejected" 
-                    ? "bg-red-50 border-red-200" 
+                  selectedApp.status === "rejected"
+                    ? "bg-destructive/10 border-destructive/20"
                     : "bg-blue-50 border-blue-200"
                 } border rounded-lg p-4`}>
                   <h4 className={`font-semibold mb-2 flex items-center gap-2 ${
-                    selectedApp.status === "rejected" ? "text-red-900" : "text-blue-900"
+                    selectedApp.status === "rejected" ? "text-destructive" : "text-blue-900"
                   }`}>
                     <FiAlertCircle className="w-5 h-5" />
                     Review Comments
                   </h4>
-                  <p className={selectedApp.status === "rejected" ? "text-red-800" : "text-blue-800"}>
+                  <p className={selectedApp.status === "rejected" ? "text-destructive" : "text-blue-800"}>
                     {selectedApp.reviewComments}
                   </p>
                 </div>
@@ -377,38 +370,38 @@ export default function StudentApplications() {
 
               {/* Timeline */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b">Application Timeline</h4>
+                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Application Timeline</h4>
                 <div className="space-y-3">
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <FiFileText className="w-4 h-4 text-blue-600" />
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FiFileText className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">Application Submitted</p>
-                      <p className="text-sm text-gray-600">
+                      <p className="font-medium text-foreground">Application Submitted</p>
+                      <p className="text-sm text-muted-foreground">
                         {new Date(selectedApp.createdAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
-                  
+
                   {selectedApp.status !== "submitted" && (
                     <div className="flex gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        selectedApp.status === "rejected" 
-                          ? "bg-red-100" 
-                          : "bg-green-100"
+                        selectedApp.status === "rejected"
+                          ? "bg-destructive/10"
+                          : "bg-green-500/10"
                       }`}>
                         {selectedApp.status === "rejected" ? (
-                          <FiX className="w-4 h-4 text-red-600" />
+                          <FiX className="w-4 h-4 text-destructive" />
                         ) : (
                           <FiCheck className="w-4 h-4 text-green-600" />
                         )}
                       </div>
                       <div>
-                        <p className="font-medium">
+                        <p className="font-medium text-foreground">
                           Application {selectedApp.status === "rejected" ? "Rejected" : "Reviewed"}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {new Date(selectedApp.updatedAt).toLocaleString()}
                         </p>
                       </div>
@@ -419,9 +412,9 @@ export default function StudentApplications() {
 
               {/* Next Steps */}
               {selectedApp.status === "approved" && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-orange-900 mb-2">📋 Next Steps</h4>
-                  <ul className="space-y-2 text-sm text-orange-800">
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary mb-2">📋 Next Steps</h4>
+                  <ul className="space-y-2 text-sm text-primary/80">
                     <li className="flex gap-2">
                       <span>1.</span>
                       <span>Visit hostel office during working hours (9 AM - 5 PM)</span>

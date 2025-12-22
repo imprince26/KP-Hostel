@@ -17,17 +17,21 @@ export default function GalleryClient() {
 
   // Using the actual images found in the public folder
   const galleryImages = [
-    { src: "/intro/1.png", category: "Exterior", alt: "Hostel Entrance" },
-    { src: "/intro/2.png", category: "Common Areas", alt: "Lobby Area" },
+    { src: "/1.png", category: "Exterior", alt: "Building View" },
+    { src: "/gallery/Lobby.png", category: "Exterior", alt: "Hostel Entrance" },
     { src: "/intro/3.png", category: "Facilities", alt: "Student Facilities" },
-    { src: "/gallery/image.png", category: "Rooms", alt: "Student Room" },
-    { src: "/gallery/image copy.png", category: "Mess", alt: "Dining Hall" },
-    { src: "/gallery/image copy 2.png", category: "Common Areas", alt: "Study Hall" },
-    { src: "/gallery/image copy 3.png", category: "Exterior", alt: "Building View" },
-    { src: "/gallery/image copy 4.png", category: "Facilities", alt: "Gym Area" },
-    { src: "/gallery/image copy 5.png", category: "Rooms", alt: "Double Room" },
-    { src: "/gallery/image copy 6.png", category: "Mess", alt: "Kitchen" },
-    { src: "/gallery/image copy 7.png", category: "Common Areas", alt: "Recreation Room" },
+    { src: "/gallery/Room2.png", category: "Rooms", alt: "Student Room" },
+    { src: "/gallery/Lobby-2.png", category: "Common Areas", alt: "Lobby Area" },
+    { src: "/gallery/mandir.png", category: "Facilities", alt: "Mandir" },
+    { src: "/gallery/Room1.png", category: "Rooms", alt: "Double Room" },
+    { src: "/gallery/mess.png", category: "Mess", alt: "Kitchen" },
+    { src: "/gallery/event1.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event2.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event3.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event4.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event5.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event6.png", category: "Events", alt: "Events Image" },
+    { src: "/gallery/event7.png", category: "Events", alt: "Events Image" },
   ];
 
   const filteredImages = selectedCategory === "All" 

@@ -30,6 +30,8 @@ declare module "next-auth" {
       course?: string | null;
       year?: string | null;
       needsProfileCompletion?: boolean;
+      createdAt?: string;
+      avatar?: string | null;
     } & DefaultSession["user"];
   }
 
@@ -155,7 +157,8 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role || "student";
-          token.phone = dbUser.phone
+          token.phone = dbUser.phone;
+          token.avatar = dbUser.avatar;
           
           // Set default role for OAuth users if not set
           if (account?.provider === "google" && !dbUser.role) {
@@ -179,6 +182,7 @@ export const authOptions: NextAuthOptions = {
         token.name = session.name;
         token.email = session.email;
         if (session.phone) token.phone = session.phone;
+        if (session.avatar !== undefined) token.avatar = session.avatar;
       }
       
       return token;
@@ -188,18 +192,24 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.phone = token.phone;
+        session.user.avatar = token.avatar;
         
-        // Check if user needs to complete profile (no phone)
-        if (!token.phone && session.user.email) {
+        // Fetch additional user data
+        if (session.user.email) {
           const [dbUser] = await db
             .select()
             .from(users)
             .where(eq(users.email, session.user.email))
             .limit(1);
           
-          if (dbUser && !dbUser.phone) {
-            // User needs to add phone number
-            session.user.needsProfileCompletion = true;
+          if (dbUser) {
+            session.user.createdAt = dbUser.createdAt?.toISOString();
+            session.user.avatar = dbUser.avatar; // Always use latest from DB
+            
+            // Check if user needs to complete profile (no phone)
+            if (!dbUser.phone) {
+              session.user.needsProfileCompletion = true;
+            }
           }
         }
       }

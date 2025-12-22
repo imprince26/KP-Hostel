@@ -50,6 +50,12 @@ export function Header() {
         { name: t("announcements"), href: "/admin/announcements", icon: FaBullhorn },
         { name: "Messaging", href: "/admin/messaging", icon: FaPhoneAlt },
         // { name: "Blocks", href: "/admin/blocks", icon: FaHome },
+        { name: t("facilities"), href: `/${locale}/facilities`, icon: FaConciergeBell },
+        { name: t("about"), href: `/${locale}/about`, icon: FaInfoCircle },
+        { name: t("vision"), href: `/${locale}/vision`, icon: FaEye },
+        { name: t("gallery"), href: `/${locale}/gallery`, icon: FaImages },
+        { name: t("contact"), href: `/${locale}/contact`, icon: FaPhoneAlt },
+
       ];
     }
 
