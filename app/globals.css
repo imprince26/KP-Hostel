@@ -131,6 +131,17 @@
   }
 }
 
+/* Custom text selection */
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+::-moz-selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

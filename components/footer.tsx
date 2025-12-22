@@ -138,11 +138,16 @@ export function Footer() {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-border text-center">
-            <p className="text-xs text-muted">
+            <p className="text-xs text-muted-foreground">
               Developed with <span className="text-destructive">♥</span> by{" "}
-              <span className="text-primary font-semibold hover:text-primary/80 transition-colors">
+              <Link
+                href="https://www.princepatel.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary font-semibold hover:text-primary/80 transition-colors"
+              >
                 Prince Patel
-              </span>
+              </Link>
             </p>
           </div>
         </div>
