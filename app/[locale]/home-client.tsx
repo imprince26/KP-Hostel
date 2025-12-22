@@ -52,7 +52,7 @@ export function HomeClient({ locale }: HomeClientProps) {
   // Elegant, understated block colors (Slate/Dark theme)
   const blocks = [
     { key: "a", letter: "A", image: "/1.png" },
-    { key: "b", letter: "B", image: "/2.png" },
+    { key: "b", letter: "B", image: "/1.png" },
     { key: "c", letter: "C", image: "/3.png" },
     { key: "d", letter: "D", image: "/4.png" },
   ];

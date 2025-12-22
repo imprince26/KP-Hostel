@@ -261,15 +261,17 @@ export default function AdminLayout({
           {/* Logout */}
           <div className="p-4 border-t border-border">
             <Button
+              asChild
               variant="ghost"
-              onClick={() => signOut({ callbackUrl: "/auth/login" })}
               className={cn(
                 "w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10",
                 !sidebarOpen && "justify-center px-0"
               )}
             >
-              <LogOut className="h-5 w-5 shrink-0" />
-              {sidebarOpen && <span className="ml-3">Logout</span>}
+              <Link href="/auth/signout">
+                <LogOut className="h-5 w-5 shrink-0" />
+                {sidebarOpen && <span className="ml-3">Logout</span>}
+              </Link>
             </Button>
           </div>
         </div>

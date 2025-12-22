@@ -40,20 +40,22 @@ export function Header() {
   // Get navigation based on role
   const getNavigation = () => {
     if (!session) return publicNavigation;
-    
+
     if (session.user.role === "admin") {
       return [
+        { name: t("home"), href: `/${locale}`, icon: FaHome },
         { name: "Dashboard", href: "/admin/dashboard", icon: FaHome },
         { name: "Applications", href: "/admin/applications", icon: FaUserGraduate },
         // { name: "Payments", href: "/admin/payments", icon: FaConciergeBell },
-        { name: "Announcements", href: "/admin/announcements", icon: FaBullhorn },
+        { name: t("announcements"), href: "/admin/announcements", icon: FaBullhorn },
         { name: "Messaging", href: "/admin/messaging", icon: FaPhoneAlt },
         // { name: "Blocks", href: "/admin/blocks", icon: FaHome },
       ];
     }
-    
+
     if (session.user.role === "student") {
       return [
+        { name: t("home"), href: `/${locale}`, icon: FaHome },
         { name: "Dashboard", href: "/student/dashboard", icon: FaHome },
         { name: "My Applications", href: "/student/applications", icon: FaUserGraduate },
         { name: "Apply", href: `/${locale}/admission`, icon: FaUserGraduate },
@@ -62,7 +64,7 @@ export function Header() {
         { name: t("gallery"), href: `/${locale}/gallery`, icon: FaImages },
       ];
     }
-    
+
     return publicNavigation;
   };
 
@@ -125,7 +127,7 @@ export function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1 bg-muted p-1.5 rounded-full max-w-2xl">
               {navigation.slice(0, 6).map((item) => {
-                const isActive = item.href === `/${locale}` 
+                const isActive = item.href === `/${locale}`
                   ? pathname === `/${locale}` || pathname === `/${locale}/`
                   : pathname.startsWith(item.href);
                 return (
@@ -134,8 +136,8 @@ export function Header() {
                     href={item.href}
                     className={cn(
                       "px-3 py-2 text-sm font-medium rounded-full transition-all duration-300 relative whitespace-nowrap",
-                      isActive 
-                        ? "text-primary-foreground bg-primary shadow-sm" 
+                      isActive
+                        ? "text-primary-foreground bg-primary shadow-sm"
                         : "text-foreground hover:text-primary hover:bg-card"
                     )}
                   >
@@ -146,9 +148,9 @@ export function Header() {
               {navigation.length > 6 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-background"
                       suppressHydrationWarning={true}
                     >
@@ -157,7 +159,7 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-xl border-border">
                     {navigation.slice(6).map((item) => {
-                      const isActive = item.href === `/${locale}` 
+                      const isActive = item.href === `/${locale}`
                         ? pathname === `/${locale}` || pathname === `/${locale}/`
                         : pathname.startsWith(item.href);
                       return (
@@ -179,9 +181,9 @@ export function Header() {
               {/* Language Switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="rounded-full gap-2 px-3 text-foreground hover:bg-muted hover:text-primary"
                     suppressHydrationWarning={true}
                   >
@@ -208,9 +210,9 @@ export function Header() {
               {session ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="rounded-full gap-2 px-3 text-muted-foreground hover:bg-muted hover:text-primary hidden xl:flex"
                       suppressHydrationWarning={true}
                     >
@@ -250,26 +252,25 @@ export function Header() {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => signOut({ callbackUrl: `/${locale}` })}
-                      className="rounded-lg cursor-pointer text-destructive"
-                    >
-                      <FaSignOutAlt className="size-4 mr-2 text-destructive" />
-                      Sign Out
+                    <DropdownMenuItem asChild className="rounded-lg cursor-pointer text-destructive">
+                      <Link href="/auth/signout" className="flex items-center w-full">
+                        <FaSignOutAlt className="size-4 mr-2 text-destructive" />
+                        Sign Out
+                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <div className="hidden xl:flex items-center gap-2">
-                  <Button 
+                  <Button
                     asChild
-                    variant="ghost" 
+                    variant="ghost"
                     size="sm"
                     className="rounded-full text-muted-foreground hover:bg-muted hover:text-primary"
                   >
                     <Link href="/auth/login">Login</Link>
                   </Button>
-                  <Button 
+                  <Button
                     asChild
                     size="sm"
                     className="rounded-full bg-primary hover:bg-primary/90"
@@ -306,7 +307,7 @@ export function Header() {
               className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60 xl:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            
+
             {/* Sidebar */}
             <motion.div
               initial={{ x: "100%" }}
@@ -353,11 +354,11 @@ export function Header() {
                   // Check if route needs locale prefix (public routes) or not (admin/student routes)
                   const needsLocale = item.href.startsWith(`/${locale}`);
                   const isActive = needsLocale
-                    ? (item.href === `/${locale}` 
-                        ? pathname === `/${locale}` || pathname === `/${locale}/`
-                        : pathname.startsWith(item.href))
+                    ? (item.href === `/${locale}`
+                      ? pathname === `/${locale}` || pathname === `/${locale}/`
+                      : pathname.startsWith(item.href))
                     : pathname.startsWith(item.href);
-                  
+
                   return (
                     <motion.div
                       key={item.href}
@@ -406,23 +407,23 @@ export function Header() {
                         </div>
                       </div>
                       <Button
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          signOut({ callbackUrl: `/${locale}` });
-                        }}
+                        asChild
                         variant="outline"
                         size="sm"
                         className="w-full text-destructive border-destructive hover:bg-destructive/10"
+                        onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <FaSignOutAlt className="mr-2 size-4" />
-                        Sign Out
+                        <Link href="/auth/signout">
+                          <FaSignOutAlt className="mr-2 size-4" />
+                          Sign Out
+                        </Link>
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <Button 
-                      asChild 
+                    <Button
+                      asChild
                       className="w-full rounded-full bg-primary hover:bg-primary/90 shadow-md"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -431,8 +432,8 @@ export function Header() {
                         Login
                       </Link>
                     </Button>
-                    <Button 
-                      asChild 
+                    <Button
+                      asChild
                       variant="outline"
                       className="w-full rounded-full"
                       onClick={() => setIsMobileMenuOpen(false)}
