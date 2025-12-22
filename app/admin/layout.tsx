@@ -15,7 +15,8 @@ import {
   Menu, 
   X,
   ChevronLeft,
-  Shield
+  Shield,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,11 @@ import { Badge } from "@/components/ui/badge";
 import NotificationDialog from "@/components/NotificationDialog";
 
 const adminNavigation = [
+  {
+    name: "Home Website",
+    href: "/",
+    icon: Home,
+  },
   {
     name: "Dashboard",
     href: "/admin/dashboard",

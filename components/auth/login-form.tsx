@@ -125,6 +125,11 @@ export function LoginForm() {
                 {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
               </button>
             </div>
+            <div className="mt-2 text-right">
+              <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-primary/80">
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
           <Button

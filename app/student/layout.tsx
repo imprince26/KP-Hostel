@@ -12,7 +12,8 @@ import {
   Menu, 
   X,
   ChevronLeft,
-  User
+  User,
+  Home
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationDialog from "@/components/NotificationDialog";
 
 const studentNavigation = [
+  {
+    name: "Home Website",
+    href: "/",
+    icon: Home,
+  },
   {
     name: "Dashboard",
     href: "/student/dashboard",

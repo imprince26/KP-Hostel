@@ -69,19 +69,11 @@ export function HomeClient({ locale }: HomeClientProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src="/003.png"
-            alt="KP Vidhyarthi Bhavan - Student Community"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-black/85 via-black/75 to-black/85" />
-          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/40" />
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
+        {/* Abstract Background Elements */}
+        <div className="absolute inset-0 w-full h-full bg-background">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(var(--primary)/0.15),rgba(255,255,255,0))]" />
+          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,hsl(var(--foreground)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground)/0.05)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
         </div>
 
         {/* Content Container */}
@@ -92,9 +84,9 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full bg-card/10 backdrop-blur-sm border border-border/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-12"
+              className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-12"
             >
-              <span className="text-sm font-medium tracking-wide text-card-foreground/90 uppercase">
+              <span className="text-sm font-medium tracking-wide text-primary uppercase">
                 {t("heroSubtitle")}
               </span>
             </motion.div>
@@ -104,7 +96,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 sm:mb-8 leading-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 sm:mb-8 leading-tight tracking-tight"
             >
               {t("heroTitle")}
               <br />
@@ -132,7 +124,7 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               <Button
                 size="lg"
-                className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl w-full sm:w-auto"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-xl w-full sm:w-auto"
                 asChild
               >
                 <Link href={`/${locale}/admission`} className="flex items-center justify-center gap-2">
@@ -143,7 +135,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-card/10 hover:bg-card/20 text-card-foreground border-border/30 backdrop-blur-sm font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                className="bg-background/50 hover:bg-accent/10 text-foreground border-border/50 backdrop-blur-sm font-semibold text-base sm:text-lg px-8 py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                 asChild
               >
                 <Link href={`/${locale}/about`}>
