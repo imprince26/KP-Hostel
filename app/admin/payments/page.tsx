@@ -4,18 +4,18 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  FiDollarSign,
-  FiPlus,
-  FiEdit,
-  FiTrash2,
-  FiSearch,
-  FiFilter,
-  FiCheckCircle,
-  FiClock,
-  FiAlertCircle,
-  FiTrendingUp,
-  FiX
-} from "react-icons/fi";
+  MdPayment,
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdSearch,
+  MdFilterList,
+  MdCheckCircle,
+  MdSchedule,
+  MdWarning,
+  MdTrendingUp,
+  MdClose
+} from "react-icons/md";
 import { FaRupeeSign } from "react-icons/fa";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -371,23 +371,16 @@ export default function AdminPaymentsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const styles = {
-      paid: "bg-green-100 text-green-700 border-green-300",
-      pending: "bg-yellow-100 text-yellow-700 border-yellow-300",
-      partial: "bg-blue-100 text-blue-700 border-blue-300",
+    const config = {
+      paid: { label: "Paid", variant: "default" as const },
+      pending: { label: "Pending", variant: "secondary" as const },
+      partial: { label: "Partial", variant: "outline" as const },
     };
 
-    const labels = {
-      paid: "Paid",
-      pending: "Pending",
-      partial: "Partial",
-    };
+    const { label, variant } = config[status as keyof typeof config] || 
+      { label: status, variant: "secondary" as const };
 
-    return (
-      <Badge className={`${styles[status as keyof typeof styles] || styles.pending} border`}>
-        {labels[status as keyof typeof labels] || status}
-      </Badge>
-    );
+    return <Badge variant={variant}>{label}</Badge>;
   };
 
   const getSemesterLabel = (semester: string) => {
@@ -423,8 +416,8 @@ export default function AdminPaymentsPage() {
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Records</p>
                   <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.total}</p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <FiDollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MdPayment className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -435,10 +428,10 @@ export default function AdminPaymentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Paid</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.paid}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.paid}</p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                  <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MdCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -449,10 +442,10 @@ export default function AdminPaymentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Pending</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.pending}</p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
-                  <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MdSchedule className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -463,27 +456,27 @@ export default function AdminPaymentsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Partial</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.partial}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.partial}</p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <FiAlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MdWarning className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="col-span-2 lg:col-span-1 border-0 shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">
+          <Card className="col-span-2 lg:col-span-1 border-0 shadow-sm bg-card">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Amount</p>
-                  <p className="text-xl sm:text-2xl font-bold text-primary flex items-center">
+                  <p className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
                     <FaRupeeSign className="w-4 h-4 sm:w-5 sm:h-5" />
                     {stats.totalAmount.toLocaleString('en-IN')}
                   </p>
                 </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <FiTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -494,7 +487,7 @@ export default function AdminPaymentsPage() {
         <Card className="mb-6 border-0 shadow-sm bg-card">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <FiFilter className="w-4 h-4 sm:w-5 sm:h-5" />
+              <MdFilterList className="w-4 h-4 sm:w-5 sm:h-5" />
               Filters & Search
             </CardTitle>
           </CardHeader>
@@ -503,7 +496,7 @@ export default function AdminPaymentsPage() {
               <div className="lg:col-span-2">
                 <Label className="text-sm">Search</Label>
                 <div className="relative">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by name, email, phone..."
                     value={searchTerm}
@@ -563,7 +556,7 @@ export default function AdminPaymentsPage() {
                   setFilterYear("");
                 }}
               >
-                <FiX className="w-4 h-4 mr-2" />
+                <MdClose className="w-4 h-4 mr-2" />
                 Clear Filters
               </Button>
             </div>
@@ -578,7 +571,7 @@ export default function AdminPaymentsPage() {
             </p>
           </div>
           <Button onClick={handleAddPayment} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
-            <FiPlus className="w-4 h-4 mr-2" />
+            <MdAdd className="w-4 h-4 mr-2" />
             Add Payment Record
           </Button>
         </div>
@@ -621,7 +614,7 @@ export default function AdminPaymentsPage() {
                     <tr>
                       <td colSpan={8} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <FiDollarSign className="w-12 h-12 mb-3 opacity-50" />
+                          <FaRupeeSign className="w-12 h-12 mb-3 opacity-50" />
                           <p className="text-lg font-medium">No payment records found</p>
                           <p className="text-sm mt-1">Try adjusting your filters or add a new payment record</p>
                         </div>
@@ -686,17 +679,17 @@ export default function AdminPaymentsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditPayment(payment)}
-                              className="hover:bg-blue-50 hover:text-blue-600"
+                              className="hover:bg-primary/10 hover:text-primary"
                             >
-                              <FiEdit className="w-4 h-4" />
+                              <MdEdit className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(payment)}
-                              className="hover:bg-red-50 hover:text-red-600"
+                              className="hover:bg-destructive/10 hover:text-destructive"
                             >
-                              <FiTrash2 className="w-4 h-4" />
+                              <MdDelete className="w-4 h-4" />
                             </Button>
                           </div>
                         </td>
@@ -747,7 +740,7 @@ export default function AdminPaymentsPage() {
                           size="sm"
                           onClick={() => setSelectedStudent(null)}
                         >
-                          <FiX className="w-4 h-4" />
+                          <MdClose className="w-4 h-4" />
                         </Button>
                       </div>
                     ) : students.length > 0 ? (

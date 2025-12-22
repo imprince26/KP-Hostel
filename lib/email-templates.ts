@@ -943,3 +943,136 @@ Please do not reply to this email.
     `.trim(),
   };
 }
+
+/**
+ * Contact Form Submission Template
+ */
+export function contactFormSubmissionTemplate(
+  name: string,
+  email: string,
+  phone: string,
+  subject: string,
+  message: string
+): EmailTemplate {
+  const content = `
+    <tr>
+      <td class="email-body" style="padding: 32px 24px;">
+        <p style="margin: 0 0 16px; font-size: 16px; color: #111827;">
+          A new contact form submission has been received from the website.
+        </p>
+
+        <!-- Contact Details Card -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; margin: 24px 0;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #111827;">
+                Contact Details
+              </h3>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                    <strong style="color: #374151;">Name:</strong>
+                    <span style="color: #6B7280; margin-left: 8px;">${name}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                    <strong style="color: #374151;">Email:</strong>
+                    <span style="color: #6B7280; margin-left: 8px;">${email}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                    <strong style="color: #374151;">Phone:</strong>
+                    <span style="color: #6B7280; margin-left: 8px;">${phone}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;">
+                    <strong style="color: #374151;">Subject:</strong>
+                    <span style="color: #6B7280; margin-left: 8px;">${subject}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Message Card -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; margin: 24px 0;">
+          <tr>
+            <td style="padding: 20px;">
+              <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #111827;">
+                Message
+              </h3>
+              <div style="background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 6px; padding: 16px;">
+                <p style="margin: 0; font-size: 15px; color: #374151; line-height: 1.6; white-space: pre-wrap;">
+                  ${message.replace(/\n/g, '<br>')}
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Action Required -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border-left: 4px solid ${PRIMARY_COLOR}; border-radius: 8px; margin: 24px 0;">
+          <tr>
+            <td style="padding: 20px;">
+              <h4 style="margin: 0 0 8px; font-size: 16px; font-weight: 600; color: #92400E;">
+                Action Required
+              </h4>
+              <p style="margin: 0; font-size: 14px; color: #78350F; line-height: 1.5;">
+                Please review this contact form submission and respond to the inquiry as appropriate.
+                Contact the person directly using the provided email or phone number.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin: 24px 0 0; font-size: 14px; color: #6B7280;">
+          This contact form was submitted on ${new Date().toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}.
+        </p>
+      </td>
+    </tr>
+  `;
+
+  return {
+    subject: `New Contact Form Submission: ${subject}`,
+    html: emailWrapper(content, "New Contact Form Submission"),
+    text: `
+New Contact Form Submission
+
+Subject: ${subject}
+
+Contact Details:
+- Name: ${name}
+- Email: ${email}
+- Phone: ${phone}
+
+Message:
+${message}
+
+Please review this contact form submission and respond to the inquiry.
+Contact the person directly using the provided email or phone number.
+
+Submitted on: ${new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}
+
+This is an automated message from K.P. Vidhyarthi Bhavan administration.
+Please do not reply to this email.
+    `.trim(),
+  };
+}
