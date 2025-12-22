@@ -363,7 +363,7 @@ export default function AnnouncementsPage() {
               New Announcement
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
             <DialogHeader>
               <DialogTitle>Create Announcement</DialogTitle>
               <DialogDescription>
@@ -388,7 +388,7 @@ export default function AnnouncementsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Target Audience</Label>
                   <Select
@@ -705,7 +705,7 @@ export default function AnnouncementsPage() {
 
       {/* View Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>{selectedAnnouncement?.announcement.title}</DialogTitle>
             <DialogDescription>
@@ -727,7 +727,7 @@ export default function AnnouncementsPage() {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>Edit Announcement</DialogTitle>
             <DialogDescription>Update announcement details</DialogDescription>
@@ -750,7 +750,7 @@ export default function AnnouncementsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Target Audience</Label>
                 <Select

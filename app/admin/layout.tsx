@@ -4,15 +4,15 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  FileText, 
+import {
+  LayoutDashboard,
+  FileText,
   Building2,
   CreditCard,
   MessageSquare,
   Megaphone,
-  LogOut, 
-  Menu, 
+  LogOut,
+  Menu,
   X,
   ChevronLeft,
   Shield,
@@ -23,10 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import NotificationDialog from "@/components/NotificationDialog";
+import Image from "next/image";
 
 const adminNavigation = [
   {
-    name: "Home Website",
+    name: "Home",
     href: "/",
     icon: Home,
   },
@@ -111,10 +112,12 @@ export default function AdminLayout({
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img
+          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center overflow-hidden shrink-0">
+            <Image
               src="/logo.jpg"
               alt="KP Hostel Logo"
+              width={32}
+              height={32}
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -140,19 +143,18 @@ export default function AdminLayout({
           {/* Branding */}
           <div className="p-4 border-b border-border bg-primary/5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <img
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0 overflow-hidden">
+                <Image
                   src="/logo.jpg"
                   alt="KP Hostel Logo"
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling?.classList.remove('hidden');
                   }}
                 />
-                <div className="hidden w-full h-full bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">KP</span>
-                </div>
               </div>
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
@@ -170,7 +172,6 @@ export default function AdminLayout({
           <div className="flex items-center justify-between p-4 border-b border-border">
             {sidebarOpen ? (
               <div className="flex items-center gap-2">
-                <Shield className="h-6 w-6 text-primary" />
                 <h1 className="text-xl font-bold text-foreground">Admin</h1>
               </div>
             ) : (

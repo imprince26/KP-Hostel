@@ -45,10 +45,10 @@ export function Header() {
       return [
         { name: "Dashboard", href: "/admin/dashboard", icon: FaHome },
         { name: "Applications", href: "/admin/applications", icon: FaUserGraduate },
-        { name: "Payments", href: "/admin/payments", icon: FaConciergeBell },
+        // { name: "Payments", href: "/admin/payments", icon: FaConciergeBell },
         { name: "Announcements", href: "/admin/announcements", icon: FaBullhorn },
         { name: "Messaging", href: "/admin/messaging", icon: FaPhoneAlt },
-        { name: "Blocks", href: "/admin/blocks", icon: FaHome },
+        // { name: "Blocks", href: "/admin/blocks", icon: FaHome },
       ];
     }
     
@@ -163,7 +163,7 @@ export function Header() {
                       return (
                         <DropdownMenuItem key={item.href} asChild className="rounded-lg cursor-pointer">
                           <Link href={item.href} className="flex items-center gap-2 w-full">
-                            <item.icon className="size-4" />
+                            <item.icon className="size-4 text-muted-foreground" />
                             {item.name}
                           </Link>
                         </DropdownMenuItem>
@@ -220,7 +220,7 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl shadow-xl border-border">
-                    <div className="px-3 py-2 text-xs text-muted">
+                    <div className="px-3 py-2 text-xs text-muted-foreground">
                       <div className="font-medium text-foreground">{session.user.name}</div>
                       <div className="truncate">{session.user.email}</div>
                     </div>
@@ -229,13 +229,13 @@ export function Header() {
                       <>
                         <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                           <Link href="/student/dashboard" className="flex items-center gap-2 w-full">
-                            <FaHome className="size-4" />
+                            <FaHome className="size-4 text-muted-foreground" />
                             Dashboard
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                           <Link href="/student/settings" className="flex items-center gap-2 w-full">
-                            <FaCog className="size-4" />
+                            <FaCog className="size-4 text-muted-foreground" />
                             Settings
                           </Link>
                         </DropdownMenuItem>
@@ -244,7 +244,7 @@ export function Header() {
                     {session.user.role === 'admin' && (
                       <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                         <Link href="/admin/dashboard" className="flex items-center gap-2 w-full">
-                          <FaUserShield className="size-4" />
+                          <FaUserShield className="size-4 text-muted-foreground" />
                           Admin Panel
                         </Link>
                       </DropdownMenuItem>
@@ -254,7 +254,7 @@ export function Header() {
                       onClick={() => signOut({ callbackUrl: `/${locale}` })}
                       className="rounded-lg cursor-pointer text-destructive"
                     >
-                      <FaSignOutAlt className="size-4 mr-2" />
+                      <FaSignOutAlt className="size-4 mr-2 text-destructive" />
                       Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -303,7 +303,7 @@ export function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 xl:hidden"
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-60 xl:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             
@@ -377,7 +377,7 @@ export function Header() {
                       >
                         <item.icon className={cn(
                           "size-5 transition-transform group-hover:scale-110",
-                          isActive ? "text-primary" : "text-muted group-hover:text-primary"
+                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"
                         )} />
                         <span className="font-medium text-base">{item.name}</span>
                         {isActive && (
@@ -402,7 +402,7 @@ export function Header() {
                         {session.user.role === 'admin' ? <FaUserShield className="size-5 text-primary" /> : <FaUser className="size-5 text-primary" />}
                         <div className="flex-1">
                           <div className="font-medium text-sm text-foreground">{session.user.name}</div>
-                          <div className="text-xs text-muted truncate">{session.user.email}</div>
+                          <div className="text-xs text-muted-foreground truncate">{session.user.email}</div>
                         </div>
                       </div>
                       <Button
