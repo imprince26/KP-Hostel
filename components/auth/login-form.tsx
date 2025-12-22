@@ -68,26 +68,26 @@ export function LoginForm() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-2xl shadow-xl p-8"
+        className="bg-card rounded-2xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-card-foreground">
             Sign In
           </h2>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-muted-foreground">
             Welcome back! Please sign in to continue
           </p>
         </div>
 
         {errors.general && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
             {errors.general}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
               Email Address
             </label>
             <Input
@@ -103,7 +103,7 @@ export function LoginForm() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
               Password
             </label>
             <div className="relative">
@@ -120,7 +120,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
               </button>
@@ -129,7 +129,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600"
+            className="w-full"
             disabled={isLoading}
           >
             {isLoading ? "Signing in..." : "Sign In"}
@@ -139,26 +139,26 @@ export function LoginForm() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
             </div>
           </div>
 
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FaGoogle className="text-red-500" size={20} />
-            <span className="font-medium text-gray-700">Sign in with Google</span>
+            <FaGoogle className="text-muted-foreground" size={20} />
+            <span className="font-medium text-foreground">Sign in with Google</span>
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link href="/auth/register" className="font-medium text-orange-600 hover:text-orange-500">
+          <Link href="/auth/register" className="font-medium text-primary hover:text-primary/80">
             Sign up
           </Link>
         </p>

@@ -157,8 +157,8 @@ export function AboutClient() {
                       <p className="leading-relaxed whitespace-pre-line">{section.content}</p>
                       
                       {section.subSections && section.subSections.map((sub, idx) => (
-                        <div key={idx} className="mt-8 pt-8 border-t border-gray-100">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-3">{sub.title}</h3>
+                        <div key={idx} className="mt-8 pt-8 border-t border-border">
+                          <h3 className="text-xl font-semibold text-foreground mb-3">{sub.title}</h3>
                           <p className="leading-relaxed whitespace-pre-line">{sub.content}</p>
                         </div>
                       ))}

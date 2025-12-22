@@ -98,45 +98,45 @@ export default function ApplicationView() {
         description: "Your application has been received and is pending review",
         icon: FiFileText,
         color: "blue",
-        bgColor: "bg-blue-50",
-        borderColor: "border-blue-200",
-        textColor: "text-blue-900"
+        bgColor: "bg-accent",
+        borderColor: "border-accent",
+        textColor: "text-accent-foreground"
       },
       under_review: {
         label: "Under Review",
         description: "Your application is being reviewed by our admissions team",
         icon: FiClock,
         color: "yellow",
-        bgColor: "bg-yellow-50",
-        borderColor: "border-yellow-200",
-        textColor: "text-yellow-900"
+        bgColor: "bg-accent",
+        borderColor: "border-accent",
+        textColor: "text-accent-foreground"
       },
       approved: {
         label: "Application Approved",
         description: "Congratulations! Your application has been approved",
         icon: FiCheckCircle,
         color: "green",
-        bgColor: "bg-green-50",
-        borderColor: "border-green-200",
-        textColor: "text-green-900"
+        bgColor: "bg-accent",
+        borderColor: "border-accent",
+        textColor: "text-accent-foreground"
       },
       rejected: {
         label: "Application Rejected",
         description: "Unfortunately, your application was not approved at this time",
         icon: FiXCircle,
         color: "red",
-        bgColor: "bg-red-50",
-        borderColor: "border-red-200",
-        textColor: "text-red-900"
+        bgColor: "bg-destructive/10",
+        borderColor: "border-destructive",
+        textColor: "text-destructive"
       },
       active: {
         label: "Admission Active",
         description: "Your admission is currently active",
         icon: FiCheckCircle,
         color: "purple",
-        bgColor: "bg-purple-50",
-        borderColor: "border-purple-200",
-        textColor: "text-purple-900"
+        bgColor: "bg-accent",
+        borderColor: "border-accent",
+        textColor: "text-accent-foreground"
       }
     };
 
@@ -402,17 +402,17 @@ export default function ApplicationView() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.6 }}
               >
-                <Card className="border-green-200 bg-green-50">
+                <Card className="border-accent bg-accent">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-900">
-                      <FiHome className="text-green-600" />
+                    <CardTitle className="flex items-center gap-2 text-accent-foreground">
+                      <FiHome className="text-accent-foreground" />
                       Room Assignment
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-green-700">Block</label>
+                        <label className="text-sm font-medium text-accent-foreground">Block</label>
                         <p className="text-lg font-semibold text-green-900">{application.assignedBlock}</p>
                       </div>
                       <div>
@@ -481,15 +481,15 @@ export default function ApplicationView() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <Card className="border-red-200 bg-red-50">
+                <Card className="border-destructive bg-destructive/10">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-900">
-                      <FiXCircle className="text-red-600" />
+                    <CardTitle className="flex items-center gap-2 text-destructive">
+                      <FiXCircle className="text-destructive" />
                       Rejection Reason
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-red-800 leading-relaxed">{application.rejectionReason}</p>
+                    <p className="text-destructive leading-relaxed">{application.rejectionReason}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -533,12 +533,12 @@ export default function ApplicationView() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FiCamera className="text-blue-600" />
+                    <FiCamera className="text-primary" />
                     Passport Photo
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                  <div className="aspect-square rounded-lg overflow-hidden border-2 border-border">
                     <img
                       src={application.passportPhoto}
                       alt="Passport Photo"

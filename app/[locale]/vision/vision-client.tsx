@@ -62,9 +62,9 @@ export function VisionClient() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-muted overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-white">
+      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background">
         <div className="container px-4">
           <div className="mx-auto max-w-4xl text-center">
             <motion.h1 

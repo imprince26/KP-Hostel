@@ -58,19 +58,19 @@ export function PageHeader({
                 <div
                   className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradients[gradient]} shadow-lg`}
                 >
-                  <Icon className="w-8 h-8 text-white" />
+                  <Icon className="w-8 h-8 text-primary-foreground" />
                 </div>
               </div>
             )}
 
             {/* Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4 tracking-tight">
               {title}
             </h1>
 
             {/* Description */}
             {description && (
-              <p className="text-lg sm:text-xl text-slate-600 max-w-2xl leading-relaxed">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}

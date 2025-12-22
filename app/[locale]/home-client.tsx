@@ -67,7 +67,7 @@ export function HomeClient({ locale }: HomeClientProps) {
   const galleryImages = ["/001.png", "/002.png", "/003.png", "/004.png"];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image */}
@@ -80,8 +80,8 @@ export function HomeClient({ locale }: HomeClientProps) {
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-linear-to-r from-slate-900/85 via-slate-900/75 to-slate-900/85" />
-          <div className="absolute inset-0 bg-linear-to-t from-slate-900/60 via-transparent to-slate-900/40" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/85 via-black/75 to-black/85" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/40" />
         </div>
 
         {/* Content Container */}
@@ -92,9 +92,9 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-12"
+              className="inline-flex items-center gap-2 rounded-full bg-card/10 backdrop-blur-sm border border-border/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-12"
             >
-              <span className="text-sm font-medium tracking-wide text-white/90 uppercase">
+              <span className="text-sm font-medium tracking-wide text-card-foreground/90 uppercase">
                 {t("heroSubtitle")}
               </span>
             </motion.div>
@@ -108,7 +108,7 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               {t("heroTitle")}
               <br />
-              <span className="bg-linear-to-r from-orange-300 via-amber-200 to-yellow-200 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
                 KP Vidhyarthi Bhavan
               </span>
             </motion.h1>
@@ -118,7 +118,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4"
+              className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4"
             >
               {t("heroDescription")}
             </motion.p>
@@ -132,7 +132,7 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               <Button
                 size="lg"
-                className="bg-linear-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl w-full sm:w-auto"
+                className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl w-full sm:w-auto"
                 asChild
               >
                 <Link href={`/${locale}/admission`} className="flex items-center justify-center gap-2">
@@ -143,7 +143,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                className="bg-card/10 hover:bg-card/20 text-card-foreground border-border/30 backdrop-blur-sm font-semibold text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                 asChild
               >
                 <Link href={`/${locale}/about`}>
@@ -156,7 +156,7 @@ export function HomeClient({ locale }: HomeClientProps) {
       </section>
 
       {/* Stats Section - Clean & Minimal */}
-      <section className="py-12 md:py-16 bg-white border-b border-gray-100">
+      <section className="py-12 md:py-16 bg-background border-b border-border">
         <div className="container px-4 max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 lg:gap-12">
             {stats.map((stat, index) => (
@@ -168,11 +168,11 @@ export function HomeClient({ locale }: HomeClientProps) {
                 transition={{ delay: index * 0.1 }}
                 className="text-center group"
               >
-                <div className="mb-3 md:mb-4 inline-flex p-3 md:p-4 rounded-full bg-slate-50 text-slate-600 group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
+                <div className="mb-3 md:mb-4 inline-flex p-3 md:p-4 rounded-full bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
                   <stat.icon className="text-2xl md:text-3xl" />
                 </div>
-                <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-1 md:mb-2">{stat.value}</div>
-                <div className="text-xs md:text-sm font-medium text-slate-500 uppercase tracking-widest px-2">
+                <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-1 md:mb-2">{stat.value}</div>
+                <div className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-widest px-2">
                   {stat.label}
                 </div>
               </motion.div>
@@ -182,7 +182,7 @@ export function HomeClient({ locale }: HomeClientProps) {
       </section>
 
       {/* Welcome / Human Touch Section */}
-      <section className="py-16 md:py-24 bg-slate-50">
+      <section className="py-16 md:py-24 bg-muted">
         <div className="container px-4 max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
             <motion.div
@@ -208,7 +208,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               </div>
               {/* Decorative element */}
               <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-primary/10 rounded-full -z-10" />
-              <div className="absolute -top-6 -left-6 w-32 h-32 bg-slate-200/50 rounded-full -z-10" />
+              <div className="absolute -top-6 -left-6 w-32 h-32 bg-muted/50 rounded-full -z-10" />
             </motion.div>
 
             <motion.div
@@ -219,14 +219,14 @@ export function HomeClient({ locale }: HomeClientProps) {
               <h2 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">
                 Welcome to KP Bhavan
               </h2>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
                 More Than Just a <br />
-                <span className="text-slate-400">Place to Stay.</span>
+                <span className="text-muted-foreground">Place to Stay.</span>
               </h3>
-              <p className="text-base md:text-lg text-slate-600 mb-4 md:mb-6 leading-relaxed">
+              <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6 leading-relaxed">
                 At KP Vidhyarthi Bhavan, we believe in fostering an environment that nurtures both academic excellence and personal growth. Our heritage spans over 90 years of shaping young minds.
               </p>
-              <p className="text-base md:text-lg text-slate-600 mb-6 md:mb-8 leading-relaxed">
+              <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8 leading-relaxed">
                 We provide a safe, inclusive, and vibrant community where students from diverse backgrounds come together to learn, share, and grow.
               </p>
               <Button variant="default" size="lg" className="rounded-full px-6 md:px-8" asChild>
@@ -240,13 +240,13 @@ export function HomeClient({ locale }: HomeClientProps) {
       </section>
 
       {/* Facilities Section - Clean & Consistent */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-16 md:py-24 bg-background">
         <div className="container px-4 max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-12 md:mb-20">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 md:mb-6 text-slate-900">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 md:mb-6 text-foreground">
               {t("facilitiesTitle")}
             </h2>
-            <p className="text-slate-500 text-base md:text-lg">
+            <p className="text-muted-foreground text-base md:text-lg">
               Everything you need for a comfortable and productive student life.
             </p>
           </div>
@@ -260,14 +260,14 @@ export function HomeClient({ locale }: HomeClientProps) {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="group p-8 rounded-3xl bg-slate-50 hover:bg-white hover:shadow-xl transition-all duration-300 border border-slate-100 hover:border-slate-200">
-                  <div className="mb-6 inline-flex p-4 rounded-2xl bg-white text-slate-900 shadow-sm group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                <div className="group p-8 rounded-3xl bg-muted hover:bg-card hover:shadow-xl transition-all duration-300 border border-border hover:border-primary">
+                  <div className="mb-6 inline-flex p-4 rounded-2xl bg-card text-card-foreground shadow-sm group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                     <feature.icon className="size-6" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-slate-900">
+                  <h3 className="text-xl font-bold mb-3 text-card-foreground">
                     {t(`features.${feature.key}.title`)}
                   </h3>
-                  <p className="text-slate-500 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {t(`features.${feature.key}.desc`)}
                   </p>
                 </div>
@@ -284,12 +284,12 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               <Link 
                 href={`/${locale}/facilities`}
-                className="group flex flex-col items-center justify-center w-full h-full min-h-50 rounded-3xl border-2 border-dashed border-slate-200 hover:border-primary hover:bg-primary/5 transition-all duration-300"
+                className="group flex flex-col items-center justify-center w-full h-full min-h-50 rounded-3xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-colors">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <FaArrowRight />
                 </div>
-                <span className="font-bold text-slate-900 group-hover:text-primary transition-colors">
+                <span className="font-bold text-card-foreground group-hover:text-primary transition-colors">
                   {tCommon("viewAll")}
                 </span>
               </Link>
@@ -299,14 +299,14 @@ export function HomeClient({ locale }: HomeClientProps) {
       </section>
 
       {/* Blocks / Campus Section */}
-      <section className="py-16 md:py-24 bg-slate-900 text-white overflow-hidden">
+      <section className="py-16 md:py-24 bg-card text-card-foreground overflow-hidden">
         <div className="container px-4 max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-4 md:gap-6">
             <div>
               <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 md:mb-4">
                 {t("blockTitle")}
               </h2>
-              <p className="text-slate-400 text-sm md:text-base lg:text-lg max-w-xl">
+              <p className="text-muted-foreground text-sm md:text-base lg:text-lg max-w-xl">
                 Our campus consists of four main residential blocks, each designed to provide a comfortable living space.
               </p>
             </div>
@@ -355,9 +355,9 @@ export function HomeClient({ locale }: HomeClientProps) {
       </section>
 
       {/* Gallery Strip */}
-      <section className="py-16 md:py-24 bg-white overflow-hidden">
+      <section className="py-16 md:py-24 bg-background overflow-hidden">
         <div className="container px-4 mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Life at Campus</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Life at Campus</h2>
         </div>
         <div className="w-full overflow-hidden">
           <div className="flex animate-scroll gap-3 md:gap-4">
@@ -374,13 +374,13 @@ export function HomeClient({ locale }: HomeClientProps) {
       <section className="py-16 md:py-24 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10" />
         <div className="container px-4 relative z-10 text-center max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-primary-foreground mb-6 md:mb-8">
             {t("admissionProcessTitle")}
           </h2>
-          <p className="text-base md:text-lg lg:text-xl text-white/90 mb-8 md:mb-10 max-w-2xl mx-auto px-4">
+          <p className="text-base md:text-lg lg:text-xl text-primary-foreground/90 mb-8 md:mb-10 max-w-2xl mx-auto px-4">
             Ready to start your journey with us? Applications are now open for the upcoming academic year.
           </p>
-          <Button size="lg" className="bg-white text-primary hover:bg-gray-100 rounded-full px-8 md:px-10 py-6 md:py-7 text-base md:text-lg font-bold shadow-xl" asChild>
+          <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-full px-8 md:px-10 py-6 md:py-7 text-base md:text-lg font-bold shadow-xl" asChild>
             <Link href={`/${locale}/admission`}>
               {t("applyNow")}
             </Link>

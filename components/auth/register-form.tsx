@@ -165,24 +165,24 @@ export function RegisterForm() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white rounded-2xl shadow-xl p-8"
+          className="bg-card rounded-2xl shadow-xl p-8"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Verify Email</h2>
-            <p className="mt-2 text-gray-600">
+            <h2 className="text-3xl font-bold text-card-foreground">Verify Email</h2>
+            <p className="mt-2 text-muted-foreground">
               Enter the 6-digit code sent to {formData.email}
             </p>
           </div>
 
           {errors.otp && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
               {errors.otp}
             </div>
           )}
 
           <form onSubmit={handleVerifyOtp} className="space-y-6">
             <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="otp" className="block text-sm font-medium text-foreground mb-2">
                 Verification Code
               </label>
               <Input
@@ -200,7 +200,7 @@ export function RegisterForm() {
 
             <Button
               type="submit"
-              className="w-full bg-orange-500 hover:bg-orange-600"
+              className="w-full"
               disabled={isLoading || otp.length !== 6}
             >
               {isLoading ? "Verifying..." : "Verify & Register"}
@@ -210,7 +210,7 @@ export function RegisterForm() {
           <div className="mt-6 text-center">
             <button
               onClick={() => setStep("form")}
-              className="text-sm text-orange-600 hover:text-orange-500"
+              className="text-sm text-primary hover:text-primary/80"
               disabled={isLoading}
             >
               ← Back to registration
@@ -227,24 +227,24 @@ export function RegisterForm() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-2xl shadow-xl p-8"
+        className="bg-card rounded-2xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-          <p className="mt-2 text-gray-600">
+          <h2 className="text-3xl font-bold text-card-foreground">Create Account</h2>
+          <p className="mt-2 text-muted-foreground">
             Join KP Vidhyarthi Bhavan family
           </p>
         </div>
 
         {errors.general && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
             {errors.general}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
               Full Name
             </label>
             <Input
@@ -257,7 +257,7 @@ export function RegisterForm() {
               required
               disabled={isLoading}
             />
-            {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+            {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
           </div>
 
           <div>
@@ -348,7 +348,7 @@ export function RegisterForm() {
 
           <Button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600"
+            className="w-full bg-primary hover:bg-primary/90"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Create Account"}
@@ -358,26 +358,26 @@ export function RegisterForm() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-background text-muted">Or continue with</span>
             </div>
           </div>
 
           <button
             onClick={handleGoogleSignUp}
             disabled={isLoading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FaGoogle className="text-red-500" size={20} />
-            <span className="font-medium text-gray-700">Sign up with Google</span>
+            <FaGoogle className="text-muted-foreground" size={20} />
+            <span className="font-medium text-foreground">Sign up with Google</span>
           </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/auth/login" className="font-medium text-orange-600 hover:text-orange-500">
+          <Link href="/auth/login" className="font-medium text-primary hover:text-primary/80">
             Sign in
           </Link>
         </p>

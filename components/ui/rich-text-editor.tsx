@@ -51,7 +51,7 @@ export default function RichTextEditor({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-blue-600 hover:text-blue-800 underline",
+          class: "text-primary hover:text-primary/80 underline",
         },
       }),
       Placeholder.configure({
@@ -91,16 +91,16 @@ export default function RichTextEditor({
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white">
+    <div className="border rounded-lg overflow-hidden bg-background">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b">
+      <div className="flex flex-wrap gap-1 p-2 bg-muted border-b">
         {/* Text Formatting */}
         <Button
           type="button"
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive("bold") ? "bg-gray-200" : ""}
+          className={editor.isActive("bold") ? "bg-accent" : ""}
           title="Bold"
         >
           <Bold className="h-4 w-4" />
@@ -110,7 +110,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive("italic") ? "bg-gray-200" : ""}
+          className={editor.isActive("italic") ? "bg-accent" : ""}
           title="Italic"
         >
           <Italic className="h-4 w-4" />
@@ -120,13 +120,13 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={editor.isActive("underline") ? "bg-gray-200" : ""}
+          className={editor.isActive("underline") ? "bg-accent" : ""}
           title="Underline"
         >
           <UnderlineIcon className="h-4 w-4" />
         </Button>
         
-        <div className="w-px bg-gray-300 mx-1" />
+        <div className="w-px bg-border mx-1" />
         
         {/* Headings */}
         <Button
@@ -134,13 +134,13 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive("heading", { level: 2 }) ? "bg-gray-200" : ""}
+          className={editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""}
           title="Heading 2"
         >
           <Heading2 className="h-4 w-4" />
         </Button>
         
-        <div className="w-px bg-gray-300 mx-1" />
+        <div className="w-px bg-border mx-1" />
         
         {/* Lists */}
         <Button
@@ -148,7 +148,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive("bulletList") ? "bg-gray-200" : ""}
+          className={editor.isActive("bulletList") ? "bg-accent" : ""}
           title="Bullet List"
         >
           <List className="h-4 w-4" />
@@ -158,13 +158,13 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive("orderedList") ? "bg-gray-200" : ""}
+          className={editor.isActive("orderedList") ? "bg-accent" : ""}
           title="Numbered List"
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
         
-        <div className="w-px bg-gray-300 mx-1" />
+        <div className="w-px bg-border mx-1" />
         
         {/* Text Alignment */}
         <Button
@@ -172,7 +172,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          className={editor.isActive({ textAlign: "left" }) ? "bg-gray-200" : ""}
+          className={editor.isActive({ textAlign: "left" }) ? "bg-accent" : ""}
           title="Align Left"
         >
           <AlignLeft className="h-4 w-4" />
@@ -182,7 +182,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className={editor.isActive({ textAlign: "center" }) ? "bg-gray-200" : ""}
+          className={editor.isActive({ textAlign: "center" }) ? "bg-accent" : ""}
           title="Align Center"
         >
           <AlignCenter className="h-4 w-4" />
@@ -192,13 +192,13 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          className={editor.isActive({ textAlign: "right" }) ? "bg-gray-200" : ""}
+          className={editor.isActive({ textAlign: "right" }) ? "bg-accent" : ""}
           title="Align Right"
         >
           <AlignRight className="h-4 w-4" />
         </Button>
         
-        <div className="w-px bg-gray-300 mx-1" />
+        <div className="w-px bg-border mx-1" />
         
         {/* Block Formatting */}
         <Button
@@ -206,7 +206,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={editor.isActive("blockquote") ? "bg-gray-200" : ""}
+          className={editor.isActive("blockquote") ? "bg-accent" : ""}
           title="Quote"
         >
           <Quote className="h-4 w-4" />
@@ -216,13 +216,13 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={editor.isActive("codeBlock") ? "bg-gray-200" : ""}
+          className={editor.isActive("codeBlock") ? "bg-accent" : ""}
           title="Code Block"
         >
           <Code className="h-4 w-4" />
         </Button>
         
-        <div className="w-px bg-gray-300 mx-1" />
+        <div className="w-px bg-border mx-1" />
         
         {/* Link */}
         <Button
@@ -230,7 +230,7 @@ export default function RichTextEditor({
           size="sm"
           variant="ghost"
           onClick={addLink}
-          className={editor.isActive("link") ? "bg-gray-200" : ""}
+          className={editor.isActive("link") ? "bg-accent" : ""}
           title="Insert Link"
         >
           <LinkIcon className="h-4 w-4" />

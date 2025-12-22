@@ -10,8 +10,8 @@ interface EmailTemplate {
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const PRIMARY_COLOR = "#EA580C"; // Orange-600
-const SECONDARY_COLOR = "#F97316"; // Orange-500
+const PRIMARY_COLOR = "#6B000D"; // Dark Red
+const SECONDARY_COLOR = "#8B000D"; // Lighter Dark Red
 const HOSTEL_PHONE = "+91-XXXXXXXXXX"; // Update with actual phone
 const HOSTEL_EMAIL = "info@example.com";
 

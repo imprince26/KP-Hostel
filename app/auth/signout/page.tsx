@@ -19,9 +19,9 @@ export default function SignOutPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div className="bg-card rounded-2xl shadow-xl p-8 text-center">
           <div className="flex justify-center mb-6">
             <Image
               src="/logo.jpg"
@@ -32,19 +32,19 @@ export default function SignOutPage() {
             />
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-card-foreground mb-2">
             Signing You Out
           </h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-muted-foreground mb-8">
             Thank you for using KP Vidhyarthi Bhavan
           </p>
 
           <div className="flex justify-center mb-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               You will be redirected to the login page shortly...
             </p>
             <Link

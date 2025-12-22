@@ -249,7 +249,7 @@ export default function AnnouncementsClient() {
                               }}
                             />
                             {item.announcement.content.length > 300 && (
-                              <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="mt-3 pt-3 border-t border-border">
                                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 p-0 h-auto font-medium">
                                   Read More →
                                 </Button>

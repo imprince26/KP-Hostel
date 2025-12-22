@@ -256,17 +256,17 @@ export default function StudentSettings() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-accent to-accent flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-orange-50 to-orange-100 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-accent to-accent py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -300,14 +300,14 @@ export default function StudentSettings() {
                   <img
                     src={avatar}
                     alt="Avatar"
-                    className="w-24 h-24 rounded-full object-cover border-4 border-orange-200"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-accent"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-orange-200 flex items-center justify-center">
-                    <FiUser className="w-12 h-12 text-orange-600" />
+                  <div className="w-24 h-24 rounded-full bg-accent flex items-center justify-center">
+                    <FiUser className="w-12 h-12 text-accent-foreground" />
                   </div>
                 )}
-                <label className="absolute bottom-0 right-0 bg-orange-600 text-white p-2 rounded-full cursor-pointer hover:bg-orange-700 transition-colors">
+                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
                   <FiCamera className="w-4 h-4" />
                   <input
                     type="file"
@@ -564,27 +564,27 @@ export default function StudentSettings() {
         </Card>
 
         {/* Danger Zone */}
-        <Card className="border-red-200 shadow-lg">
-          <CardHeader className="bg-red-50">
-            <CardTitle className="flex items-center gap-2 text-red-700">
+        <Card className="border-destructive shadow-lg">
+          <CardHeader className="bg-destructive/10">
+            <CardTitle className="flex items-center gap-2 text-destructive">
               <FiAlertTriangle className="w-5 h-5" />
               Danger Zone
             </CardTitle>
-            <CardDescription className="text-red-600">
+            <CardDescription className="text-destructive">
               Irreversible actions - proceed with caution
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Delete Account</h4>
-                <p className="text-sm text-gray-600 mb-4">
+                <h4 className="font-semibold text-foreground mb-2">Delete Account</h4>
+                <p className="text-sm text-muted-foreground mb-4">
                   Once you delete your account, there is no going back. All your data will be permanently deleted.
                 </p>
                 <Button 
                   onClick={() => setDeleteDialogOpen(true)}
                   variant="destructive"
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-destructive hover:bg-destructive/90"
                 >
                   <FiTrash2 className="mr-2" />
                   Delete Account
@@ -599,7 +599,7 @@ export default function StudentSettings() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-700">
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <FiAlertTriangle className="w-5 h-5" />
               Confirm Account Deletion
             </DialogTitle>
@@ -607,8 +607,8 @@ export default function StudentSettings() {
               This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-red-50 border border-red-200 rounded p-4 my-4">
-            <p className="text-sm text-red-800">
+          <div className="bg-destructive/10 border border-destructive rounded p-4 my-4">
+            <p className="text-sm text-destructive">
               <strong>Warning:</strong> All your applications, notifications, and profile data will be permanently deleted.
             </p>
           </div>

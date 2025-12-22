@@ -65,11 +65,11 @@ export default function CompleteProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent to-accent p-4">
+      <div className="bg-background rounded-lg shadow-xl p-8 max-w-md w-full">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Complete Your Profile</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold text-foreground">Complete Your Profile</h1>
+          <p className="text-muted-foreground mt-2">
             Please provide your phone number to continue
           </p>
         </div>

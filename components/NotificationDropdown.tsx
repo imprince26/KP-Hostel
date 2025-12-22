@@ -57,13 +57,13 @@ export default function NotificationDropdown() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case "success":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-accent text-accent-foreground border-accent";
       case "warning":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-accent text-accent-foreground border-accent";
       case "error":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-destructive text-destructive-foreground border-destructive";
       default:
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-accent text-accent-foreground border-accent";
     }
   };
 
@@ -73,11 +73,11 @@ export default function NotificationDropdown() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition"
+        className="relative p-2 text-muted-foreground hover:text-primary hover:bg-accent rounded-lg transition"
       >
         <FiBell size={24} />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -94,14 +94,14 @@ export default function NotificationDropdown() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[500px] overflow-hidden"
+              className="absolute right-0 mt-2 w-96 bg-background rounded-xl shadow-2xl border border-border z-50 max-h-[500px] overflow-hidden"
             >
-              <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-orange-600">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <div className="p-4 border-b border-border bg-gradient-to-r from-primary to-primary">
+                <h3 className="text-lg font-semibold text-primary-foreground flex items-center gap-2">
                   <FiBell />
                   Notifications
                   {unreadCount > 0 && (
-                    <span className="text-sm bg-white text-orange-500 px-2 py-0.5 rounded-full">
+                    <span className="text-sm bg-background text-primary px-2 py-0.5 rounded-full">
                       {unreadCount} new
                     </span>
                   )}
@@ -110,18 +110,18 @@ export default function NotificationDropdown() {
 
               <div className="overflow-y-auto max-h-[400px]">
                 {notifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <FiBell size={48} className="mx-auto mb-4 text-gray-300" />
+                  <div className="p-8 text-center text-muted-foreground">
+                    <FiBell size={48} className="mx-auto mb-4 text-muted" />
                     <p>No notifications yet</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-100">
+                  <div className="divide-y divide-border">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
                         onClick={() => markAsRead(notification.id)}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition ${
-                          !notification.read ? "bg-orange-50" : ""
+                        className={`p-4 hover:bg-muted cursor-pointer transition ${
+                          !notification.read ? "bg-accent" : ""
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -133,16 +133,16 @@ export default function NotificationDropdown() {
                             {notification.type.toUpperCase()}
                           </div>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-orange-500 rounded-full mt-1" />
+                            <div className="w-2 h-2 bg-primary rounded-full mt-1" />
                           )}
                         </div>
-                        <h4 className="font-semibold text-gray-900 mt-2">
+                        <h4 className="font-semibold text-foreground mt-2">
                           {notification.title}
                         </h4>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-xs text-muted mt-2">
                           {new Date(notification.createdAt).toLocaleString()}
                         </p>
                       </div>

@@ -286,9 +286,9 @@ export default function AdmissionPage() {
                 </div>
               </div>
 
-              <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-sm">
-                <AlertCircle className="h-5 w-5 text-blue-600" />
-                <AlertDescription className="text-blue-900">
+              <Alert className="border-accent bg-accent shadow-sm">
+                <AlertCircle className="h-5 w-5 text-accent-foreground" />
+                <AlertDescription className="text-accent-foreground">
                   <strong className="block mb-2 text-base font-semibold">Important: Save Your Application Number</strong>
                   <p className="text-sm leading-relaxed">Please note down this application number for future reference. You will need it to track your application status.</p>
                 </AlertDescription>
@@ -961,18 +961,18 @@ export default function AdmissionPage() {
                   )}
 
                   {photoPreview && !isUploadingPhoto && (
-                    <div className="flex items-center gap-6 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <div className="flex items-center gap-6 p-6 bg-accent border-2 border-accent rounded-lg">
                       <img
                         src={photoPreview}
                         alt="Preview"
-                        className="w-32 h-32 rounded-lg object-cover border-4 border-green-500 shadow-lg"
+                        className="w-32 h-32 rounded-lg object-cover border-4 border-accent shadow-lg"
                       />
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 text-green-700 mb-2">
+                        <div className="flex items-center gap-2 text-accent-foreground mb-2">
                           <Check className="w-5 h-5" />
                           <span className="font-semibold text-lg">Photo uploaded successfully!</span>
                         </div>
-                        <p className="text-sm text-gray-600">Your photo has been uploaded and will be used for your application.</p>
+                        <p className="text-sm text-muted-foreground">Your photo has been uploaded and will be used for your application.</p>
                       </div>
                     </div>
                   )}
@@ -1018,7 +1018,7 @@ export default function AdmissionPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2" />
                     Submitting...
                   </>
                 ) : (

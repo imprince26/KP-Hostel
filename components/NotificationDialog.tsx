@@ -82,9 +82,9 @@ export default function NotificationDialog() {
   const getTypeStyles = (type: string) => {
     switch (type) {
       case "success":
-        return "bg-green-500/10 text-green-700 border-green-500/20";
+        return "bg-accent/10 text-accent-foreground border-accent/20";
       case "warning":
-        return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+        return "bg-accent/10 text-accent-foreground border-accent/20";
       case "error":
         return "bg-destructive/10 text-destructive border-destructive/20";
       default:

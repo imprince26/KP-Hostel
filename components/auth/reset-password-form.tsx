@@ -26,14 +26,14 @@ export function ResetPasswordForm() {
   if (!token) {
     return (
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-card rounded-2xl shadow-xl p-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Invalid Link</h2>
-            <p className="text-gray-600 mb-6">
+            <h2 className="text-2xl font-bold text-card-foreground mb-4">Invalid Link</h2>
+            <p className="text-muted-foreground mb-6">
               This password reset link is invalid or has expired.
             </p>
             <Link href="/auth/forgot-password">
-              <Button className="w-full bg-linear-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold py-6 rounded-lg">
+              <Button className="w-full bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold py-6 rounded-lg">
                 Request New Link
               </Button>
             </Link>
@@ -91,12 +91,12 @@ export function ResetPasswordForm() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white rounded-2xl shadow-xl p-8"
+          className="bg-card rounded-2xl shadow-xl p-8"
         >
           <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+            <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-6">
               <svg
-                className="w-8 h-8 text-green-600"
+                className="w-8 h-8 text-accent-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -109,14 +109,14 @@ export function ResetPasswordForm() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-card-foreground mb-4">
               Password Reset Successful
             </h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               Your password has been successfully reset. You can now log in with your new password.
             </p>
             <Link href="/auth/login">
-              <Button className="w-full bg-linear-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold py-6 rounded-lg">
+              <Button className="w-full bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold py-6 rounded-lg">
                 Back to Login
               </Button>
             </Link>
@@ -132,24 +132,24 @@ export function ResetPasswordForm() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-2xl shadow-xl p-8"
+        className="bg-card rounded-2xl shadow-xl p-8"
       >
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Reset Password</h2>
-          <p className="mt-2 text-gray-600">
+          <h2 className="text-3xl font-bold text-card-foreground">Reset Password</h2>
+          <p className="mt-2 text-muted-foreground">
             Enter your new password below
           </p>
         </div>
 
         {errors.general && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
             {errors.general}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
               New Password
             </label>
             <div className="relative">
@@ -164,21 +164,21 @@ export function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
             {errors.password && (
-              <p className="mt-1.5 text-sm text-red-600">{errors.password}</p>
+              <p className="mt-1.5 text-sm text-destructive">{errors.password}</p>
             )}
-            <p className="mt-1.5 text-sm text-gray-500">
+            <p className="mt-1.5 text-sm text-muted-foreground">
               Must be at least 8 characters
             </p>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
               Confirm New Password
             </label>
             <div className="relative">
@@ -193,19 +193,19 @@ export function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-3 text-muted hover:text-foreground"
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="mt-1.5 text-sm text-red-600">{errors.confirmPassword}</p>
+              <p className="mt-1.5 text-sm text-destructive">{errors.confirmPassword}</p>
             )}
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-linear-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white font-semibold py-6 rounded-lg"
+            className="w-full bg-linear-to-r from-primary to-primary hover:from-primary/90 hover:to-primary/90 text-white font-semibold py-6 rounded-lg"
             disabled={isLoading}
           >
             {isLoading ? "Resetting..." : "Reset Password"}

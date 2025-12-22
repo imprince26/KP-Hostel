@@ -23,22 +23,22 @@ export default function NotFound() {
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
             Page Not Found
           </h2>
-          <p className="text-gray-600 text-lg max-w-md mx-auto">
+          <p className="text-muted-foreground text-lg max-w-md mx-auto">
             The page you are looking for doesn't exist or has been moved.
           </p>
         </div>
 
         {/* Search Suggestion */}
-        <div className="mb-12 p-6 bg-white rounded-2xl shadow-sm border border-gray-100 max-w-md mx-auto">
+        <div className="mb-12 p-6 bg-background rounded-2xl shadow-sm border border-border max-w-md mx-auto">
           <div className="flex items-start gap-3 text-left">
             <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
               <FaSearch className="text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-1">
+              <h3 className="font-semibold text-foreground mb-1">
                 Looking for something?
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Try visiting our homepage or use the navigation menu to find what you need.
               </p>
             </div>
@@ -51,7 +51,7 @@ export default function NotFound() {
             onClick={() => router.back()}
             variant="outline"
             size="lg"
-            className="w-full sm:w-auto rounded-full border-gray-200 hover:bg-gray-50"
+            className="w-full sm:w-auto rounded-full border-border hover:bg-muted"
           >
             <FaArrowLeft className="mr-2" />
             Go Back
@@ -69,33 +69,33 @@ export default function NotFound() {
         </div>
 
         {/* Quick Links */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <p className="text-sm text-gray-500 mb-4">Quick Links</p>
+        <div className="mt-12 pt-8 border-t border-border">
+          <p className="text-sm text-muted mb-4">Quick Links</p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/en/about"
-              className="text-sm text-gray-600 hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               About Us
             </Link>
-            <span className="text-gray-300">•</span>
+            <span className="text-muted">•</span>
             <Link
               href="/en/facilities"
-              className="text-sm text-gray-600 hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Facilities
             </Link>
-            <span className="text-gray-300">•</span>
+            <span className="text-muted">•</span>
             <Link
               href="/en/admission"
-              className="text-sm text-gray-600 hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Admission
             </Link>
-            <span className="text-gray-300">•</span>
+            <span className="text-muted">•</span>
             <Link
               href="/en/contact"
-              className="text-sm text-gray-600 hover:text-primary transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               Contact
             </Link>
