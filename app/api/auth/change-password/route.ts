@@ -40,8 +40,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        { error: "Password not set. Please reset your password." },
+        { status: 400 }
+      );
+    }
+
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!isValidPassword) {
       return NextResponse.json(
         { error: "Current password is incorrect" },
@@ -56,7 +63,7 @@ export async function POST(req: NextRequest) {
     await db
       .update(users)
       .set({
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         updatedAt: new Date(),
       })
       .where(eq(users.id, session.user.id));

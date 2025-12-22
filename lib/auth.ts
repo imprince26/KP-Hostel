@@ -192,7 +192,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.phone = token.phone;
-        session.user.avatar = token.avatar;
+        session.user.avatar = token.avatar as string | null;
         
         // Fetch additional user data
         if (session.user.email) {
