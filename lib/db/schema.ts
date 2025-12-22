@@ -227,6 +227,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "application_submitted",
   "application_approved",
   "application_rejected",
+  "admission_activated",
   "payment_due",
   "announcement",
   "system",

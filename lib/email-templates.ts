@@ -221,21 +221,15 @@ ${HOSTEL_PHONE} | ${HOSTEL_EMAIL}`
  */
 export function applicationApprovedTemplate(
   name: string,
-  applicationNumber: string
+  applicationNumber: string,
+  assignedBlock?: string,
+  roomNumber?: string,
+  admissionStartDate?: string,
+  admissionEndDate?: string
 ): EmailTemplate {
   const content = `
     <tr>
       <td class="email-body" style="padding: 32px 24px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="display: inline-block; background-color: #D1FAE5; border-radius: 50%; padding: 16px;">
-                <span style="font-size: 48px;">✅</span>
-              </div>
-            </td>
-          </tr>
-        </table>
-        
         <h2 style="margin: 0 0 16px; text-align: center; color: #059669; font-size: 24px; font-weight: 600;">
           Application Approved!
         </h2>
@@ -247,11 +241,11 @@ export function applicationApprovedTemplate(
           Congratulations! We are pleased to inform you that your hostel admission application <strong>${applicationNumber}</strong> has been <span style="color: #059669; font-weight: 600;">approved</span>.
         </p>
 
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-left: 4px solid #059669; border-radius: 8px; margin: 24px 0;">
+         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%); border-left: 4px solid #059669; border-radius: 8px; margin: 24px 0;">
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0 0 12px; font-size: 15px; color: #065F46; font-weight: 600;">
-                ⚠️ Important: Complete Your Admission
+                Important: Complete Your Admission
               </p>
               <p style="margin: 0; font-size: 14px; color: #047857; line-height: 1.6;">
                 Please visit the hostel office within <strong>7 days</strong> to complete your offline admission process and submit the required documents and fees.
@@ -264,7 +258,7 @@ export function applicationApprovedTemplate(
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0 0 12px; font-size: 15px; color: #111827; font-weight: 600;">
-                📄 Documents Required:
+                Documents Required:
               </p>
               <ul style="margin: 0; padding-left: 20px; color: #374151;">
                 <li style="margin-bottom: 8px; font-size: 14px;">College ID Card (Photocopy)</li>
@@ -300,16 +294,16 @@ export function applicationApprovedTemplate(
     text: `Dear ${name},
 
 Congratulations! Your hostel admission application ${applicationNumber} has been APPROVED.
+${assignedBlock && roomNumber ? `
 
+ROOM ASSIGNMENT DETAILS:
+Block: ${assignedBlock}
+Room Number: ${roomNumber}
+${admissionStartDate ? `Admission Start Date: ${new Date(admissionStartDate).toLocaleDateString('en-IN')}` : ''}
+${admissionEndDate ? `Admission End Date: ${new Date(admissionEndDate).toLocaleDateString('en-IN')}` : ''}
+` : ''}
 IMPORTANT: Complete Your Admission
 Please visit the hostel office within 7 days to complete your offline admission process.
-
-Documents Required:
-- College ID Card (Photocopy)
-- Aadhar Card (Original + Photocopy)
-- Passport Size Photos (4 copies)
-- Previous Address Proof
-- Bank DD for admission fees
 
 For any queries, please contact the hostel office.
 
@@ -332,15 +326,6 @@ export function applicationRejectedTemplate(
   const content = `
     <tr>
       <td class="email-body" style="padding: 32px 24px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="display: inline-block; background-color: #FEE2E2; border-radius: 50%; padding: 16px;">
-                <span style="font-size: 48px;">❌</span>
-              </div>
-            </td>
-          </tr>
-        </table>
         
         <h2 style="margin: 0 0 16px; text-align: center; color: #DC2626; font-size: 24px; font-weight: 600;">
           Application Not Approved
@@ -372,7 +357,7 @@ export function applicationRejectedTemplate(
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0 0 8px; font-size: 14px; color: #1E40AF; font-weight: 600;">
-                💬 Need Assistance?
+                Need Assistance?
               </p>
               <p style="margin: 0; font-size: 14px; color: #1E3A8A; line-height: 1.6;">
                 If you have any questions or would like to discuss this decision, please feel free to contact our office. We're here to help!
@@ -416,15 +401,6 @@ export function accountDeletionTemplate(name: string): EmailTemplate {
   const content = `
     <tr>
       <td class="email-body" style="padding: 32px 24px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="display: inline-block; background-color: #FEF2F2; border-radius: 50%; padding: 16px;">
-                <span style="font-size: 48px;">⚠️</span>
-              </div>
-            </td>
-          </tr>
-        </table>
         
         <h2 style="margin: 0 0 16px; text-align: center; color: #DC2626; font-size: 24px; font-weight: 600;">
           Account Deleted
@@ -506,15 +482,6 @@ export function admissionActivatedTemplate(
   const content = `
     <tr>
       <td class="email-body" style="padding: 32px 24px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="display: inline-block; background-color: #DBEAFE; border-radius: 50%; padding: 16px;">
-                <span style="font-size: 48px;">🎉</span>
-              </div>
-            </td>
-          </tr>
-        </table>
         
         <h2 style="margin: 0 0 16px; text-align: center; color: #2563EB; font-size: 24px; font-weight: 600;">
           Welcome to K.P. Vidhyarthi Bhavan!
@@ -531,7 +498,7 @@ export function admissionActivatedTemplate(
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0 0 16px; font-size: 15px; color: #1E40AF; font-weight: 600; text-align: center;">
-                🏠 Your Room Details
+                Your Room Details
               </p>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -559,7 +526,7 @@ export function admissionActivatedTemplate(
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0 0 12px; font-size: 15px; color: #111827; font-weight: 600;">
-                ✅ Important Reminders:
+                Important Reminders:
               </p>
               <ul style="margin: 0; padding-left: 20px; color: #374151;">
                 <li style="margin-bottom: 8px; font-size: 14px;">Follow hostel rules and timings</li>
@@ -627,15 +594,6 @@ export function paymentReminderTemplate(
   const content = `
     <tr>
       <td class="email-body" style="padding: 32px 24px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              <div style="display: inline-block; background-color: #FEF3C7; border-radius: 50%; padding: 16px;">
-                <span style="font-size: 48px;">💰</span>
-              </div>
-            </td>
-          </tr>
-        </table>
         
         <h2 style="margin: 0 0 16px; text-align: center; color: #D97706; font-size: 24px; font-weight: 600;">
           Semester Fees Payment Reminder
@@ -731,7 +689,7 @@ export function passwordResetTemplate(
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0; font-size: 14px; color: #92400E; line-height: 1.6;">
-                🔒 <strong>Security Note:</strong> This link will expire in <strong>1 hour</strong>. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+                <strong>Security Note:</strong> This link will expire in <strong>1 hour</strong>. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
               </p>
             </td>
           </tr>
@@ -796,7 +754,7 @@ export function getOTPEmailTemplate(name: string, otp: string): EmailTemplate {
           <tr>
             <td class="info-card" style="padding: 20px;">
               <p style="margin: 0; font-size: 14px; color: #92400E; line-height: 1.6;">
-                🔒 <strong>Security Note:</strong> This OTP will expire in <strong>10 minutes</strong>. Never share this code with anyone. Our team will never ask for your OTP.
+                <strong>Security Note:</strong> This OTP will expire in <strong>10 minutes</strong>. Never share this code with anyone. Our team will never ask for your OTP.
               </p>
             </td>
           </tr>
@@ -852,7 +810,7 @@ export function getWelcomeEmailTemplate(name: string): EmailTemplate {
         </table>
 
         <div style="margin: 32px 0;">
-          <h3 style="margin: 0 0 16px; font-size: 16px; color: #111827;">🚀 Next Steps:</h3>
+          <h3 style="margin: 0 0 16px; font-size: 16px; color: #111827;"> Next Steps:</h3>
           <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #374151; line-height: 1.8;">
             <li>Complete your profile with personal details</li>
             <li>Submit your hostel admission application</li>
@@ -918,7 +876,7 @@ export function adminMessageTemplate(
       <td class="email-body" style="padding: 24px;">
         <!-- Greeting -->
         <h2 style="margin: 0 0 16px; color: #1F2937; font-size: 24px; font-weight: 600;">
-          📨 Message from Administration
+          Message from Administration
         </h2>
 
         <p style="margin: 0 0 24px; color: #4B5563; font-size: 16px; line-height: 1.6;">
@@ -944,30 +902,10 @@ export function adminMessageTemplate(
           <tr>
             <td class="info-card" style="padding: 16px;">
               <p style="margin: 0; color: #92400E; font-size: 14px; font-weight: 500;">
-                📧 This message was sent by: <strong>${senderName}</strong>
+                This message was sent by: <strong>${senderName}</strong>
               </p>
               <p style="margin: 8px 0 0; color: #92400E; font-size: 13px;">
                 If you have any questions about this message, please contact the administration office.
-              </p>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Contact Info -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #F3F4F6; border-radius: 8px; margin: 24px 0;">
-          <tr>
-            <td class="info-card" style="padding: 20px; text-align: center;">
-              <h4 style="margin: 0 0 12px; color: #1F2937; font-size: 16px; font-weight: 600;">
-                🏠 K.P. Vidhyarthi Bhavan
-              </h4>
-              <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">
-                Premier Student Hostel, Ahmedabad
-              </p>
-              <p style="margin: 0 0 8px; color: #6B7280; font-size: 14px;">
-                📞 ${HOSTEL_PHONE} | 📧 ${HOSTEL_EMAIL}
-              </p>
-              <p style="margin: 0; color: #6B7280; font-size: 13px;">
-                🕒 Office Hours: Monday to Saturday, 9:00 AM - 6:00 PM
               </p>
             </td>
           </tr>

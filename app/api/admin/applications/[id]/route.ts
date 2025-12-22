@@ -21,11 +21,14 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { status, rejectionReason, roomNumber, allotmentDate } =
-      await req.json();
+    const body = await req.json();
 
-    if (!["approved", "rejected"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    // Support both old format (status, rejectionReason) and new format (action, comments)
+    const action = body.action;
+    const status = body.status || (action === "approve" ? "approved" : action === "reject" ? "rejected" : null);
+
+    if (!status || !["approved", "rejected"].includes(status)) {
+      return NextResponse.json({ error: "Invalid status or action" }, { status: 400 });
     }
 
     // Update application
@@ -35,13 +38,22 @@ export async function PATCH(
       reviewedAt: new Date(),
     };
 
-    if (status === "rejected" && rejectionReason) {
-      updateData.rejectionReason = rejectionReason;
+    // Handle admin notes/comments
+    if (body.comments || body.adminNotes) {
+      updateData.adminNotes = body.comments || body.adminNotes;
+    }
+
+    if (status === "rejected") {
+      updateData.rejectionReason = body.rejectionReason || body.comments || "Application did not meet requirements";
     }
 
     if (status === "approved") {
-      updateData.roomNumber = roomNumber;
-      updateData.allotmentDate = allotmentDate || new Date();
+      if (body.assignedBlock) updateData.assignedBlock = body.assignedBlock;
+      if (body.roomNumber) updateData.roomNumber = body.roomNumber;
+      if (body.admissionStartDate) updateData.admissionStartDate = new Date(body.admissionStartDate);
+      if (body.admissionEndDate) updateData.admissionEndDate = new Date(body.admissionEndDate);
+      // Keep allotmentDate for backward compatibility if provided
+      if (body.allotmentDate) updateData.admissionStartDate = new Date(body.allotmentDate);
     }
 
     const [updated] = await db
@@ -62,7 +74,11 @@ export async function PATCH(
       if (status === "approved") {
         const emailTemplate = applicationApprovedTemplate(
           user.name || "Student",
-          updated.applicationNumber
+          updated.applicationNumber,
+          updated.assignedBlock ?? undefined,
+          updated.roomNumber ?? undefined,
+          updated.admissionStartDate?.toISOString(),
+          updated.admissionEndDate?.toISOString()
         );
         await sendEmail({
           to: user.email,
@@ -74,7 +90,7 @@ export async function PATCH(
         const emailTemplate = applicationRejectedTemplate(
           user.name || "Student",
           updated.applicationNumber,
-          rejectionReason || "Application did not meet requirements"
+          updated.rejectionReason || "Application did not meet requirements"
         );
         await sendEmail({
           to: user.email,
@@ -93,8 +109,8 @@ export async function PATCH(
             : "Application Update",
         message:
           status === "approved"
-            ? `Your application ${updated.applicationNumber} has been approved. Room ${roomNumber} has been allotted.`
-            : `Your application ${updated.applicationNumber} has been reviewed. ${rejectionReason || "Please contact office for details."}`,
+            ? `Your application ${updated.applicationNumber} has been approved. Room ${updated.roomNumber} has been allotted.`
+            : `Your application ${updated.applicationNumber} has been reviewed. ${updated.rejectionReason || "Please contact office for details."}`,
         type: status === "approved" ? "application_approved" : "application_rejected",
       });
     }

@@ -3,12 +3,24 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FiHome, FiPlus, FiEdit, FiTrash2, FiUsers, FiDollarSign } from "react-icons/fi";
+import {
+  FiHome,
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiUsers,
+  FiCheckCircle,
+  FiXCircle,
+  FiAlertTriangle
+} from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -17,18 +29,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface HostelBlock {
   id: string;
   name: string;
-  capacity: number;
+  capacity: number | null;
   currentOccupancy: number;
   semester1Fee: number;
   semester2Fee: number;
-  amenities?: Record<string, any>;
-  features?: Record<string, any>;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  description?: string | null;
+  amenities?: string | null;
+  features?: string | null;
+  images?: string | null;
+  floorCount?: number | null;
+  roomsPerFloor?: number | null;
 }
 
 export default function AdminBlocks() {
@@ -36,18 +63,22 @@ export default function AdminBlocks() {
   const router = useRouter();
   const [blocks, setBlocks] = useState<HostelBlock[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"add" | "edit">("add");
   const [selectedBlock, setSelectedBlock] = useState<HostelBlock | null>(null);
-  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [blockToDelete, setBlockToDelete] = useState<HostelBlock | null>(null);
+
   // Form states
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("");
   const [semester1Fee, setSemester1Fee] = useState("");
   const [semester2Fee, setSemester2Fee] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -67,14 +98,24 @@ export default function AdminBlocks() {
 
   const fetchBlocks = async () => {
     try {
+      setLoading(true);
+      setError("");
       const res = await fetch("/api/admin/blocks");
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
-      
+
       if (data.blocks) {
         setBlocks(data.blocks);
+      } else if (data.error) {
+        setError(data.error);
       }
     } catch (error) {
       console.error("Error fetching blocks:", error);
+      setError("Failed to load blocks. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -94,37 +135,41 @@ export default function AdminBlocks() {
     setDialogMode("edit");
     setSelectedBlock(block);
     setName(block.name);
-    setCapacity(block.capacity.toString());
+    setCapacity(block.capacity?.toString() || "");
     setSemester1Fee(block.semester1Fee.toString());
     setSemester2Fee(block.semester2Fee.toString());
     setDialogOpen(true);
   };
 
   const handleSubmit = async () => {
+    // Clear previous messages
+    setError("");
+    setSuccess("");
+
     // Validation
     if (!name.trim()) {
-      alert("Block name is required");
+      setError("Block name is required");
       return;
     }
     if (!capacity || parseInt(capacity) <= 0) {
-      alert("Valid capacity is required");
+      setError("Valid capacity is required");
       return;
     }
     if (!semester1Fee || parseFloat(semester1Fee) <= 0) {
-      alert("Valid semester 1 fee is required");
+      setError("Valid semester 1 fee is required");
       return;
     }
     if (!semester2Fee || parseFloat(semester2Fee) <= 0) {
-      alert("Valid semester 2 fee is required");
+      setError("Valid semester 2 fee is required");
       return;
     }
 
     setSubmitting(true);
     try {
-      const url = dialogMode === "add" 
-        ? "/api/admin/blocks" 
+      const url = dialogMode === "add"
+        ? "/api/admin/blocks"
         : `/api/admin/blocks/${selectedBlock?.id}`;
-      
+
       const method = dialogMode === "add" ? "POST" : "PUT";
 
       const res = await fetch(url, {
@@ -140,51 +185,66 @@ export default function AdminBlocks() {
 
       const data = await res.json();
       if (res.ok) {
-        alert(`Block ${dialogMode === "add" ? "added" : "updated"} successfully!`);
+        setSuccess(`Block ${dialogMode === "add" ? "created" : "updated"} successfully!`);
         setDialogOpen(false);
         fetchBlocks();
+        // Clear form
+        setName("");
+        setCapacity("");
+        setSemester1Fee("");
+        setSemester2Fee("");
       } else {
-        alert(data.error || `Failed to ${dialogMode} block`);
+        setError(data.error || `Failed to ${dialogMode} block`);
       }
     } catch (error) {
       console.error(`Error ${dialogMode}ing block:`, error);
-      alert(`Failed to ${dialogMode} block`);
+      setError(`Failed to ${dialogMode} block. Please try again.`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteBlock = async (block: HostelBlock) => {
-    if (block.currentOccupancy > 0) {
-      alert("Cannot delete block with active students. Please move students first.");
-      return;
-    }
+  const handleDeleteBlock = (block: HostelBlock) => {
+    setBlockToDelete(block);
+    setDeleteDialogOpen(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete Block ${block.name}?`)) {
-      return;
-    }
+  const confirmDelete = async () => {
+    if (!blockToDelete) return;
+
+    setSubmitting(true);
+    setError("");
+    setSuccess("");
 
     try {
-      const res = await fetch(`/api/admin/blocks/${block.id}`, {
+      const res = await fetch(`/api/admin/blocks/${blockToDelete.id}`, {
         method: "DELETE",
       });
 
+      const data = await res.json();
       if (res.ok) {
-        alert("Block deleted successfully!");
+        setSuccess("Block deleted successfully!");
         fetchBlocks();
+        setDeleteDialogOpen(false);
+        setBlockToDelete(null);
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to delete block");
+        setError(data.error || "Failed to delete block");
       }
     } catch (error) {
       console.error("Error deleting block:", error);
-      alert("Failed to delete block");
+      setError("Failed to delete block. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const getOccupancyBadge = (block: HostelBlock) => {
+    if (!block.capacity) {
+      return <Badge variant="outline">Capacity Not Set</Badge>;
+    }
+
     const percentage = (block.currentOccupancy / block.capacity) * 100;
-    
+
     if (percentage >= 90) {
       return <Badge variant="destructive">Nearly Full</Badge>;
     } else if (percentage >= 70) {
@@ -222,6 +282,25 @@ export default function AdminBlocks() {
           </Button>
         </div>
 
+        {/* Messages */}
+        {error && (
+          <Alert className="mb-6 border-destructive/20 bg-destructive/5">
+            <FiAlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-destructive">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <FiCheckCircle className="h-4 w-4" />
+            <AlertDescription className="text-green-800">
+              {success}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Summary Cards */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <Card className="border-0 shadow-sm bg-card">
@@ -239,7 +318,7 @@ export default function AdminBlocks() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-foreground">
-                {blocks.reduce((sum, b) => sum + b.capacity, 0)}
+                {blocks.reduce((sum, b) => sum + (b.capacity || 0), 0)}
               </p>
             </CardContent>
           </Card>
@@ -261,7 +340,7 @@ export default function AdminBlocks() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-foreground">
-                {blocks.reduce((sum, b) => sum + (b.capacity - b.currentOccupancy), 0)}
+                {blocks.reduce((sum, b) => sum + ((b.capacity || 0) - b.currentOccupancy), 0)}
               </p>
             </CardContent>
           </Card>
@@ -302,13 +381,13 @@ export default function AdminBlocks() {
                     </div>
                     <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
                       <span>Occupied: {block.currentOccupancy}</span>
-                      <span>Capacity: {block.capacity}</span>
+                      <span>Capacity: {block.capacity || "Not set"}</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                       <div
                         className="h-full bg-primary rounded-full transition-all"
                         style={{
-                          width: `${Math.min((block.currentOccupancy / block.capacity) * 100, 100)}%`,
+                          width: `${block.capacity ? Math.min((block.currentOccupancy / block.capacity) * 100, 100) : 0}%`,
                         }}
                       />
                     </div>
@@ -317,7 +396,7 @@ export default function AdminBlocks() {
                   {/* Fees */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <FiDollarSign className="text-muted-foreground" />
+                      <FaRupeeSign className="text-muted-foreground" />
                       <span className="font-semibold">Semester Fees</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -442,17 +521,47 @@ export default function AdminBlocks() {
             <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-orange-600 hover:bg-orange-700"
             >
-              {submitting 
-                ? "Processing..." 
-                : dialogMode === "add" 
-                  ? "Add Block" 
+              {submitting
+                ? "Processing..."
+                : dialogMode === "add"
+                  ? "Add Block"
                   : "Update Block"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <FiAlertTriangle className="w-5 h-5" />
+              Delete Block {blockToDelete?.name}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the block and all its associated data.
+              {blockToDelete && blockToDelete.currentOccupancy > 0 && (
+                <span className="block mt-2 font-semibold text-destructive">
+                  Warning: This block has {blockToDelete.currentOccupancy} students currently assigned.
+                  Please reassign them before deleting.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={submitting || (blockToDelete?.currentOccupancy ?? 0) > 0}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {submitting ? "Deleting..." : "Delete Block"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -236,6 +236,13 @@ export default function AdminApplications() {
         setApplications([]);
         setFilteredApps([]);
       }
+
+      // Fetch blocks for assignment
+      const blocksRes = await fetch("/api/admin/blocks");
+      const blocksData = await blocksRes.json();
+      if (blocksData.blocks) {
+        setBlocks(blocksData.blocks);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load applications");
