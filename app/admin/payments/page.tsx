@@ -107,7 +107,7 @@ interface Stats {
 export default function AdminPaymentsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [filteredPayments, setFilteredPayments] = useState<Payment[]>([]);
   const [stats, setStats] = useState<Stats>({
@@ -117,7 +117,7 @@ export default function AdminPaymentsPage() {
     partial: 0,
     totalAmount: 0,
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSemester, setFilterSemester] = useState("");
@@ -172,7 +172,7 @@ export default function AdminPaymentsPage() {
       setLoading(true);
       const res = await fetch("/api/admin/payments");
       const data = await res.json();
-      
+
       if (res.ok) {
         setPayments(data.payments);
         setFilteredPayments(data.payments);
@@ -227,7 +227,7 @@ export default function AdminPaymentsPage() {
     try {
       const res = await fetch(`/api/admin/payments/students?search=${encodeURIComponent(search)}`);
       const data = await res.json();
-      
+
       if (res.ok) {
         setStudents(data.students || []);
       }
@@ -289,34 +289,34 @@ export default function AdminPaymentsPage() {
 
     try {
       setSubmitting(true);
-      
-      const url = dialogMode === "add" 
-        ? "/api/admin/payments" 
+
+      const url = dialogMode === "add"
+        ? "/api/admin/payments"
         : `/api/admin/payments/${selectedPayment?.payment.id}`;
-      
+
       const method = dialogMode === "add" ? "POST" : "PATCH";
-      
+
       const payload = dialogMode === "add"
         ? {
-            studentId: selectedStudent?.user.id,
-            applicationId: selectedStudent?.application?.id || null,
-            semester: formData.semester,
-            academicYear: formData.academicYear,
-            ddNumber: formData.ddNumber || null,
-            bankName: formData.bankName || null,
-            amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
-            paymentStatus: formData.paymentStatus,
-            paidDate: formData.paidDate || null,
-            notes: formData.notes || null,
-          }
+          studentId: selectedStudent?.user.id,
+          applicationId: selectedStudent?.application?.id || null,
+          semester: formData.semester,
+          academicYear: formData.academicYear,
+          ddNumber: formData.ddNumber || null,
+          bankName: formData.bankName || null,
+          amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
+          paymentStatus: formData.paymentStatus,
+          paidDate: formData.paidDate || null,
+          notes: formData.notes || null,
+        }
         : {
-            ddNumber: formData.ddNumber || null,
-            bankName: formData.bankName || null,
-            amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
-            paymentStatus: formData.paymentStatus,
-            paidDate: formData.paidDate || null,
-            notes: formData.notes || null,
-          };
+          ddNumber: formData.ddNumber || null,
+          bankName: formData.bankName || null,
+          amountPaid: formData.amountPaid ? parseInt(formData.amountPaid) : null,
+          paymentStatus: formData.paymentStatus,
+          paidDate: formData.paidDate || null,
+          notes: formData.notes || null,
+        };
 
       const res = await fetch(url, {
         method,
@@ -377,7 +377,7 @@ export default function AdminPaymentsPage() {
       partial: { label: "Partial", variant: "outline" as const },
     };
 
-    const { label, variant } = config[status as keyof typeof config] || 
+    const { label, variant } = config[status as keyof typeof config] ||
       { label: status, variant: "secondary" as const };
 
     return <Badge variant={variant}>{label}</Badge>;

@@ -302,9 +302,8 @@ export default function MessagingPage() {
             <div className="space-y-2">
               <div
                 onClick={() => setMessageType("email")}
-                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${
-                  messageType === "email" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${messageType === "email" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  }`}
               >
                 <Mail className="h-5 w-5" />
                 <div className="flex-1">
@@ -314,9 +313,8 @@ export default function MessagingPage() {
               </div>
               <div
                 onClick={() => setMessageType("sms")}
-                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${
-                  messageType === "sms" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${messageType === "sms" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  }`}
               >
                 <MessageSquare className="h-5 w-5" />
                 <div className="flex-1">
@@ -326,9 +324,8 @@ export default function MessagingPage() {
               </div>
               <div
                 onClick={() => setMessageType("both")}
-                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${
-                  messageType === "both" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer transition ${messageType === "both" ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  }`}
               >
                 <Users className="h-5 w-5" />
                 <div className="flex-1">

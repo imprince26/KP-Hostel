@@ -449,8 +449,8 @@ export default function AdminBlocks() {
               {dialogMode === "add" ? "Add New Block" : `Edit Block ${name}`}
             </DialogTitle>
             <DialogDescription>
-              {dialogMode === "add" 
-                ? "Create a new hostel block with capacity and fee details" 
+              {dialogMode === "add"
+                ? "Create a new hostel block with capacity and fee details"
                 : "Update block information"}
             </DialogDescription>
           </DialogHeader>

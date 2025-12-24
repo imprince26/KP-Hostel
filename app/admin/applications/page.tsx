@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { 
+import {
   FiFileText, FiFilter, FiEye, FiCheck, FiX, FiClock,
   FiUser, FiMail, FiPhone, FiMapPin, FiBook, FiHome
 } from "react-icons/fi";
@@ -98,13 +98,13 @@ export default function AdminApplications() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  
+
   // Pagination
   const totalPages = Math.ceil(filteredApps.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentApps = filteredApps.slice(startIndex, endIndex);
-  
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -122,7 +122,7 @@ export default function AdminApplications() {
     description: string;
     onConfirm: () => void;
     variant?: "default" | "destructive";
-  }>({ open: false, title: "", description: "", onConfirm: () => {} });
+  }>({ open: false, title: "", description: "", onConfirm: () => { } });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -137,7 +137,7 @@ export default function AdminApplications() {
         return;
       }
       fetchData();
-      
+
       // Check if there's an app ID in URL params
       const appId = searchParams.get("id");
       if (appId) {
@@ -148,31 +148,31 @@ export default function AdminApplications() {
 
   useEffect(() => {
     let filtered = applications;
-    
+
     // Filter by status
     if (filterStatus !== "all") {
       filtered = filtered.filter(app => app.status === filterStatus);
     }
-    
+
     // Filter by block
     if (filterBlock !== "all") {
       filtered = filtered.filter(app => app.assignedBlock === filterBlock || (filterBlock === "unassigned" && !app.assignedBlock));
     }
-    
+
     // Filter by gender
     if (filterGender !== "all") {
       filtered = filtered.filter(app => app.gender === filterGender);
     }
-    
+
     // Filter by course
     if (filterCourse !== "all") {
       filtered = filtered.filter(app => app.course === filterCourse);
     }
-    
+
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(app => 
+      filtered = filtered.filter(app =>
         app.applicationNumber.toLowerCase().includes(query) ||
         app.fullName.toLowerCase().includes(query) ||
         app.email.toLowerCase().includes(query) ||
@@ -182,7 +182,7 @@ export default function AdminApplications() {
         app.guardianName.toLowerCase().includes(query)
       );
     }
-    
+
     // Sort applications
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -198,7 +198,7 @@ export default function AdminApplications() {
           return 0;
       }
     });
-    
+
     setFilteredApps(filtered);
     setCurrentPage(1); // Reset to first page when filters change
   }, [filterStatus, filterBlock, filterGender, filterCourse, searchQuery, sortBy, applications]);
@@ -208,7 +208,7 @@ export default function AdminApplications() {
       // Fetch applications
       const appsRes = await fetch("/api/admin/applications");
       const appsData = await appsRes.json();
-      
+
       console.log("API Response:", appsData);
       console.log("Applications:", appsData.applications);
 
@@ -220,11 +220,11 @@ export default function AdminApplications() {
           userEmail: item.user?.email,
           userPhone: item.user?.phone,
         }));
-        
+
         console.log("Transformed Applications:", transformedApps);
         setApplications(transformedApps);
         setFilteredApps(transformedApps);
-        
+
         // Check if app ID in URL
         const appId = searchParams.get("id");
         if (appId) {
@@ -260,7 +260,7 @@ export default function AdminApplications() {
       active: { label: "Active", class: "bg-purple-100 text-purple-700 border-purple-300" },
     };
 
-    const { label, class: className } = config[status as keyof typeof config] || 
+    const { label, class: className } = config[status as keyof typeof config] ||
       { label: status, class: "bg-gray-100 text-gray-700 border-gray-300" };
 
     return <Badge variant="outline" className={className}>{label}</Badge>;

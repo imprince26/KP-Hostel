@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           userEmail: item.user?.email,
           userPhone: item.user?.phone,
         }));
-        
+
         setRecentApps(transformedApps.slice(0, 5));
       }
     } catch (error) {
