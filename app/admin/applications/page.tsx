@@ -3,10 +3,24 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import {
-  FiFileText, FiFilter, FiEye, FiCheck, FiX, FiClock,
-  FiUser, FiMail, FiPhone, FiMapPin, FiBook, FiHome
-} from "react-icons/fi";
+  MdDescription,
+  MdFilterList,
+  MdVisibility,
+  MdCheck,
+  MdClose,
+  MdSchedule,
+  MdPerson,
+  MdEmail,
+  MdPhone,
+  MdLocationOn,
+  MdSchool,
+  MdHome,
+  MdCheckCircle,
+  MdCamera,
+} from "react-icons/md";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -30,6 +44,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Application {
   id: string;
@@ -113,16 +129,10 @@ export default function AdminApplications() {
   const [adminNotes, setAdminNotes] = useState("");
   const [selectedBlock, setSelectedBlock] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
-  const [admissionStart, setAdmissionStart] = useState("");
-  const [admissionEnd, setAdmissionEnd] = useState("");
+  const [admissionStart, setAdmissionStart] = useState<Date>();
+  const [admissionEnd, setAdmissionEnd] = useState<Date>();
   const [submitting, setSubmitting] = useState(false);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean;
-    title: string;
-    description: string;
-    onConfirm: () => void;
-    variant?: "default" | "destructive";
-  }>({ open: false, title: "", description: "", onConfirm: () => { } });
+  const [showActivationDialog, setShowActivationDialog] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -253,15 +263,15 @@ export default function AdminApplications() {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      submitted: { label: "New", class: "bg-blue-100 text-blue-700 border-blue-300" },
-      under_review: { label: "Under Review", class: "bg-yellow-100 text-yellow-700 border-yellow-300" },
-      approved: { label: "Approved", class: "bg-green-100 text-green-700 border-green-300" },
-      rejected: { label: "Rejected", class: "bg-red-100 text-red-700 border-red-300" },
-      active: { label: "Active", class: "bg-purple-100 text-purple-700 border-purple-300" },
+      submitted: { label: "New", class: "bg-primary/10 text-primary border-primary/20" },
+      under_review: { label: "Under Review", class: "bg-primary/10 text-primary border-primary/20" },
+      approved: { label: "Approved", class: "bg-primary/10 text-primary border-primary/20" },
+      rejected: { label: "Rejected", class: "bg-primary/10 text-primary border-primary/20" },
+      active: { label: "Active", class: "bg-primary/10 text-primary border-primary/20" },
     };
 
     const { label, class: className } = config[status as keyof typeof config] ||
-      { label: status, class: "bg-gray-100 text-gray-700 border-gray-300" };
+      { label: status, class: "bg-muted text-muted-foreground border-muted" };
 
     return <Badge variant="outline" className={className}>{label}</Badge>;
   };
@@ -272,21 +282,14 @@ export default function AdminApplications() {
     setAdminNotes(app.adminNotes || "");
     setSelectedBlock(app.assignedBlock || "");
     setRoomNumber(app.roomNumber || "");
-    setAdmissionStart(app.admissionStartDate || "");
-    setAdmissionEnd(app.admissionEndDate || "");
+    setAdmissionStart(app.admissionStartDate ? new Date(app.admissionStartDate) : undefined);
+    setAdmissionEnd(app.admissionEndDate ? new Date(app.admissionEndDate) : undefined);
   };
 
   const handleSubmitReview = async () => {
     if (!selectedApp || !reviewAction) return;
 
-    // Validation
-    if (reviewAction === "approve") {
-      if (!selectedBlock || !roomNumber || !admissionStart || !admissionEnd) {
-        toast.error("Please fill all fields for approval");
-        return;
-      }
-    }
-
+    // Validation - only require admin notes, not block/room for approval
     if (!adminNotes.trim()) {
       toast.error("Please provide review notes");
       return;
@@ -300,10 +303,7 @@ export default function AdminApplications() {
         body: JSON.stringify({
           action: reviewAction,
           comments: adminNotes,
-          assignedBlock: reviewAction === "approve" ? selectedBlock : null,
-          roomNumber: reviewAction === "approve" ? roomNumber : null,
-          admissionStartDate: reviewAction === "approve" ? admissionStart : null,
-          admissionEndDate: reviewAction === "approve" ? admissionEnd : null,
+          // Block/room assignment removed from approval - will be done during activation
         }),
       });
 
@@ -324,33 +324,51 @@ export default function AdminApplications() {
     }
   };
 
-  const handleActivateAdmission = async (appId: string) => {
-    setConfirmDialog({
-      open: true,
-      title: "Activate Admission",
-      description: "Are you sure you want to activate this admission? The student will be marked as an active resident.",
-      onConfirm: () => confirmActivateAdmission(appId),
-    });
+  const handleActivateAdmission = async (app: Application) => {
+    setSelectedApp(app);
+    setSelectedBlock(app.assignedBlock || "");
+    setRoomNumber(app.roomNumber || "");
+    setAdmissionStart(app.admissionStartDate ? new Date(app.admissionStartDate) : undefined);
+    setAdmissionEnd(app.admissionEndDate ? new Date(app.admissionEndDate) : undefined);
+    setShowActivationDialog(true);
   };
 
-  const confirmActivateAdmission = async (appId: string) => {
-    setConfirmDialog({ ...confirmDialog, open: false });
+  const confirmActivateAdmission = async () => {
+    if (!selectedApp) return;
 
+    // Validation
+    if (!selectedBlock || !roomNumber || !admissionStart || !admissionEnd) {
+      toast.error("Please fill all fields for activation");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const res = await fetch(`/api/admin/applications/${appId}/activate`, {
+      const res = await fetch(`/api/admin/applications/${selectedApp.id}/activate`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignedBlock: selectedBlock,
+          roomNumber,
+          admissionStartDate: admissionStart?.toISOString().split('T')[0],
+          admissionEndDate: admissionEnd?.toISOString().split('T')[0],
+        }),
       });
 
       if (res.ok) {
         toast.success("Admission activated successfully!");
+        setSelectedApp(null);
+        setShowActivationDialog(false);
         fetchData();
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to activate admission");
       }
     } catch (error) {
-      console.error("Error activating admission:", error);
-      alert("Failed to activate admission");
+      console.error("Activation error:", error);
+      toast.error("Failed to activate admission");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -378,7 +396,7 @@ export default function AdminApplications() {
         <Card className="mb-6 border-0 shadow-sm bg-card">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <FiFilter className="w-5 h-5" />
+              <MdFilterList className="w-5 h-5 text-primary" />
               Filter & Search
             </CardTitle>
           </CardHeader>
@@ -499,7 +517,7 @@ export default function AdminApplications() {
           <CardContent className="pt-6">
             {filteredApps.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <FiFileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <MdDescription className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-lg font-semibold">No applications found</p>
                 <p className="text-sm">Try adjusting your filters or search query</p>
               </div>
@@ -562,32 +580,32 @@ export default function AdminApplications() {
                                 size="sm"
                                 variant="outline"
                               >
-                                <FiEye className="mr-1" />
+                                <MdVisibility className="mr-1 text-primary" />
                                 View
                               </Button>
                               {(app.status === "submitted" || app.status === "under_review") && (
                                 <>
                                   <Button
-                                    onClick={() => handleReview(app, "approve")}
+                                    onClick={(e) => { e.stopPropagation(); handleReview(app, "approve"); }}
                                     size="sm"
                                     variant="default"
                                   >
-                                    <FiCheck className="mr-1" />
+                                    <MdCheck className="mr-1" />
                                     Approve
                                   </Button>
                                   <Button
-                                    onClick={() => handleReview(app, "reject")}
+                                    onClick={(e) => { e.stopPropagation(); handleReview(app, "reject"); }}
                                     size="sm"
                                     variant="destructive"
                                   >
-                                    <FiX className="mr-1" />
+                                    <MdClose className="mr-1" />
                                     Reject
                                   </Button>
                                 </>
                               )}
-                              {(app.status === "approved" || app.status === "active") && (
+                              {(app.status === "approved" || app.status === "admitted" || app.status === "active") && (
                                 <Button
-                                  onClick={() => handleActivateAdmission(app.id)}
+                                  onClick={(e) => { e.stopPropagation(); handleActivateAdmission(app); }}
                                   size="sm"
                                   variant="outline"
                                   disabled={app.status === "active"}
@@ -655,11 +673,11 @@ export default function AdminApplications() {
       </div>
 
       {/* View Application Dialog */}
-      <Dialog open={!!selectedApp && !reviewAction} onOpenChange={() => setSelectedApp(null)}>
+      <Dialog open={!!selectedApp && !reviewAction && !showActivationDialog} onOpenChange={() => setSelectedApp(null)}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
-              <FiFileText className="text-orange-600" />
+              <MdDescription className="text-primary" />
               Application Details
             </DialogTitle>
             <DialogDescription>
@@ -682,21 +700,21 @@ export default function AdminApplications() {
                         onClick={() => handleReview(selectedApp, "approve")}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        <FiCheck className="mr-2" />
+                        <MdCheck className="mr-2" />
                         Approve
                       </Button>
                       <Button
                         onClick={() => handleReview(selectedApp, "reject")}
                         className="bg-red-600 hover:bg-red-700"
                       >
-                        <FiX className="mr-2" />
+                        <MdClose className="mr-2" />
                         Reject
                       </Button>
                     </>
                   )}
-                  {selectedApp.status === "approved" && (
+                  {(selectedApp.status === "approved" || selectedApp.status === "admitted") && (
                     <Button
-                      onClick={() => handleActivateAdmission(selectedApp.id)}
+                      onClick={() => handleActivateAdmission(selectedApp)}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
                       Activate Admission
@@ -708,7 +726,7 @@ export default function AdminApplications() {
               {/* Personal Information */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
-                  <FiUser className="text-orange-600" />
+                  <MdPerson className="text-primary" />
                   Personal Information
                 </h4>
                 <div className="grid md:grid-cols-3 gap-4">
@@ -738,7 +756,7 @@ export default function AdminApplications() {
               {/* Contact Information */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
-                  <FiMail className="text-blue-600" />
+                  <MdEmail className="text-primary" />
                   Contact Information
                 </h4>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -762,7 +780,7 @@ export default function AdminApplications() {
               {/* Educational Information */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
-                  <FiBook className="text-green-600" />
+                  <MdSchool className="text-primary" />
                   Educational Information
                 </h4>
                 <div className="grid md:grid-cols-3 gap-4">
@@ -784,7 +802,7 @@ export default function AdminApplications() {
               {/* Guardian Information */}
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
-                  <FiPhone className="text-purple-600" />
+                  <MdPhone className="text-primary" />
                   Guardian Information
                 </h4>
                 <div className="grid md:grid-cols-3 gap-4">
@@ -805,7 +823,10 @@ export default function AdminApplications() {
 
               {/* Photo */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Passport Photo</h4>
+                <h4 className="font-semibold text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
+                  <MdCamera className="text-primary" />
+                  Passport Photo
+                </h4>
                 <img
                   src={selectedApp.passportPhoto}
                   alt="Passport"
@@ -815,31 +836,31 @@ export default function AdminApplications() {
 
               {/* Room Assignment (if approved) */}
               {selectedApp.assignedBlock && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                    <FiHome className="w-5 h-5" />
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary mb-3 flex items-center gap-2">
+                    <MdHome className="text-primary" />
                     Room Assignment
                   </h4>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-green-700">Block</p>
-                      <p className="font-medium text-green-900">{selectedApp.assignedBlock}</p>
+                      <p className="text-sm text-primary/70">Block</p>
+                      <p className="font-medium text-primary">{selectedApp.assignedBlock}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-green-700">Room Number</p>
-                      <p className="font-medium text-green-900">{selectedApp.roomNumber}</p>
+                      <p className="text-sm text-primary/70">Room Number</p>
+                      <p className="font-medium text-primary">{selectedApp.roomNumber}</p>
                     </div>
                     {selectedApp.admissionStartDate && (
                       <>
                         <div>
-                          <p className="text-sm text-green-700">Start Date</p>
-                          <p className="font-medium text-green-900">
+                          <p className="text-sm text-primary/70">Start Date</p>
+                          <p className="font-medium text-primary">
                             {new Date(selectedApp.admissionStartDate).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-green-700">End Date</p>
-                          <p className="font-medium text-green-900">
+                          <p className="text-sm text-primary/70">End Date</p>
+                          <p className="font-medium text-primary">
                             {new Date(selectedApp.admissionEndDate!).toLocaleDateString()}
                           </p>
                         </div>
@@ -851,9 +872,9 @@ export default function AdminApplications() {
 
               {/* Admin Notes */}
               {selectedApp.adminNotes && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">Admin Notes</h4>
-                  <p className="text-blue-800">{selectedApp.adminNotes}</p>
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary mb-2">Admin Notes</h4>
+                  <p className="text-primary/80">{selectedApp.adminNotes}</p>
                 </div>
               )}
             </div>
@@ -868,12 +889,12 @@ export default function AdminApplications() {
             <DialogTitle className="flex items-center gap-2">
               {reviewAction === "approve" ? (
                 <>
-                  <FiCheck className="text-green-600" />
+                  <MdCheck className="text-primary" />
                   Approve Application
                 </>
               ) : (
                 <>
-                  <FiX className="text-red-600" />
+                  <MdClose className="text-primary" />
                   Reject Application
                 </>
               )}
@@ -921,8 +942,8 @@ export default function AdminApplications() {
                     <Input
                       id="admissionStart"
                       type="date"
-                      value={admissionStart}
-                      onChange={(e) => setAdmissionStart(e.target.value)}
+                      value={admissionStart?.toISOString().split('T')[0] || ''}
+                      onChange={(e) => setAdmissionStart(e.target.value ? new Date(e.target.value) : undefined)}
                     />
                   </div>
                   <div>
@@ -930,8 +951,8 @@ export default function AdminApplications() {
                     <Input
                       id="admissionEnd"
                       type="date"
-                      value={admissionEnd}
-                      onChange={(e) => setAdmissionEnd(e.target.value)}
+                      value={admissionEnd?.toISOString().split('T')[0] || ''}
+                      onChange={(e) => setAdmissionEnd(e.target.value ? new Date(e.target.value) : undefined)}
                     />
                   </div>
                 </div>
@@ -976,15 +997,117 @@ export default function AdminApplications() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
-      <ConfirmationDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
-        variant={confirmDialog.variant}
-      />
+      {/* Activation Dialog */}
+      <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MdCheckCircle className="text-primary" />
+              Activate Admission
+            </DialogTitle>
+            <DialogDescription>
+              Assign block, room, and admission dates to activate this student's admission.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="activate-block">Block *</Label>
+              <Select value={selectedBlock} onValueChange={setSelectedBlock}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select block" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A">Block A</SelectItem>
+                  <SelectItem value="B">Block B</SelectItem>
+                  <SelectItem value="C">Block C</SelectItem>
+                  <SelectItem value="D">Block D</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="activate-room">Room Number *</Label>
+              <Input
+                id="activate-room"
+                value={roomNumber}
+                onChange={(e) => setRoomNumber(e.target.value)}
+                placeholder="e.g., 101"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Admission Start *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !admissionStart && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {admissionStart ? format(admissionStart, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={admissionStart}
+                      onSelect={setAdmissionStart}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Admission End *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !admissionEnd && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {admissionEnd ? format(admissionEnd, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={admissionEnd}
+                      onSelect={setAdmissionEnd}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowActivationDialog(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmActivateAdmission}
+              disabled={submitting}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {submitting ? "Activating..." : "Activate Admission"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

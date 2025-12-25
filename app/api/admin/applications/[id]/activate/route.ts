@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { admissionApplications, users, notifications } from "@/lib/db/schema";
+import { admissionApplications, users, notifications, hostelBlocks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { sendEmail } from "@/lib/email";
 import { admissionActivatedTemplate } from "@/lib/email-templates";
@@ -18,6 +18,12 @@ export async function POST(
     }
 
     const { id } = await params;
+    const { assignedBlock, roomNumber, admissionStartDate, admissionEndDate } = await req.json();
+
+    // Validate required fields for activation
+    if (!assignedBlock || !roomNumber || !admissionStartDate || !admissionEndDate) {
+      return NextResponse.json({ error: "Block, room, and admission dates are required for activation" }, { status: 400 });
+    }
 
     // Check if application exists and is approved
     const [application] = await db
@@ -30,8 +36,27 @@ export async function POST(
       return NextResponse.json({ error: "Application not found" }, { status: 404 });
     }
 
-    if (application.status !== "approved") {
-      return NextResponse.json({ error: "Only approved applications can be activated" }, { status: 400 });
+    if (application.status !== "approved" && application.status !== "admitted") {
+      return NextResponse.json({ error: "Only approved or admitted applications can be activated" }, { status: 400 });
+    }
+
+    // Check if block exists and has capacity
+    const [block] = await db
+      .select()
+      .from(hostelBlocks)
+      .where(eq(hostelBlocks.name, assignedBlock))
+      .limit(1);
+
+    if (!block) {
+      return NextResponse.json({ error: "Selected block does not exist" }, { status: 400 });
+    }
+
+    if (!block.isActive) {
+      return NextResponse.json({ error: "Selected block is not active" }, { status: 400 });
+    }
+
+    if (block.capacity && block.currentOccupancy >= block.capacity) {
+      return NextResponse.json({ error: "Selected block is at full capacity" }, { status: 400 });
     }
 
     // Update user role to student if not already
@@ -54,24 +79,37 @@ export async function POST(
       })
       .where(eq(users.id, application.userId!));
 
-    // Update application status to admitted
+    // Update application status to active and assign block/room
     await db
       .update(admissionApplications)
       .set({
-        status: "admitted",
+        status: "active",
+        assignedBlock,
+        roomNumber,
+        admissionStartDate: new Date(admissionStartDate),
+        admissionEndDate: new Date(admissionEndDate),
         updatedAt: new Date()
       })
       .where(eq(admissionApplications.id, id));
 
+    // Update block occupancy
+    await db
+      .update(hostelBlocks)
+      .set({
+        currentOccupancy: (block.currentOccupancy || 0) + 1,
+        updatedAt: new Date()
+      })
+      .where(eq(hostelBlocks.name, assignedBlock));
+
     // Send activation email and notification
-    if (user.email && application.assignedBlock && application.roomNumber && application.admissionStartDate && application.admissionEndDate) {
+    if (user.email) {
       try {
         const emailTemplate = admissionActivatedTemplate(
           user.name || "Student",
-          application.assignedBlock,
-          application.roomNumber,
-          application.admissionStartDate.toISOString(),
-          application.admissionEndDate.toISOString()
+          assignedBlock,
+          roomNumber,
+          admissionStartDate,
+          admissionEndDate
         );
 
         await sendEmail({
@@ -85,7 +123,7 @@ export async function POST(
         await db.insert(notifications).values({
           userId: application.userId!,
           title: "Admission Activated!",
-          message: `Welcome to K.P. Vidhyarthi Bhavan! Your admission has been activated. Room ${application.roomNumber} in Block ${application.assignedBlock} is now assigned to you.`,
+          message: `Welcome to K.P. Vidhyarthi Bhavan! Your admission has been activated. Room ${roomNumber} in Block ${assignedBlock} is now assigned to you.`,
           type: "admission_activated",
         });
       } catch (emailError) {

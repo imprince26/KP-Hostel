@@ -42,33 +42,9 @@ export async function POST(
     }
 
     if (status === "approved") {
-      if (!assignedBlock || !roomNumber || !admissionStartDate || !admissionEndDate) {
-        return NextResponse.json({ error: "Missing required fields for approval" }, { status: 400 });
-      }
-
-      // Check if block exists and has capacity
-      const [block] = await db
-        .select()
-        .from(hostelBlocks)
-        .where(eq(hostelBlocks.name, assignedBlock))
-        .limit(1);
-
-      if (!block) {
-        return NextResponse.json({ error: "Selected block does not exist" }, { status: 400 });
-      }
-
-      if (!block.isActive) {
-        return NextResponse.json({ error: "Selected block is not active" }, { status: 400 });
-      }
-
-      if (block.capacity && block.currentOccupancy >= block.capacity) {
-        return NextResponse.json({ error: "Selected block is at full capacity" }, { status: 400 });
-      }
-
-      updateData.assignedBlock = assignedBlock;
-      updateData.roomNumber = roomNumber;
-      updateData.admissionStartDate = new Date(admissionStartDate);
-      updateData.admissionEndDate = new Date(admissionEndDate);
+      // For approval, we don't require block/room assignment anymore
+      // This will be done during activation after offline admission
+      updateData.status = "approved";
     }
 
     const [updated] = await db
@@ -81,24 +57,24 @@ export async function POST(
       return NextResponse.json({ error: "Application not found" }, { status: 404 });
     }
 
-    // Update block occupancy if approved
-    if (status === "approved" && updated.assignedBlock) {
-      const [currentBlock] = await db
-        .select({ currentOccupancy: hostelBlocks.currentOccupancy })
-        .from(hostelBlocks)
-        .where(eq(hostelBlocks.name, updated.assignedBlock))
-        .limit(1);
+    // Block occupancy update is now handled during activation, not approval
+    // if (status === "approved" && updated.assignedBlock) {
+    //   const [currentBlock] = await db
+    //     .select({ currentOccupancy: hostelBlocks.currentOccupancy })
+    //     .from(hostelBlocks)
+    //     .where(eq(hostelBlocks.name, updated.assignedBlock))
+    //     .limit(1);
 
-      if (currentBlock) {
-        await db
-          .update(hostelBlocks)
-          .set({
-            currentOccupancy: (currentBlock.currentOccupancy || 0) + 1,
-            updatedAt: new Date()
-          })
-          .where(eq(hostelBlocks.name, updated.assignedBlock));
-      }
-    }
+    //   if (currentBlock) {
+    //     await db
+    //       .update(hostelBlocks)
+    //       .set({
+    //         currentOccupancy: (currentBlock.currentOccupancy || 0) + 1,
+    //         updatedAt: new Date()
+    //       })
+    //       .where(eq(hostelBlocks.name, updated.assignedBlock));
+    //   }
+    // }
 
     // Fetch user details for email
     const [user] = await db
