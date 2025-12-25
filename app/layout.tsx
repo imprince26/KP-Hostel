@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Gujarati, Anek_Gujarati } from "next/font/google";
 import { locales } from "@/i18n/request";
 import { ToastProvider } from "@/components/toast-provider";
 import { SessionProvider } from "@/components/session-provider";
@@ -13,6 +13,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoSansGujarati = Noto_Sans_Gujarati({
+  variable: "--font-noto-sans-gujarati",
+  subsets: ["gujarati", "latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
+const anekGujarati = Anek_Gujarati({
+  variable: "--font-anek-gujarati",
+  subsets: ["gujarati", "latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -133,7 +145,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansGujarati.variable} ${anekGujarati.variable} antialiased`}
         suppressHydrationWarning={true}
       >
         <SessionProvider>
