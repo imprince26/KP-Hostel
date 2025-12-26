@@ -14,7 +14,7 @@
     "heroSubtitle": "A Home Away From Home for Students",
     "heroDescription": "Experience comfortable living with modern amenities in the heart of Ahmedabad. Your journey to academic excellence starts here.",
     "applyNow": "Apply for Admission",
-    "about":"About Us",
+    "about": "About Us",
     "facilitiesTitle": "World-Class",
     "facilitiesHighlight": "Facilities",
     "blockTitle": "Our",
@@ -28,11 +28,26 @@
     "admissionProcessTitle": "Admission",
     "admissionProcessHighlight": "Process",
     "features": {
-      "meals": { "title": "Nutritious Meals", "desc": "Hygienic mess serving fresh homely Gujarati food" },
-      "study": { "title": "Study Rooms", "desc": "Dedicated quiet spaces for focused learning" },
-      "security": { "title": "24/7 Security", "desc": "CCTV surveillance and trained security personnel" },
-      "common": { "title": "Common Areas", "desc": "Spacious lounges for recreation and socializing" },
-      "rooms": { "title": "Comfortable Rooms", "desc": "Well-furnished rooms with modern amenities" }
+      "meals": {
+        "title": "Nutritious Meals",
+        "desc": "Hygienic mess serving fresh homely Gujarati food"
+      },
+      "study": {
+        "title": "Study Rooms",
+        "desc": "Dedicated quiet spaces for focused learning"
+      },
+      "security": {
+        "title": "24/7 Security",
+        "desc": "CCTV surveillance and trained security personnel"
+      },
+      "common": {
+        "title": "Common Areas",
+        "desc": "Spacious lounges for recreation and socializing"
+      },
+      "rooms": {
+        "title": "Comfortable Rooms",
+        "desc": "Well-furnished rooms with modern amenities"
+      }
     },
     "blocks": {
       "a": { "name": "Block A", "type": "Boys", "capacity": "440+ Students" },
