@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
-import { FaBullhorn, FaCalendarAlt, FaExclamationCircle, FaUser, FaClock, FaInfoCircle } from "react-icons/fa";
+import { FaBullhorn, FaCalendarAlt, FaExclamationCircle, FaUser, FaClock } from "react-icons/fa";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

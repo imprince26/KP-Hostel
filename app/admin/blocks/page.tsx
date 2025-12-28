@@ -10,7 +10,6 @@ import {
   FiTrash2,
   FiUsers,
   FiCheckCircle,
-  FiXCircle,
   FiAlertTriangle
 } from "react-icons/fi";
 import { FaRupeeSign } from "react-icons/fa";

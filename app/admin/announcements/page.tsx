@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Search,
@@ -37,11 +36,7 @@ import {
   EyeOff,
   Bell,
   Calendar,
-  Filter,
-  SortAsc,
-  SortDesc,
   MoreHorizontal,
-  Copy,
   Globe,
   Users,
   Clock,

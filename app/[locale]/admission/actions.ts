@@ -5,7 +5,6 @@ import { admissionApplications } from "@/lib/db/schema";
 import { admissionFormSchema } from "@/lib/validations/admission";
 import {
   generateApplicationNumber,
-  generateOTPCode,
 } from "@/lib/utils/admission";
 import { and, gte, sql } from "drizzle-orm";
 
@@ -69,7 +68,6 @@ export async function submitAdmissionApplication(formData: unknown) {
 
     // Generate application number and OTP
     const applicationNumber = generateApplicationNumber();
-    const otpCode = generateOTPCode();
 
     // Validate block preference based on gender
     let blockPreference = validated.blockPreference;

@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
@@ -9,7 +8,6 @@ import {
   FaHistory,
   FaBuilding,
   FaUserTie,
-  FaHandshake,
   FaAward,
   FaLandmark,
 } from "react-icons/fa";
