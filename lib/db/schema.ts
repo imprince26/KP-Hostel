@@ -1,4 +1,3 @@
-import { sub } from "date-fns";
 import { relations } from "drizzle-orm";
 import {
   boolean,
@@ -130,6 +129,7 @@ export const authenticators = pgTable(
 
 export const genderEnum = pgEnum("gender", ["male", "female", "other"]);
 export const blockEnum = pgEnum("hostel_block", ["A", "B", "C", "D"]);
+
 export const admissionStatusEnum = pgEnum("admission_status", [
   "submitted",
   "under_review",
@@ -139,6 +139,7 @@ export const admissionStatusEnum = pgEnum("admission_status", [
   "active",
   "completed",
 ]);
+
 export const semesterEnum = pgEnum("semester", ["sem1", "sem2"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "partial"]);
 
