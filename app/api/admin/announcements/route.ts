@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { announcements, users, notifications } from "@/lib/db/schema";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
+import { createExcerpt } from "@/lib/announcement-utils";
 
 // GET - Fetch all announcements
 export async function GET(req: NextRequest) {
@@ -97,14 +98,15 @@ export async function POST(req: NextRequest) {
         .from(users)
         .where(eq(users.role, "student"));
 
-      // Create notifications for all students
+      // Create notifications for all students with clean plain text message (no raw HTML tags)
       if (students.length > 0) {
+        const plainSummary = createExcerpt(content, 220);
         await db.insert(notifications).values(
           students.map((student) => ({
             userId: student.id,
             type: "announcement" as const,
             title: `New Announcement: ${title}`,
-            message: content.substring(0, 200) + (content.length > 200 ? "..." : ""),
+            message: plainSummary || title,
             actionUrl: "/student/dashboard",
           }))
         );

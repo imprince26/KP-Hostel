@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import {
@@ -20,19 +20,40 @@ import { toast } from "sonner";
 export default function ContactClient() {
   const t = useTranslations("contact");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formFields, setFormFields] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  // Restore draft from localStorage on mount (preserves input if browser tab was suspended or switched)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("kp_contact_msg_draft");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFormFields((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch (e) {
+      console.warn("Could not read draft", e);
+    }
+  }, []);
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormFields((prev) => {
+      const updated = { ...prev, [field]: value };
+      try {
+        localStorage.setItem("kp_contact_msg_draft", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      subject: formData.get("subject") as string,
-      message: formData.get("message") as string,
-    };
 
     try {
       const response = await fetch("/api/contact", {
@@ -40,12 +61,21 @@ export default function ContactClient() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formFields),
       });
 
       if (response.ok) {
         toast.success(t("successMessage") || "Message sent successfully!");
-        (e.target as HTMLFormElement).reset();
+        try {
+          localStorage.removeItem("kp_contact_msg_draft");
+        } catch (e) {}
+        setFormFields({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        });
       } else {
         const error = await response.json();
         toast.error(error.error || "Failed to send message");
@@ -131,6 +161,8 @@ export default function ContactClient() {
                         <Input
                           id="name"
                           name="name"
+                          value={formFields.name}
+                          onChange={(e) => handleFieldChange("name", e.target.value)}
                           placeholder={t("namePlaceholder")}
                           required
                           className="bg-muted/50"
@@ -143,6 +175,8 @@ export default function ContactClient() {
                             id="email"
                             name="email"
                             type="email"
+                            value={formFields.email}
+                            onChange={(e) => handleFieldChange("email", e.target.value)}
                             placeholder={t("emailPlaceholder")}
                             required
                             className="bg-muted/50"
@@ -154,6 +188,8 @@ export default function ContactClient() {
                             id="phone"
                             name="phone"
                             type="tel"
+                            value={formFields.phone}
+                            onChange={(e) => handleFieldChange("phone", e.target.value)}
                             placeholder={t("phonePlaceholder")}
                             required
                             className="bg-muted/50"
@@ -165,6 +201,8 @@ export default function ContactClient() {
                         <Input
                           id="subject"
                           name="subject"
+                          value={formFields.subject}
+                          onChange={(e) => handleFieldChange("subject", e.target.value)}
                           placeholder={t("subjectPlaceholder")}
                           required
                           className="bg-muted/50"
@@ -175,11 +213,16 @@ export default function ContactClient() {
                         <Textarea
                           id="message"
                           name="message"
+                          value={formFields.message}
+                          onChange={(e) => handleFieldChange("message", e.target.value)}
                           placeholder={t("messagePlaceholder")}
                           required
-                      className="min-h-32 bg-muted/50"
+                          className="min-h-32 bg-muted/50"
                         />
                       </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Your text is automatically saved as a draft so you can switch apps without losing what you write.
+                      </p>
                       <Button
                         type="submit"
                         className="w-full text-lg h-12"

@@ -10,6 +10,17 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { createExcerpt, containsHtml } from "@/lib/announcement-utils";
 
 interface DashboardStats {
   totalApplications: number;
@@ -38,7 +49,26 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleNotificationClick = async (notif: Notification) => {
+    setSelectedNotification(notif);
+    if (!notif.read) {
+      try {
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationId: notif.id }),
+        });
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
+        );
+      } catch (err) {
+        console.error("Failed to mark notification as read:", err);
+      }
+    }
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -272,34 +302,95 @@ export default function StudentDashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`p-3 rounded-lg border ${
-                        notif.read 
-                          ? "bg-muted/30 border-border" 
-                          : "bg-primary/5 border-primary/20"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        {!notif.read && (
-                          <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                        )}
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm text-foreground">{notif.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(notif.createdAt).toLocaleDateString()}
-                          </p>
+                  {notifications.map((notif) => {
+                    const plainSnippet = createExcerpt(notif.message, 110);
+                    return (
+                      <div
+                        key={notif.id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`p-3.5 rounded-lg border cursor-pointer hover:shadow-xs transition-all text-left ${
+                          notif.read 
+                            ? "bg-muted/30 border-border hover:bg-muted/50" 
+                            : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          {!notif.read && (
+                            <div className="w-2 h-2 bg-primary rounded-full mt-1.5 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground hover:text-primary transition-colors">
+                              {notif.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                              {plainSnippet}
+                            </p>
+                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/50 text-[11px] text-muted-foreground">
+                              <span className="text-primary font-medium">Click to view full notice</span>
+                              <span>{new Date(notif.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* Full Notification Modal */}
+        <Dialog
+          open={!!selectedNotification}
+          onOpenChange={(isOpen) => !isOpen && setSelectedNotification(null)}
+        >
+          <DialogContent className="max-w-lg max-h-[85vh] p-0 flex flex-col overflow-hidden">
+            {selectedNotification && (
+              <>
+                <DialogHeader className="px-6 py-5 border-b border-border bg-muted/30 shrink-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs capitalize bg-primary/10 text-primary border-primary/20">
+                      {selectedNotification.type.replace("_", " ")}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(selectedNotification.createdAt).toLocaleString("en-IN", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                  </div>
+                  <DialogTitle className="text-lg font-bold text-foreground">
+                    {selectedNotification.title}
+                  </DialogTitle>
+                </DialogHeader>
+
+                <ScrollArea className="flex-1 p-6 max-h-[calc(85vh-10rem)]">
+                  {containsHtml(selectedNotification.message) ? (
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed break-words"
+                      dangerouslySetInnerHTML={{ __html: selectedNotification.message }}
+                    />
+                  ) : (
+                    <p className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
+                      {selectedNotification.message}
+                    </p>
+                  )}
+                </ScrollArea>
+
+                <DialogFooter className="px-6 py-3 border-t border-border bg-muted/20 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedNotification(null)}
+                  >
+                    Close
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Important Information */}
         <Card className="mt-6 border-0 shadow-sm bg-card">

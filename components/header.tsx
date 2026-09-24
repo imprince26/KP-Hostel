@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { ProjectDisclaimerBanner } from "@/components/project-disclaimer-banner";
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -111,6 +112,7 @@ export function Header() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <ProjectDisclaimerBanner />
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
@@ -126,11 +128,13 @@ export function Header() {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm md:text-base xl:text-xl leading-none tracking-tight text-foreground">
-                  KP Vidhyarthi Bhavan
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm md:text-base xl:text-xl leading-none tracking-tight text-foreground">
+                    KP Vidhyarthi Bhavan
+                  </span>
+                </div>
                 <span className="text-xs font-medium tracking-wider uppercase text-primary">
-                  Est. 1930
+                  Est. 1930 &bull; Unofficial Project
                 </span>
               </div>
             </Link>

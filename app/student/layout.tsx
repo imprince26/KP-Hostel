@@ -54,15 +54,19 @@ export default function StudentLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const [hasVerifiedStudent, setHasVerifiedStudent] = useState(false);
+
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "authenticated" && session?.user && "role" in session.user && session.user.role === "student") {
+      setHasVerifiedStudent(true);
+    } else if (status === "unauthenticated") {
       router.push("/auth/login");
     } else if (status === "authenticated" && session?.user && "role" in session.user && session.user.role !== "student") {
       router.push("/");
     }
   }, [status, session, router]);
 
-  if (status === "loading") {
+  if (!hasVerifiedStudent && status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -70,11 +74,11 @@ export default function StudentLayout({
     );
   }
 
-  if (!session || !session.user || !("role" in session.user) || session.user.role !== "student") {
+  if (!hasVerifiedStudent && (!session || !session.user || !("role" in session.user) || session.user.role !== "student")) {
     return null;
   }
 
-  const userInitials = session.user?.name
+  const userInitials = session?.user?.name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
@@ -176,7 +180,7 @@ export default function StudentLayout({
           <div className="p-4 border-b border-border">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 border-2 border-primary/20">
-                <AvatarImage src={session.user?.avatar || undefined} />
+                <AvatarImage src={session?.user?.avatar || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                   {userInitials}
                 </AvatarFallback>
@@ -184,10 +188,10 @@ export default function StudentLayout({
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
-                    {session.user?.name}
+                    {session?.user?.name}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {session.user?.email}
+                    {session?.user?.email}
                   </p>
                 </div>
               )}

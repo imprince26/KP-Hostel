@@ -1035,7 +1035,7 @@ export default function AdmissionPage() {
         {/* Help Text */}
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Need help? Contact us at <a href="mailto:info@kpbhavan.org" className="text-primary hover:underline">info@kpbhavan.org</a> or call +91 79 2644 1234
+            Academic Project Demo inquiry: <span className="font-mono text-foreground">demo.project@XXXXX.org</span> or call <span className="font-mono text-foreground">+91 XXXXX XXXXX</span>
           </p>
         </div>
         </div>

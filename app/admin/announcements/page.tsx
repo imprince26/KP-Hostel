@@ -43,6 +43,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
+import { stripHtml, createExcerpt } from "@/lib/announcement-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -320,7 +321,7 @@ export default function AnnouncementsPage() {
     });
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
@@ -328,12 +329,6 @@ export default function AnnouncementsPage() {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement("div");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
   };
 
   if (loading) {

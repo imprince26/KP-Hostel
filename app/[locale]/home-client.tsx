@@ -64,7 +64,15 @@ export function HomeClient({ locale }: HomeClientProps) {
     { label: t("statsYears"), value: "90+", icon: FaUsers },
   ];
 
-  const galleryImages = ["/001.png", "/003.png", "/004.png","/gallery/mess.png","/gallery/mandir.png","/gallery/Lobby.png","/gallery/1.png"];
+  const galleryImages = [
+    "/001.png",
+    "/003.png",
+    "/004.png",
+    "/gallery/mess.png",
+    "/gallery/mandir.png",
+    "/gallery/Lobby.png",
+    "/gallery/1.png",
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
@@ -127,7 +135,10 @@ export function HomeClient({ locale }: HomeClientProps) {
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-xl w-full sm:w-auto"
                 asChild
               >
-                <Link href={`/${locale}/admission`} className="flex items-center justify-center gap-2">
+                <Link
+                  href={`/${locale}/admission`}
+                  className="flex items-center justify-center gap-2"
+                >
                   {t("applyNow")}
                   <FaArrowRight className="text-sm sm:text-base" />
                 </Link>
@@ -138,9 +149,7 @@ export function HomeClient({ locale }: HomeClientProps) {
                 className="bg-background/50 hover:bg-accent/10 text-foreground border-border/50 backdrop-blur-sm font-semibold text-base sm:text-lg px-8 py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                 asChild
               >
-                <Link href={`/${locale}/about`}>
-                  {t("about")}
-                </Link>
+                <Link href={`/${locale}/about`}>{t("about")}</Link>
               </Button>
             </motion.div>
           </div>
@@ -163,7 +172,9 @@ export function HomeClient({ locale }: HomeClientProps) {
                 <div className="mb-3 md:mb-4 inline-flex p-3 md:p-4 rounded-full bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300">
                   <stat.icon className="text-2xl md:text-3xl" />
                 </div>
-                <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-1 md:mb-2">{stat.value}</div>
+                <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-1 md:mb-2">
+                  {stat.value}
+                </div>
                 <div className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-widest px-2">
                   {stat.label}
                 </div>
@@ -184,17 +195,18 @@ export function HomeClient({ locale }: HomeClientProps) {
               className="relative"
             >
               <div className="relative aspect-4/5 rounded-2xl overflow-hidden shadow-2xl">
-                <Image 
-                  src="/1.png" 
-                  alt="Student Life" 
-                  fill 
+                <Image
+                  src="/1.png"
+                  alt="Student Life"
+                  fill
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-8 left-8 right-8 text-white">
                   <FaQuoteLeft className="text-4xl text-white/80 mb-4" />
                   <p className="text-lg font-light italic opacity-90">
-                    &ldquo;A home away from home where tradition meets modern living.&rdquo;
+                    &ldquo;A home away from home where tradition meets modern
+                    living.&rdquo;
                   </p>
                 </div>
               </div>
@@ -216,15 +228,22 @@ export function HomeClient({ locale }: HomeClientProps) {
                 <span className="text-muted-foreground">Place to Stay.</span>
               </h3>
               <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6 leading-relaxed">
-                At KP Vidhyarthi Bhavan, we believe in fostering an environment that nurtures both academic excellence and personal growth. Our heritage spans over 90 years of shaping young minds.
+                At KP Vidhyarthi Bhavan, we believe in fostering an environment
+                that nurtures both academic excellence and personal growth. Our
+                heritage spans over 90 years of shaping young minds.
               </p>
               <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8 leading-relaxed">
-                We provide a safe, inclusive, and vibrant community where students from diverse backgrounds come together to learn, share, and grow.
+                We provide a safe, inclusive, and vibrant community where
+                students from diverse backgrounds come together to learn, share,
+                and grow.
               </p>
-              <Button variant="default" size="lg" className="rounded-full px-6 md:px-8" asChild>
-                <Link href={`/${locale}/about`}>
-                  Read Our Story
-                </Link>
+              <Button
+                variant="default"
+                size="lg"
+                className="rounded-full px-6 md:px-8"
+                asChild
+              >
+                <Link href={`/${locale}/about`}>Read Our Story</Link>
               </Button>
             </motion.div>
           </div>
@@ -265,7 +284,7 @@ export function HomeClient({ locale }: HomeClientProps) {
                 </div>
               </motion.div>
             ))}
-            
+
             {/* View All Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -274,7 +293,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               transition={{ delay: 0.5 }}
               className="flex items-center justify-center"
             >
-              <Link 
+              <Link
                 href={`/${locale}/facilities`}
                 className="group flex flex-col items-center justify-center w-full h-full min-h-50 rounded-3xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all duration-300"
               >
@@ -299,7 +318,8 @@ export function HomeClient({ locale }: HomeClientProps) {
                 {t("blockTitle")}
               </h2>
               <p className="text-muted-foreground text-sm md:text-base lg:text-lg max-w-xl">
-                Our campus consists of four main residential blocks, each designed to provide a comfortable living space.
+                Our campus consists of four main residential blocks, each
+                designed to provide a comfortable living space.
               </p>
             </div>
           </div>
@@ -321,13 +341,15 @@ export function HomeClient({ locale }: HomeClientProps) {
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                
+
                 <div className="absolute inset-0 p-6 flex flex-col justify-end">
                   <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                     <div className="text-6xl font-black text-white/10 absolute top-4 right-4">
                       {block.letter}
                     </div>
-                    <h3 className="text-2xl font-bold mb-2 text-white">{t(`blocks.${block.key}.name`)}</h3>
+                    <h3 className="text-2xl font-bold mb-2 text-white">
+                      {t(`blocks.${block.key}.name`)}
+                    </h3>
                     <div className="space-y-1 text-sm text-slate-300">
                       <div className="flex items-center gap-2">
                         <FaUsers className="size-3" />
@@ -349,13 +371,23 @@ export function HomeClient({ locale }: HomeClientProps) {
       {/* Gallery Strip */}
       <section className="py-16 md:py-24 bg-background overflow-hidden">
         <div className="container px-4 mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">Life at Campus</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            Life at Campus
+          </h2>
         </div>
         <div className="w-full overflow-hidden">
           <div className="flex animate-scroll gap-3 md:gap-4">
             {[...galleryImages, ...galleryImages].map((src, i) => (
-              <div key={i} className="relative w-64 h-48 md:w-96 md:h-72 shrink-0 rounded-lg md:rounded-xl overflow-hidden shadow-md">
-                <Image src={src} alt="Gallery" fill className="object-cover hover:scale-110 transition-transform duration-500" />
+              <div
+                key={i}
+                className="relative w-64 h-48 md:w-96 md:h-72 shrink-0 rounded-lg md:rounded-xl overflow-hidden shadow-md"
+              >
+                <Image
+                  src={src}
+                  alt="Gallery"
+                  fill
+                  className="object-cover hover:scale-110 transition-transform duration-500"
+                />
               </div>
             ))}
           </div>
@@ -370,12 +402,15 @@ export function HomeClient({ locale }: HomeClientProps) {
             {t("admissionProcessTitle")}
           </h2>
           <p className="text-base md:text-lg lg:text-xl text-primary-foreground/90 mb-8 md:mb-10 max-w-2xl mx-auto px-4">
-            Ready to start your journey with us? Applications are now open for the upcoming academic year.
+            Ready to start your journey with us? Applications are now open for
+            the upcoming academic year.
           </p>
-          <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-full px-8 md:px-10 py-6 md:py-7 text-base md:text-lg font-bold shadow-xl" asChild>
-            <Link href={`/${locale}/admission`}>
-              {t("applyNow")}
-            </Link>
+          <Button
+            size="lg"
+            className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-full px-8 md:px-10 py-6 md:py-7 text-base md:text-lg font-bold shadow-xl"
+            asChild
+          >
+            <Link href={`/${locale}/admission`}>{t("applyNow")}</Link>
           </Button>
         </div>
       </section>

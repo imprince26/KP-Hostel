@@ -63,6 +63,9 @@ export default function MessagingPage() {
   // SMS content
   const [smsContent, setSmsContent] = useState("");
 
+  // Draft indicator
+  const [hasDraft, setHasDraft] = useState(false);
+
   // Templates
   const [selectedTemplate, setSelectedTemplate] = useState("");
 
@@ -75,10 +78,65 @@ export default function MessagingPage() {
     recipientCount: number;
   }>({ isOpen: false, recipientCount: 0 });
 
+  const DRAFT_KEY = "kp_admin_msg_draft_v2";
+
+  // Load draft on mount so switching tabs / mobile apps never loses entered content
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.emailSubject) setEmailSubject(parsed.emailSubject);
+        if (parsed.emailContent) setEmailContent(parsed.emailContent);
+        if (parsed.smsContent) setSmsContent(parsed.smsContent);
+        if (parsed.messageType) setMessageType(parsed.messageType);
+        if (parsed.recipientType) setRecipientType(parsed.recipientType);
+        if (parsed.recipientFilter) setRecipientFilter(parsed.recipientFilter);
+        setHasDraft(true);
+      }
+    } catch (e) {
+      console.warn("Could not read draft from localStorage", e);
+    }
+  }, []);
+
+  // Autosave draft on any text input change
+  useEffect(() => {
+    if (emailSubject || emailContent || smsContent) {
+      try {
+        localStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({
+            emailSubject,
+            emailContent,
+            smsContent,
+            messageType,
+            recipientType,
+            recipientFilter,
+            updatedAt: Date.now(),
+          })
+        );
+        setHasDraft(true);
+      } catch (e) {
+        console.warn("Could not save draft to localStorage", e);
+      }
+    }
+  }, [emailSubject, emailContent, smsContent, messageType, recipientType, recipientFilter]);
+
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {}
+    setEmailSubject("");
+    setEmailContent("");
+    setSmsContent("");
+    setHasDraft(false);
+    toast.info("Draft discarded");
+  };
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (session?.user.role !== "admin") {
+    } else if (session?.user && "role" in session.user && session.user.role !== "admin") {
       router.push("/");
     }
   }, [session, status, router]);
@@ -159,30 +217,30 @@ export default function MessagingPage() {
       case "payment_reminder":
         setEmailSubject("Payment Reminder - Semester Fees Due");
         setEmailContent(
-          "<p>Dear Student,</p><p>This is a friendly reminder that your semester fees payment is due.</p><p>Please ensure payment is completed by the due date to avoid any inconvenience.</p><p>Thank you,<br>KP Vidhyarthi Bhavan</p>"
+          "<p>Dear Student,</p><p>This is a friendly reminder regarding your pending semester fees payment.</p><p>Please ensure payment is completed by the scheduled due date.</p><p>Regards,<br>Hostel Student Portal Notice</p>"
         );
         setSmsContent("Payment reminder: Your semester fees are due. Please complete payment at the earliest.");
         break;
       case "maintenance":
-        setEmailSubject("Hostel Maintenance Notice");
+        setEmailSubject("Hostel Premises Maintenance Notice");
         setEmailContent(
-          "<p>Dear Residents,</p><p>This is to inform you about scheduled maintenance work in the hostel premises.</p><p>We apologize for any inconvenience caused.</p><p>Thank you for your cooperation,<br>KP Vidhyarthi Bhavan</p>"
+          "<p>Dear Residents,</p><p>This is to inform you about scheduled maintenance work in the hostel premises.</p><p>We appreciate your cooperation while this work is underway.</p><p>Regards,<br>Hostel Student Portal Notice</p>"
         );
         setSmsContent("Hostel maintenance scheduled. Please cooperate with the maintenance team.");
         break;
       case "event":
-        setEmailSubject("Upcoming Hostel Event");
+        setEmailSubject("Upcoming Hostel Community Event");
         setEmailContent(
-          "<p>Dear Students,</p><p>We are excited to announce an upcoming event at the hostel!</p><p>Stay tuned for more details.</p><p>Best regards,<br>KP Vidhyarthi Bhavan</p>"
+          "<p>Dear Students,</p><p>We are pleased to announce an upcoming community activity in the hostel.</p><p>Further details will be posted on the announcements board.</p><p>Regards,<br>Hostel Student Portal</p>"
         );
-        setSmsContent("Exciting hostel event coming up! Check your email for details.");
+        setSmsContent("Exciting hostel event coming up! Check your email and student portal for details.");
         break;
       case "emergency":
-        setEmailSubject("Important: Emergency Notice");
+        setEmailSubject("Notice: Important Advisory");
         setEmailContent(
-          "<p>Dear Residents,</p><p><strong>This is an important emergency notice.</strong></p><p>Please follow the instructions provided by the hostel management.</p><p>KP Vidhyarthi Bhavan</p>"
+          "<p>Dear Residents,</p><p><strong>This is an important advisory notification.</strong></p><p>Please follow the guidelines provided on the portal.</p><p>Hostel Student Portal</p>"
         );
-        setSmsContent("EMERGENCY NOTICE: Please check your email immediately for important information.");
+        setSmsContent("IMPORTANT ADVISORY: Please check your student portal immediately for important information.");
         break;
     }
     setSelectedTemplate(template);
@@ -232,10 +290,7 @@ export default function MessagingPage() {
       if (res.ok) {
         toast.success("Messages sent successfully!");
         setSendResults(data.results);
-        // Reset form
-        setEmailSubject("");
-        setEmailContent("");
-        setSmsContent("");
+        clearDraft();
         setSelectedStudents([]);
         setRecipientType("all");
         setRecipientFilter("");
@@ -482,6 +537,23 @@ export default function MessagingPage() {
 
         {/* Message Composer */}
         <div className="lg:col-span-2 space-y-6">
+          {hasDraft && (emailSubject || emailContent || smsContent) && (
+            <div className="p-3 bg-muted/60 border border-border rounded-lg flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5 font-medium text-foreground">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Draft saved locally &mdash; text is preserved if you switch tabs or browser apps.
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearDraft}
+                className="h-7 text-xs text-destructive hover:bg-destructive/10"
+              >
+                Discard draft
+              </Button>
+            </div>
+          )}
+
           {/* Email Composer */}
           {(messageType === "email" || messageType === "both") && (
             <Card className="p-6">
