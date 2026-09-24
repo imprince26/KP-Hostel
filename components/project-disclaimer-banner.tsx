@@ -23,10 +23,6 @@ export function ProjectDisclaimerBanner() {
       <aside aria-label="Project notice" className="relative z-50 bg-muted/95 border-b border-border text-foreground py-2 px-3 sm:px-4 text-xs">
         <div className="container max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span className="inline-flex items-center gap-1 font-semibold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary shrink-0">
-              <Info className="h-3 w-3" />
-              Demo Project
-            </span>
             <p className="truncate text-muted-foreground">
               <strong className="text-foreground font-medium">Notice:</strong> This website is an independent academic project and is <span className="underline decoration-dotted font-medium text-foreground">not affiliated with</span> K.P Vidhyarthi Bhavan, Ahmedabad.
             </p>
@@ -73,8 +69,7 @@ export function ProjectDisclaimerBanner() {
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="mt-4 pt-3 border-t border-border flex sm:justify-between items-center">
-            <span className="text-xs text-muted-foreground">Portfolio Showcase</span>
+          <DialogFooter className="mt-4 pt-3 border-t border-border flex sm:justify-end items-center">
             <Button size="sm" onClick={() => setShowModal(false)}>
               I Understand
             </Button>
