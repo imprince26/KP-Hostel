@@ -340,15 +340,15 @@ export default function AnnouncementsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Announcements</h1>
-          <p className="text-muted-foreground">Create and manage hostel announcements</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Announcements</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Create and manage hostel announcements</p>
         </div>
         <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto shrink-0">
               <Plus className="mr-2 h-4 w-4" />
               New Announcement
             </Button>
@@ -360,51 +360,63 @@ export default function AnnouncementsPage() {
                 Create a new announcement for students and hostel residents
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Title *</Label>
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="add-title" className="text-sm font-medium text-foreground block">
+                  Title <span className="text-destructive">*</span>
+                </Label>
                 <Input
+                  id="add-title"
                   placeholder="Announcement title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="mt-1.5"
                 />
               </div>
 
-              <div>
-                <Label>Content *</Label>
-                <RichTextEditor
-                  value={formData.content}
-                  onChange={(content) => setFormData({ ...formData, content })}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Target Audience</Label>
-                  <Select
-                    value={formData.targetAudience}
-                    onValueChange={(v) => setFormData({ ...formData, targetAudience: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Students</SelectItem>
-                      <SelectItem value="block_A">Block A</SelectItem>
-                      <SelectItem value="block_B">Block B</SelectItem>
-                      <SelectItem value="block_C">Block C</SelectItem>
-                      <SelectItem value="block_D">Block D</SelectItem>
-                      <SelectItem value="male">Male Students</SelectItem>
-                      <SelectItem value="female">Female Students</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground block">
+                  Content <span className="text-destructive">*</span>
+                </Label>
+                <div className="mt-1.5">
+                  <RichTextEditor
+                    value={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
+                  />
                 </div>
-                <div>
-                  <Label>Expires At</Label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground block">Target Audience</Label>
+                  <div className="mt-1.5">
+                    <Select
+                      value={formData.targetAudience}
+                      onValueChange={(v) => setFormData({ ...formData, targetAudience: v })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Students</SelectItem>
+                        <SelectItem value="block_A">Block A</SelectItem>
+                        <SelectItem value="block_B">Block B</SelectItem>
+                        <SelectItem value="block_C">Block C</SelectItem>
+                        <SelectItem value="block_D">Block D</SelectItem>
+                        <SelectItem value="male">Male Students</SelectItem>
+                        <SelectItem value="female">Female Students</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-expires-at" className="text-sm font-medium text-foreground block">Expires At</Label>
                   <Input
+                    id="add-expires-at"
                     type="datetime-local"
                     value={formData.expiresAt}
                     onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                    className="mt-1.5"
                   />
                 </div>
               </div>
@@ -444,9 +456,10 @@ export default function AnnouncementsPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
                 <Button
                   variant="outline"
+                  className="w-full sm:w-auto cursor-pointer"
                   onClick={() => {
                     setAddDialogOpen(false);
                     resetForm();
@@ -454,7 +467,9 @@ export default function AnnouncementsPage() {
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleAddAnnouncement}>Create Announcement</Button>
+                <Button className="w-full sm:w-auto cursor-pointer" onClick={handleAddAnnouncement}>
+                  Create Announcement
+                </Button>
               </div>
             </div>
           </DialogContent>
@@ -462,23 +477,23 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* Filters and Search */}
-      <Card className="p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <Card className="p-4 sm:p-6 border border-border/70 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <div className="sm:col-span-2 lg:col-span-1 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search announcements, content, or author..."
-              className="pl-10"
+              className="pl-10 h-10 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
           {/* Status Filter */}
-          <div className="w-full lg:w-48">
+          <div className="w-full">
             <Select value={statusFilter} onValueChange={(value: "all" | "public" | "private") => setStatusFilter(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
@@ -490,9 +505,9 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* Audience Filter */}
-          <div className="w-full lg:w-48">
+          <div className="w-full">
             <Select value={audienceFilter} onValueChange={setAudienceFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Audience" />
               </SelectTrigger>
               <SelectContent>
@@ -509,9 +524,9 @@ export default function AnnouncementsPage() {
           </div>
 
           {/* Sort By */}
-          <div className="w-full lg:w-48">
+          <div className="w-full">
             <Select value={sortBy} onValueChange={(value: "newest" | "oldest" | "pinned") => setSortBy(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -525,7 +540,7 @@ export default function AnnouncementsPage() {
 
         {/* Active Filters Display */}
         {(searchTerm || statusFilter !== "all" || audienceFilter !== "all") && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border">
             <span className="text-sm text-muted-foreground">Active filters:</span>
             {searchTerm && (
               <Badge variant="secondary" className="gap-1">
@@ -589,27 +604,27 @@ export default function AnnouncementsPage() {
           </Card>
         ) : (
           filteredAnnouncements.map((a) => (
-            <Card key={a.announcement.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
+            <Card key={a.announcement.id} className="overflow-hidden hover:shadow-md transition-shadow border border-border/70 shadow-sm">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     {/* Header */}
                     <div className="flex items-start gap-3 mb-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold text-foreground truncate">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground wrap-break-word">
                             {a.announcement.title}
                           </h3>
                           {a.announcement.isPinned && (
-                            <Badge className="bg-blue-500 hover:bg-blue-600 shrink-0">
+                            <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 text-xs">
                               <Pin className="h-3 w-3 mr-1" />
                               Pinned
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap text-xs">
                           {a.announcement.isPublic ? (
-                            <Badge className="bg-green-500 hover:bg-green-600">
+                            <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">
                               <Globe className="h-3 w-3 mr-1" />
                               Public
                             </Badge>
@@ -626,7 +641,7 @@ export default function AnnouncementsPage() {
                             </Badge>
                           )}
                           {a.announcement.expiresAt && (
-                            <Badge variant="outline" className="text-orange-600 border-orange-200">
+                            <Badge variant="outline" className="text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700">
                               <Clock className="h-3 w-3 mr-1" />
                               Expires {formatDate(a.announcement.expiresAt)}
                             </Badge>
@@ -643,47 +658,49 @@ export default function AnnouncementsPage() {
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Bell className="h-3 w-3" />
-                          By {a.author?.name || "Unknown"}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border/60">
+                      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Bell className="h-3.5 w-3.5" />
+                          By {a.author?.name || "Administration"}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5" />
                           {formatDate(a.announcement.createdAt)}
                         </span>
                       </div>
 
                       {/* Actions */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openViewDialog(a)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEditDialog(a)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedAnnouncement(a);
-                              setDeleteDialogOpen(true);
-                            }}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 cursor-pointer">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openViewDialog(a)} className="cursor-pointer">
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEditDialog(a)} className="cursor-pointer">
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedAnnouncement(a);
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -722,51 +739,63 @@ export default function AnnouncementsPage() {
             <DialogTitle>Edit Announcement</DialogTitle>
             <DialogDescription>Update announcement details</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Title *</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title" className="text-sm font-medium text-foreground block">
+                Title <span className="text-destructive">*</span>
+              </Label>
               <Input
+                id="edit-title"
                 placeholder="Announcement title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="mt-1.5"
               />
             </div>
 
-            <div>
-              <Label>Content *</Label>
-              <RichTextEditor
-                value={formData.content}
-                onChange={(content) => setFormData({ ...formData, content })}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Target Audience</Label>
-                <Select
-                  value={formData.targetAudience}
-                  onValueChange={(v) => setFormData({ ...formData, targetAudience: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Students</SelectItem>
-                    <SelectItem value="block_A">Block A</SelectItem>
-                    <SelectItem value="block_B">Block B</SelectItem>
-                    <SelectItem value="block_C">Block C</SelectItem>
-                    <SelectItem value="block_D">Block D</SelectItem>
-                    <SelectItem value="male">Male Students</SelectItem>
-                    <SelectItem value="female">Female Students</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground block">
+                Content <span className="text-destructive">*</span>
+              </Label>
+              <div className="mt-1.5">
+                <RichTextEditor
+                  value={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
+                />
               </div>
-              <div>
-                <Label>Expires At</Label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-foreground block">Target Audience</Label>
+                <div className="mt-1.5">
+                  <Select
+                    value={formData.targetAudience}
+                    onValueChange={(v) => setFormData({ ...formData, targetAudience: v })}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Students</SelectItem>
+                      <SelectItem value="block_A">Block A</SelectItem>
+                      <SelectItem value="block_B">Block B</SelectItem>
+                      <SelectItem value="block_C">Block C</SelectItem>
+                      <SelectItem value="block_D">Block D</SelectItem>
+                      <SelectItem value="male">Male Students</SelectItem>
+                      <SelectItem value="female">Female Students</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-expires-at" className="text-sm font-medium text-foreground block">Expires At</Label>
                 <Input
+                  id="edit-expires-at"
                   type="datetime-local"
                   value={formData.expiresAt}
                   onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  className="mt-1.5"
                 />
               </div>
             </div>
@@ -793,9 +822,10 @@ export default function AnnouncementsPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
               <Button
                 variant="outline"
+                className="w-full sm:w-auto cursor-pointer"
                 onClick={() => {
                   setEditDialogOpen(false);
                   resetForm();
@@ -803,7 +833,9 @@ export default function AnnouncementsPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleUpdateAnnouncement}>Update Announcement</Button>
+              <Button className="w-full sm:w-auto cursor-pointer" onClick={handleUpdateAnnouncement}>
+                Update Announcement
+              </Button>
             </div>
           </div>
         </DialogContent>

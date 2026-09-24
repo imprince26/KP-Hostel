@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { motion } from "motion/react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, AlertCircle, Upload, User, Phone, Book, MapPin, FileText, Home, Users, CheckCircle2, Shield, Clock } from "lucide-react";
+import { CalendarIcon, Check, AlertCircle, Upload, User, Phone, Book, MapPin, FileText, Home, Users, CheckCircle2, Shield, Clock, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -342,52 +342,54 @@ export default function AdmissionPage() {
 
   // Application form
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
-      {/* Hero Header with proper top padding */}
-      <div className="relative bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 text-white pt-28 pb-16 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-24 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          />
-        </div>
-        <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 rounded-full opacity-20 blur-3xl">
-          <div className="w-full h-full bg-linear-to-br from-primary/40 to-primary" />
-        </div>
-        
-        <motion.div
-          className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="max-w-4xl mx-auto text-center">
-            {/* <div className="inline-flex items-center justify-center w-16 sm:w-20 h-16 sm:h-20 rounded-2xl bg-background/20 backdrop-blur-sm mb-6 shadow-xl text-primary-foreground">
-              <FileText className="w-8 sm:w-10 h-8 sm:h-10" />
-            </div> */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 tracking-tight text-primary-foreground">Admission Application</h1>
-            <p className="text-lg sm:text-xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Complete your hostel admission application in 5 easy steps
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-primary-foreground">
-              <div className="flex items-center gap-2 bg-background/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <CheckCircle2 className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-medium">Quick Process</span>
-              </div>
-              <div className="flex items-center gap-2 bg-background/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <Shield className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-medium">Secure</span>
-              </div>
-              <div className="flex items-center gap-2 bg-background/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <Clock className="w-5 h-5" />
-                <span className="text-sm sm:text-base font-medium">5 Minutes</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-muted/20 pb-16">
+      {/* Header Banner */}
+      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background border-b border-border">
+        <div className="container px-4 mx-auto max-w-5xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+            <GraduationCap className="h-3.5 w-3.5" />
+            <span>Hostel Admissions</span>
           </div>
-        </motion.div>
-      </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4"
+          >
+            Admission{" "}
+            <span className="text-primary font-serif italic">
+              Application
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          >
+            Complete your hostel admission application in 5 structured steps.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-6"
+          >
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              <span>5 Step Process</span>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
+              <Shield className="w-4 h-4 text-primary" />
+              <span>Secure Verification</span>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
+              <Clock className="w-4 h-4 text-primary" />
+              <span>Quick Submission</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Form Container */}
       <div className="py-4 sm:py-6 lg:py-8">
@@ -1032,12 +1034,7 @@ export default function AdmissionPage() {
           </div>
         </form>
 
-        {/* Help Text */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Academic Project Demo inquiry: <span className="font-mono text-foreground">demo.project@XXXXX.org</span> or call <span className="font-mono text-foreground">+91 XXXXX XXXXX</span>
-          </p>
-        </div>
+ 
         </div>
       </div>
     </div>

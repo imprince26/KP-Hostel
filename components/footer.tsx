@@ -98,7 +98,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info (Masked as project demonstration) */}
+          {/* Contact Info */}
           <div className="space-y-5">
             <h3 className="text-base font-semibold text-foreground tracking-tight">
               {t("contact")}

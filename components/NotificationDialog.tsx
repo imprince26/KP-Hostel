@@ -217,7 +217,7 @@ export default function NotificationDialog() {
                       onClick={() => handleSelectNotification(notification)}
                       className={cn(
                         "p-4 sm:p-5 hover:bg-muted/40 cursor-pointer transition-colors text-left group",
-                        !notification.read && "bg-primary/[0.03] border-l-4 border-l-primary"
+                        !notification.read && "bg-primary/3 border-l-4 border-l-primary"
                       )}
                     >
                       <div className="flex items-start gap-3">
@@ -298,7 +298,7 @@ export default function NotificationDialog() {
               <ScrollArea className="flex-1 p-6 max-h-[calc(85vh-10rem)]">
                 {containsHtml(selectedNotification.message) ? (
                   <div
-                    className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed break-words"
+                    className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed wrap-break-word"
                     dangerouslySetInnerHTML={{ __html: selectedNotification.message }}
                   />
                 ) : (

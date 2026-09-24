@@ -368,7 +368,7 @@ export default function StudentDashboard() {
                 <ScrollArea className="flex-1 p-6 max-h-[calc(85vh-10rem)]">
                   {containsHtml(selectedNotification.message) ? (
                     <div
-                      className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed break-words"
+                      className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed wrap-break-word"
                       dangerouslySetInnerHTML={{ __html: selectedNotification.message }}
                     />
                   ) : (

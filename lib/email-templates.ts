@@ -1,6 +1,5 @@
 /**
- * Professional Email Templates for KP Hostel Web Project
- * Designed as an independent academic demonstration portal.
+ * Professional Email Templates for KP Bhavan
  * All templates use inline CSS for maximum email client compatibility with zero emojis.
  */
 
@@ -17,7 +16,7 @@ const HOSTEL_PHONE = "+91 XXXXX XXXXX";
 const HOSTEL_EMAIL = "demo.project@XXXXX.org";
 
 /**
- * Base email wrapper with clear student project demo indicators
+ * Minimal, clean base email wrapper
  */
 function emailWrapper(content: string, title: string): string {
   return `
@@ -35,13 +34,13 @@ function emailWrapper(content: string, title: string): string {
         padding: 0 !important;
       }
       .email-header {
-        padding: 24px 16px !important;
+        padding: 20px 16px !important;
       }
       .email-body {
         padding: 24px 16px !important;
       }
       .email-footer {
-        padding: 20px 16px !important;
+        padding: 18px 16px !important;
       }
       .main-title {
         font-size: 20px !important;
@@ -60,28 +59,14 @@ function emailWrapper(content: string, title: string): string {
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; background-color: #F4F4F6;">
     <tr>
       <td align="center" style="padding: 28px 12px;">
-        <!-- Top Project Disclaimer Pill -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; margin-bottom: 12px;">
-          <tr>
-            <td align="center">
-              <span style="display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #6B7280; background-color: #E5E7EB; padding: 4px 12px; border-radius: 9999px; font-weight: 600;">
-                Academic Demonstration Project Notice
-              </span>
-            </td>
-          </tr>
-        </table>
-
         <!-- Main Container -->
         <table role="presentation" class="email-container" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px; border: 1px solid #E5E7EB; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <!-- Header -->
+          <!-- Header: Only K.P Bhavan -->
           <tr>
-            <td class="email-header" style="background-color: ${PRIMARY_COLOR}; padding: 28px 24px; text-align: center; border-bottom: 3px solid ${ACCENT_COLOR};">
+            <td class="email-header" style="background-color: ${PRIMARY_COLOR}; padding: 24px 20px; text-align: center; border-bottom: 3px solid ${ACCENT_COLOR};">
               <h1 class="main-title" style="margin: 0; color: #FFFFFF; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">
-                KP Hostel Portal
+                K.P Bhavan
               </h1>
-              <p style="margin: 6px 0 0; color: #F3E8E9; font-size: 13px; font-weight: 400; letter-spacing: 0.3px;">
-                Student Management Platform &bull; Project Demonstration
-              </p>
             </td>
           </tr>
 
@@ -90,32 +75,16 @@ function emailWrapper(content: string, title: string): string {
 
           <!-- Footer -->
           <tr>
-            <td class="email-footer" style="background-color: #F9FAFB; padding: 24px; text-align: center; border-top: 1px solid #E5E7EB;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 12px;">
-                <tr>
-                  <td style="text-align: center;">
-                    <p style="margin: 0 0 8px; font-size: 13px; color: #374151; font-weight: 600;">
-                      KP Hostel Web Project
-                    </p>
-                    <p style="margin: 0 0 4px; font-size: 12px; color: #6B7280;">
-                      Support &amp; Inquiries: ${HOSTEL_EMAIL} &bull; ${HOSTEL_PHONE}
-                    </p>
-                    <p style="margin: 0 0 12px; font-size: 12px; color: #6B7280;">
-                      Portal Demo URL: <a href="${APP_URL}" style="color: ${PRIMARY_COLOR}; text-decoration: underline;">${APP_URL}</a>
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Project Disclaimer Warning -->
-              <div style="border-top: 1px solid #E5E7EB; padding-top: 14px; text-align: left;">
-                <p style="margin: 0 0 6px; font-size: 11px; color: #6B7280; line-height: 1.5;">
-                  <strong>Disclaimer:</strong> This email was generated automatically by the KP Hostel Web Project, an independent student academic and portfolio project developed by Prince Patel. This platform is <strong>not</strong> affiliated with, operated by, or endorsed by the official administration of K.P. Vidhyarthi Bhavan, Ellisbridge, Ahmedabad.
-                </p>
-                <p style="margin: 0; font-size: 11px; color: #9CA3AF; text-align: center;">
-                  &copy; ${new Date().getFullYear()} KP Hostel Project. All rights reserved.
-                </p>
-              </div>
+            <td class="email-footer" style="background-color: #F9FAFB; padding: 20px 24px; text-align: center; border-top: 1px solid #E5E7EB;">
+              <p style="margin: 0 0 6px; font-size: 13px; color: #374151; font-weight: 600;">
+                K.P Bhavan
+              </p>
+              <p style="margin: 0 0 6px; font-size: 12px; color: #6B7280;">
+                Contact: ${HOSTEL_EMAIL} &bull; ${HOSTEL_PHONE}
+              </p>
+              <p style="margin: 0; font-size: 11px; color: #9CA3AF;">
+                &copy; ${new Date().getFullYear()} K.P Bhavan. All rights reserved.
+              </p>
             </td>
           </tr>
         </table>
@@ -187,11 +156,11 @@ export function applicationSubmittedTemplate(
   `;
 
   return {
-    subject: `Application Registered [${applicationNumber}] - KP Hostel Portal`,
+    subject: `Application Registered [${applicationNumber}] - K.P Bhavan`,
     html: emailWrapper(content, "Application Registered"),
     text: `Dear ${name},
 
-Your hostel admission application has been registered on the student portal.
+Your hostel admission application has been registered.
 
 Application Reference Number: ${applicationNumber}
 
@@ -200,9 +169,7 @@ Next Steps:
 2. Track admission review progress through your student portal account.
 3. Prepare physical document copies as outlined in portal requirements.
 
-Student Portal Login: ${APP_URL}/auth/login
-
-Notice: This is an automated email from the KP Hostel Project demonstration platform.`
+Student Portal Login: ${APP_URL}/auth/login`
   };
 }
 
@@ -532,7 +499,7 @@ export function paymentReminderTemplate(
   `;
 
   return {
-    subject: `Fee Schedule Advisory (${semester}) - KP Hostel Portal`,
+    subject: `Fee Schedule Advisory (${semester}) - K.P Bhavan`,
     html: emailWrapper(content, "Fee Advisory"),
     text: `Dear ${name},
 
@@ -590,7 +557,7 @@ export function passwordResetTemplate(
   `;
 
   return {
-    subject: "Password Reset Request - KP Hostel Portal",
+    subject: "Password Reset Request - K.P Bhavan",
     html: emailWrapper(content, "Password Reset"),
     text: `Dear ${name},
 
@@ -640,7 +607,7 @@ export function getOTPEmailTemplate(name: string, otp: string): EmailTemplate {
   `;
 
   return {
-    subject: "Verification Code - KP Hostel Portal",
+    subject: "Verification Code - K.P Bhavan",
     html: emailWrapper(content, "Verification Code"),
     text: `Dear ${name},
 
@@ -661,7 +628,7 @@ export function getWelcomeEmailTemplate(name: string): EmailTemplate {
           Dear <strong>${name}</strong>,
         </p>
         <p style="margin: 0 0 20px; font-size: 14px; color: #374151; line-height: 1.6;">
-          Welcome to the <strong>KP Hostel Student Portal</strong>. Your user profile has been successfully set up.
+          Welcome to <strong>K.P Bhavan</strong>. Your user profile has been successfully set up.
         </p>
 
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; margin: 20px 0;">
@@ -693,11 +660,11 @@ export function getWelcomeEmailTemplate(name: string): EmailTemplate {
   `;
 
   return {
-    subject: "Welcome to KP Hostel Portal",
+    subject: "Welcome to K.P Bhavan",
     html: emailWrapper(content, "Welcome"),
     text: `Dear ${name},
 
-Welcome to the KP Hostel Student Portal. Your profile is ready.
+Welcome to K.P Bhavan. Your profile is ready.
 
 Login: ${APP_URL}/student/dashboard`
   };
@@ -710,13 +677,13 @@ export function adminMessageTemplate(
   recipientName: string,
   subject: string,
   messageContent: string,
-  senderName: string = "Hostel Portal System"
+  _senderName?: string
 ): EmailTemplate {
   const content = `
     <tr>
       <td class="email-body" style="padding: 28px 24px;">
         <h2 style="margin: 0 0 14px; color: #1F2937; font-size: 20px; font-weight: 600;">
-          Portal Notification
+          Announcement
         </h2>
 
         <p style="margin: 0 0 18px; color: #4B5563; font-size: 14px;">
@@ -736,25 +703,18 @@ export function adminMessageTemplate(
             </td>
           </tr>
         </table>
-
-        <p style="margin: 20px 0 0; color: #6B7280; font-size: 12px; line-height: 1.5;">
-          Dispatched by: <strong>${senderName}</strong> via KP Hostel Demonstration Portal.
-        </p>
       </td>
     </tr>
   `;
 
   return {
-    subject: `[Portal Notice] ${subject}`,
-    html: emailWrapper(content, `Notification: ${subject}`),
+    subject: `[K.P Bhavan] ${subject}`,
+    html: emailWrapper(content, subject),
     text: `Dear ${recipientName},
 
 Subject: ${subject}
 
-${messageContent.replace(/<[^>]*>/g, '')}
-
-Dispatched by: ${senderName}
-KP Hostel Project Demo Platform: ${APP_URL}`
+${messageContent.replace(/<[^>]*>/g, '')}`
   };
 }
 
@@ -776,7 +736,7 @@ export function contactFormSubmissionTemplate(
         </h2>
 
         <p style="margin: 0 0 18px; font-size: 14px; color: #4B5563;">
-          A demonstration message has been submitted through the contact form:
+          A message has been submitted through the contact form:
         </p>
 
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; margin: 18px 0; font-size: 13px;">
@@ -805,9 +765,9 @@ export function contactFormSubmissionTemplate(
   `;
 
   return {
-    subject: `[Contact Form Demo] ${subject}`,
+    subject: `[Contact Inquiry] ${subject}`,
     html: emailWrapper(content, "Contact Form Message"),
-    text: `Contact Form Submission (Project Demo)
+    text: `Contact Form Submission
 
 Name: ${name}
 Email: ${email}

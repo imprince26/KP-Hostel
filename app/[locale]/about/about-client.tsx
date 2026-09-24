@@ -85,49 +85,50 @@ export function AboutClient() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden bg-white">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/001.png"
-            alt="KP Vidhyarthi Bhavan"
-            fill
-            className="object-cover opacity-10"
-            priority
-          />
-        </div>
-        <div className="container relative z-10 px-4">
-          <motion.div
-            className="mx-auto max-w-4xl text-center"
+      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background border-b border-border overflow-hidden">
+        <div className="container relative z-10 px-4 mx-auto max-w-5xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+            <FaHistory className="h-3.5 w-3.5" />
+            <span>Heritage &amp; History Since 1930</span>
+          </div>
+          <motion.h1
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-foreground"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.7 }}
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-gray-900">
-              {t("title")} <span className="text-primary">{t("titleHighlight")}</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground font-medium">
-              {t("subtitle")}
-            </p>
-          </motion.div>
+            {t("title")}{" "}
+            <span className="text-primary font-serif italic">
+              {t("titleHighlight")}
+            </span>
+          </motion.h1>
+          <motion.p
+            className="text-base sm:text-lg md:text-xl text-muted-foreground font-normal max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            {t("subtitle")}
+          </motion.p>
         </div>
       </section>
 
       {/* Content Sections */}
-      <div className="container px-4 pb-24">
-        <div className="space-y-16 md:space-y-24">
+      <div className="container px-4 py-12 md:py-20 mx-auto max-w-6xl">
+        <div className="space-y-12 md:space-y-16">
           {sections.map((section, index) => (
             <motion.div
               key={section.id}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5 }}
             >
-              <Card className="overflow-hidden border-none shadow-lg">
+              <Card className="overflow-hidden border border-border/80 bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl">
                 <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
-                  <div className={`relative min-h-75 md:min-h-full ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                  <div className={`relative min-h-72 md:min-h-full ${index % 2 === 1 ? 'md:order-2' : ''}`}>
                     <Image
                       src={section.image}
                       alt={section.title}
@@ -143,21 +144,21 @@ export function AboutClient() {
                     </div>
                   </div>
                   
-                  <CardContent className={`p-8 md:p-12 flex flex-col justify-center ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                    <div className="hidden md:flex items-center gap-3 mb-6">
-                      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-                        <section.icon className="size-6 text-primary" />
+                  <CardContent className={`p-6 sm:p-8 md:p-10 flex flex-col justify-center ${index % 2 === 1 ? 'md:order-1' : ''}`}>
+                    <div className="hidden md:flex items-center gap-3 mb-5">
+                      <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <section.icon className="size-5 text-primary" />
                       </div>
-                      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{section.title}</h2>
+                      <h2 className="text-xl md:text-2xl font-bold text-foreground">{section.title}</h2>
                     </div>
                     
-                    <div className="prose prose-lg text-muted-foreground max-w-none">
-                      <p className="leading-relaxed whitespace-pre-line">{section.content}</p>
+                    <div className="text-muted-foreground text-sm sm:text-base leading-relaxed space-y-4">
+                      <p className="whitespace-pre-line">{section.content}</p>
                       
                       {section.subSections && section.subSections.map((sub, idx) => (
-                        <div key={idx} className="mt-8 pt-8 border-t border-border">
-                          <h3 className="text-xl font-semibold text-foreground mb-3">{sub.title}</h3>
-                          <p className="leading-relaxed whitespace-pre-line">{sub.content}</p>
+                        <div key={idx} className="mt-6 pt-6 border-t border-border">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">{sub.title}</h3>
+                          <p className="whitespace-pre-line text-sm text-muted-foreground">{sub.content}</p>
                         </div>
                       ))}
                     </div>

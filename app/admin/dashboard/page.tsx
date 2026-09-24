@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
 import { Users, FileText, Building2, TrendingUp, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,212 +97,230 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+    <div className="container mx-auto p-6 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/60">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Hostel operations, live occupancy, and admission metrics
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/admin/applications")}
+          >
+            Review Applications
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => router.push("/admin/announcements")}
+          >
+            New Announcement
+          </Button>
+        </div>
       </div>
 
-      <div className="relative">
-        {/* Header */}
-        <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-          <div className="container mx-auto px-6 py-8">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center"
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Total Students
+                </p>
+                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {stats?.totalStudents || 0}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Registered users</p>
+              </div>
+              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Users className="size-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Active Admissions
+                </p>
+                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {stats?.activeAdmissions || 0}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Current residents</p>
+              </div>
+              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Building2 className="size-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Pending Applications
+                </p>
+                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {stats?.pendingApplications || 0}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
+              </div>
+              <div className="size-11 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <FileText className="size-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Occupancy Rate
+                </p>
+                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
+                  {stats?.occupancyRate || 0}%
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">Room utilization</p>
+              </div>
+              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <TrendingUp className="size-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Recent Applications */}
+        <Card className="lg:col-span-2 border border-border/70 shadow-sm bg-card">
+          <CardHeader className="border-b border-border/60 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Recent Applications</CardTitle>
+                <CardDescription className="text-xs mt-0.5">
+                  Latest student admission requests requiring attention
+                </CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs font-medium"
+                onClick={() => router.push("/admin/applications")}
+              >
+                View all
+                <ArrowRight className="size-3.5 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {recentApps.length === 0 ? (
+              <div className="p-10 text-center text-muted-foreground">
+                <FileText className="size-10 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">No recent applications submitted</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/60">
+                {recentApps.map((app) => (
+                  <div
+                    key={app.id}
+                    className="p-4 hover:bg-muted/40 transition-colors cursor-pointer flex items-center justify-between gap-4"
+                    onClick={() => router.push("/admin/applications")}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {app.fullName}
+                        </p>
+                        {getStatusBadge(app.status)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {app.applicationNumber} &bull; {new Date(app.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <ArrowRight className="size-4 text-muted-foreground/60 shrink-0" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="border border-border/70 shadow-sm bg-card h-fit">
+          <CardHeader className="border-b border-border/60 pb-4">
+            <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
+            <CardDescription className="text-xs mt-0.5">Frequent administrative shortcuts</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 space-y-2.5">
+            <Button
+              onClick={() => router.push("/admin/applications")}
+              className="w-full justify-start h-auto p-3 text-left border border-border/70 hover:border-primary/40 hover:bg-muted/50 transition-colors"
+              variant="outline"
             >
-              <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-              <p className="text-muted-foreground">Manage hostel operations and monitor key metrics</p>
-            </motion.div>
-          </div>
-        </div>
+              <div className="size-8 rounded-md bg-primary/10 flex items-center justify-center text-primary mr-3 shrink-0">
+                <FileText className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-medium text-sm">Review Applications</div>
+                <div className="text-xs text-muted-foreground">Process pending student entries</div>
+              </div>
+            </Button>
 
-        <div className="container mx-auto px-6 py-8">
-          {/* Statistics Cards */}
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <h3 className="text-2xl font-bold text-foreground">{stats?.totalStudents || 0}</h3>
-                  <p className="text-xs text-muted-foreground">Registered users</p>
-                </div>
-              </CardContent>
-            </Card>
+            <Button
+              onClick={() => router.push("/admin/blocks")}
+              className="w-full justify-start h-auto p-3 text-left border border-border/70 hover:border-primary/40 hover:bg-muted/50 transition-colors"
+              variant="outline"
+            >
+              <div className="size-8 rounded-md bg-primary/10 flex items-center justify-center text-primary mr-3 shrink-0">
+                <Building2 className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-medium text-sm">Manage Blocks & Rooms</div>
+                <div className="text-xs text-muted-foreground">Room allocations and capacity</div>
+              </div>
+            </Button>
 
-            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Active Admissions</p>
-                  <h3 className="text-2xl font-bold text-foreground">{stats?.activeAdmissions || 0}</h3>
-                  <p className="text-xs text-muted-foreground">Current residents</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Pending Applications</p>
-                  <h3 className="text-2xl font-bold text-foreground">{stats?.pendingApplications || 0}</h3>
-                  <p className="text-xs text-muted-foreground">Awaiting review</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Occupancy Rate</p>
-                  <h3 className="text-2xl font-bold text-foreground">{stats?.occupancyRate || 0}%</h3>
-                  <p className="text-xs text-muted-foreground">Room utilization</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Recent Applications */}
-            <Card className="lg:col-span-2 border-0 shadow-sm bg-card">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg">Recent Applications</CardTitle>
-                <CardDescription>Latest student applications requiring attention</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                {recentApps.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No recent applications</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border">
-                    {recentApps.map((app, index) => (
-                      <motion.div
-                        key={app.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => router.push("/admin/applications")}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                              <p className="font-medium text-foreground">{app.fullName}</p>
-                              {getStatusBadge(app.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {app.applicationNumber} • {new Date(app.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-                {recentApps.length > 0 && (
-                  <div className="p-4 border-t border-border">
-                    <Button
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => router.push("/admin/applications")}
-                    >
-                      View All Applications
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="border-0 shadow-sm bg-card">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-                <CardDescription>Common administrative tasks</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={() => router.push("/admin/applications")}
-                  className="w-full justify-start h-auto p-4"
-                  variant="outline"
-                >
-                  <FileText className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Review Applications</div>
-                    <div className="text-xs text-muted-foreground">Process pending requests</div>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/admin/blocks")}
-                  className="w-full justify-start h-auto p-4"
-                  variant="outline"
-                >
-                  <Building2 className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Manage Blocks</div>
-                    <div className="text-xs text-muted-foreground">Room assignments</div>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={() => router.push("/admin/announcements")}
-                  className="w-full justify-start h-auto p-4"
-                  variant="outline"
-                >
-                  <TrendingUp className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <div className="font-medium">Announcements</div>
-                    <div className="text-xs text-muted-foreground">Broadcast messages</div>
-                  </div>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+            <Button
+              onClick={() => router.push("/admin/announcements")}
+              className="w-full justify-start h-auto p-3 text-left border border-border/70 hover:border-primary/40 hover:bg-muted/50 transition-colors"
+              variant="outline"
+            >
+              <div className="size-8 rounded-md bg-primary/10 flex items-center justify-center text-primary mr-3 shrink-0">
+                <TrendingUp className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="font-medium text-sm">Announcements</div>
+                <div className="text-xs text-muted-foreground">Publish notices and updates</div>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

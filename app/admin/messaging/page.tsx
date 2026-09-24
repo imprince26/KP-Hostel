@@ -63,9 +63,6 @@ export default function MessagingPage() {
   // SMS content
   const [smsContent, setSmsContent] = useState("");
 
-  // Draft indicator
-  const [hasDraft, setHasDraft] = useState(false);
-
   // Templates
   const [selectedTemplate, setSelectedTemplate] = useState("");
 
@@ -80,7 +77,7 @@ export default function MessagingPage() {
 
   const DRAFT_KEY = "kp_admin_msg_draft_v2";
 
-  // Load draft on mount so switching tabs / mobile apps never loses entered content
+  // Load draft silently on mount to preserve entered content across tab switches
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
@@ -92,7 +89,6 @@ export default function MessagingPage() {
         if (parsed.messageType) setMessageType(parsed.messageType);
         if (parsed.recipientType) setRecipientType(parsed.recipientType);
         if (parsed.recipientFilter) setRecipientFilter(parsed.recipientFilter);
-        setHasDraft(true);
       }
     } catch (e) {
       console.warn("Could not read draft from localStorage", e);
@@ -115,23 +111,11 @@ export default function MessagingPage() {
             updatedAt: Date.now(),
           })
         );
-        setHasDraft(true);
       } catch (e) {
         console.warn("Could not save draft to localStorage", e);
       }
     }
   }, [emailSubject, emailContent, smsContent, messageType, recipientType, recipientFilter]);
-
-  const clearDraft = () => {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-    } catch (e) {}
-    setEmailSubject("");
-    setEmailContent("");
-    setSmsContent("");
-    setHasDraft(false);
-    toast.info("Draft discarded");
-  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -290,7 +274,12 @@ export default function MessagingPage() {
       if (res.ok) {
         toast.success("Messages sent successfully!");
         setSendResults(data.results);
-        clearDraft();
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+        } catch (e) {}
+        setEmailSubject("");
+        setEmailContent("");
+        setSmsContent("");
         setSelectedStudents([]);
         setRecipientType("all");
         setRecipientFilter("");
@@ -537,23 +526,6 @@ export default function MessagingPage() {
 
         {/* Message Composer */}
         <div className="lg:col-span-2 space-y-6">
-          {hasDraft && (emailSubject || emailContent || smsContent) && (
-            <div className="p-3 bg-muted/60 border border-border rounded-lg flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium text-foreground">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                Draft saved locally &mdash; text is preserved if you switch tabs or browser apps.
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearDraft}
-                className="h-7 text-xs text-destructive hover:bg-destructive/10"
-              >
-                Discard draft
-              </Button>
-            </div>
-          )}
-
           {/* Email Composer */}
           {(messageType === "email" || messageType === "both") && (
             <Card className="p-6">
@@ -562,17 +534,25 @@ export default function MessagingPage() {
                 <h3 className="font-semibold">Email Message</h3>
               </div>
               <div className="space-y-4">
-                <div>
-                  <Label>Subject *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="email-subject" className="text-sm font-medium text-foreground block">
+                    Subject <span className="text-destructive">*</span>
+                  </Label>
                   <Input
+                    id="email-subject"
                     placeholder="Email subject"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
+                    className="mt-1.5"
                   />
                 </div>
-                <div>
-                  <Label>Content *</Label>
-                  <RichTextEditor value={emailContent} onChange={setEmailContent} />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground block">
+                    Content <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="mt-1.5">
+                    <RichTextEditor value={emailContent} onChange={setEmailContent} />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -586,14 +566,18 @@ export default function MessagingPage() {
                 <h3 className="font-semibold">SMS Message</h3>
               </div>
               <div className="space-y-4">
-                <div>
-                  <Label>Content *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="sms-content" className="text-sm font-medium text-foreground block">
+                    Content <span className="text-destructive">*</span>
+                  </Label>
                   <Textarea
+                    id="sms-content"
                     placeholder="SMS message content"
                     value={smsContent}
                     onChange={(e) => setSmsContent(e.target.value)}
                     rows={6}
                     maxLength={500}
+                    className="mt-1.5"
                   />
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>{smsCharCount} / 500 characters</span>

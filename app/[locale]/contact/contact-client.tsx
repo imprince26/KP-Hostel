@@ -118,25 +118,30 @@ export default function ContactClient() {
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background">
-        <div className="container px-4">
-          <div className="mx-auto max-w-4xl text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
-            >
-              {t("title")} <span className="text-primary">{t("titleHighlight")}</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto"
-            >
-              {t("subtitle")}
-            </motion.p>
+      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background border-b border-border">
+        <div className="container px-4 mx-auto max-w-4xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+            <MdEmail className="h-3.5 w-3.5" />
+            <span>Contact &amp; Inquiries</span>
           </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4"
+          >
+            {t("title")}{" "}
+            <span className="text-primary font-serif italic">
+              {t("titleHighlight")}
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          >
+            {t("subtitle")}
+          </motion.p>
         </div>
       </section>
 
@@ -220,9 +225,6 @@ export default function ContactClient() {
                           className="min-h-32 bg-muted/50"
                         />
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
-                        Your text is automatically saved as a draft so you can switch apps without losing what you write.
-                      </p>
                       <Button
                         type="submit"
                         className="w-full text-lg h-12"

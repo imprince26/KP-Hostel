@@ -39,40 +39,42 @@ export default function GalleryClient() {
     : galleryImages.filter(img => img.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-white">
-        <div className="container px-4">
-          <div className="mx-auto max-w-4xl text-center">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
-            >
-              {t("title")} <span className="text-primary">{t("titleHighlight")}</span>
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-lg md:text-xl text-muted-foreground"
-            >
-              {t("subtitle")}
-            </motion.p>
+      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background border-b border-border">
+        <div className="container px-4 mx-auto max-w-5xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+            <FaSearchPlus className="h-3.5 w-3.5" />
+            <span>Hostel Campus Tour</span>
           </div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-foreground"
+          >
+            {t("title")} <span className="text-primary font-serif italic">{t("titleHighlight")}</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          >
+            {t("subtitle")}
+          </motion.p>
         </div>
       </section>
 
-      {/* Filter Buttons */}
-      <section className="pb-12">
-        <div className="container px-4">
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            {categories.map((category, index) => (
+      {/* Filter Buttons & Grid */}
+      <section className="py-12 md:py-16">
+        <div className="container px-4 mx-auto max-w-7xl">
+          <div className="flex flex-wrap justify-center gap-2.5 mb-10 md:mb-12">
+            {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category)}
-                className="rounded-full px-6"
+                className="rounded-full px-5 h-9 text-xs sm:text-sm font-medium"
               >
                 {category === "All" ? "All" : t(category.toLowerCase().split(' ')[0].toLowerCase() as any) || category}
               </Button>
@@ -82,30 +84,30 @@ export default function GalleryClient() {
           {/* Gallery Grid */}
           <motion.div 
             layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6"
           >
             <AnimatePresence>
-              {filteredImages.map((image, index) => (
+              {filteredImages.map((image) => (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.25 }}
                   key={image.src}
                   className="group cursor-pointer"
                   onClick={() => setSelectedImage(image.src)}
                 >
-                  <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 h-full">
+                  <Card className="overflow-hidden border border-border/70 shadow-xs hover:shadow-lg transition-all duration-300 h-full rounded-2xl bg-card">
                     <CardContent className="p-0 relative aspect-square">
                       <Image
                         src={image.src}
                         alt={image.alt}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <FaSearchPlus className="text-white text-3xl drop-shadow-lg" />
+                        <FaSearchPlus className="text-white text-2xl drop-shadow-md" />
                       </div>
                     </CardContent>
                   </Card>

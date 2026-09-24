@@ -79,9 +79,9 @@ export function HomeClient({ locale }: HomeClientProps) {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
         {/* Abstract Background Elements */}
-        <div className="absolute inset-0 w-full h-full bg-background">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(var(--primary)/0.15),rgba(255,255,255,0))]" />
-          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,hsl(var(--foreground)/0.05)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground)/0.05)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <div className="absolute inset-0 w-full h-full bg-background pointer-events-none">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_75%_55%_at_50%_-10%,hsl(var(--primary)/0.13),transparent_75%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--foreground)/0.04)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground)/0.04)_1px,transparent_1px)] bg-size-[32px_32px] mask-[radial-gradient(ellipse_65%_55%_at_50%_0%,#000_70%,transparent_100%)]" />
         </div>
 
         {/* Content Container */}
@@ -92,9 +92,10 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 mb-6 sm:mb-8 lg:mb-4"
+              className="inline-flex items-center gap-2.5 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 mb-6 sm:mb-8 backdrop-blur-md shadow-xs"
             >
-              <span className="text-sm font-medium tracking-wide text-primary uppercase">
+              <span className="size-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs sm:text-sm font-semibold tracking-wider text-primary uppercase font-mono">
                 {t("heroSubtitle")}
               </span>
             </motion.div>
@@ -104,11 +105,11 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 sm:mb-8 leading-tight tracking-tight"
+              className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-foreground mb-6 sm:mb-8 leading-[1.08] tracking-tight font-display"
             >
               {t("heroTitle")}
               <br />
-              <span className="bg-linear-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+              <span className="text-primary font-display block sm:inline tracking-tight">
                 KP Vidhyarthi Bhavan
               </span>
             </motion.h1>
@@ -118,7 +119,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-4"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4 font-normal"
             >
               {t("heroDescription")}
             </motion.p>
@@ -128,28 +129,33 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4"
+              className="flex flex-row flex-nowrap gap-2.5 sm:gap-4 md:gap-6 justify-center items-center px-2 sm:px-4 max-w-sm sm:max-w-none mx-auto w-full"
             >
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base sm:text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-xl w-full sm:w-auto"
+                className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-xs min-[360px]:text-sm sm:text-base md:text-lg px-3 min-[360px]:px-4 sm:px-8 py-2.5 sm:py-6 h-11 sm:h-14 rounded-full shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/35 flex-1 sm:flex-initial cursor-pointer"
                 asChild
               >
                 <Link
                   href={`/${locale}/admission`}
-                  className="flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
                 >
-                  {t("applyNow")}
-                  <FaArrowRight className="text-sm sm:text-base" />
+                  <span>{t("applyNow")}</span>
+                  <FaArrowRight className="text-xs sm:text-sm shrink-0" />
                 </Link>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-background/50 hover:bg-accent/10 text-foreground border-border/50 backdrop-blur-sm font-semibold text-base sm:text-lg px-8 py-6 rounded-full transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                className="bg-card/80 hover:bg-muted text-foreground border border-border/80 backdrop-blur-md font-semibold text-xs min-[360px]:text-sm sm:text-base md:text-lg px-3 min-[360px]:px-4 sm:px-8 py-2.5 sm:py-6 h-11 sm:h-14 rounded-full transition-all duration-300 hover:scale-[1.03] hover:border-foreground/20 flex-1 sm:flex-initial cursor-pointer"
                 asChild
               >
-                <Link href={`/${locale}/about`}>{t("about")}</Link>
+                <Link
+                  href={`/${locale}/about`}
+                  className="flex items-center justify-center whitespace-nowrap"
+                >
+                  {t("about")}
+                </Link>
               </Button>
             </motion.div>
           </div>
