@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { users, admissionApplications, semesterPayments } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { users, admissionApplications, semesterPayments, hostelBlocks, auditLogs } from "@/lib/db/schema";
+import { eq, or, and, isNull } from "drizzle-orm";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -140,10 +140,114 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       );
     }
 
+    // 1. Fetch user to be deleted
+    const [userToDelete] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    if (!userToDelete) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // 2. Fetch linked admission applications (linked by userId or matching email)
+    const linkedApplications = await db
+      .select()
+      .from(admissionApplications)
+      .where(
+        userToDelete.email
+          ? or(eq(admissionApplications.userId, id), eq(admissionApplications.email, userToDelete.email))
+          : eq(admissionApplications.userId, id)
+      );
+
+    // 3. For any application with an active room allotment, release room and decrement occupancy
+    let releasedRoomsCount = 0;
+    const releasedBlocks: string[] = [];
+
+    for (const app of linkedApplications) {
+      if (
+        app.assignedBlock &&
+        (app.status === "active" || app.status === "admitted")
+      ) {
+        const [currentBlock] = await db
+          .select({
+            id: hostelBlocks.id,
+            name: hostelBlocks.name,
+            currentOccupancy: hostelBlocks.currentOccupancy,
+          })
+          .from(hostelBlocks)
+          .where(eq(hostelBlocks.name, app.assignedBlock))
+          .limit(1);
+
+        if (currentBlock && currentBlock.currentOccupancy > 0) {
+          await db
+            .update(hostelBlocks)
+            .set({
+              currentOccupancy: Math.max(0, currentBlock.currentOccupancy - 1),
+              updatedAt: new Date(),
+            })
+            .where(eq(hostelBlocks.id, currentBlock.id));
+
+          releasedRoomsCount++;
+          releasedBlocks.push(`Block ${app.assignedBlock} Room ${app.roomNumber || "N/A"}`);
+        }
+      }
+    }
+
+    // 4. Nullify foreign keys where this user was a reviewer or payment creator (prevents foreign key constraint errors)
+    await db
+      .update(admissionApplications)
+      .set({ reviewedBy: null })
+      .where(eq(admissionApplications.reviewedBy, id));
+
+    await db
+      .update(semesterPayments)
+      .set({ addedBy: null })
+      .where(eq(semesterPayments.addedBy, id));
+
+    // 5. Clean up any applications where email matches but userId was null (orphaned applications)
+    if (userToDelete.email) {
+      await db
+        .delete(admissionApplications)
+        .where(
+          and(
+            eq(admissionApplications.email, userToDelete.email),
+            isNull(admissionApplications.userId)
+          )
+        );
+    }
+
+    // 6. Delete user account from users table (cascades linked applications, payments, preferences, sessions)
     await db.delete(users).where(eq(users.id, id));
 
+    // 7. Record in auditLogs
+    if (currentUserId) {
+      try {
+        await db.insert(auditLogs).values({
+          actorUserId: currentUserId,
+          action: "delete_user",
+          entityType: "user",
+          entityId: id,
+          metadata: JSON.stringify({
+            deletedUserEmail: userToDelete.email,
+            deletedUserName: userToDelete.name,
+            deletedUserRole: userToDelete.role,
+            applicationsRemoved: linkedApplications.length,
+            releasedRoomsCount,
+            releasedBlocks,
+          }),
+        });
+      } catch (auditErr) {
+        console.error("Failed to write audit log for user deletion:", auditErr);
+      }
+    }
+
     return NextResponse.json({
-      message: "User account deleted successfully",
+      message: releasedRoomsCount > 0
+        ? `User account deleted and ${releasedRoomsCount} hostel room allocation(s) released successfully`
+        : "User account deleted successfully",
+      releasedRoomsCount,
     });
   } catch (error) {
     console.error("Error deleting user:", error);

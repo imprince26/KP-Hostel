@@ -25,6 +25,7 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -139,6 +140,7 @@ export default function AdminUsersPage() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmResidentDelete, setConfirmResidentDelete] = useState(false);
   const [targetRole, setTargetRole] = useState<"student" | "admin">("student");
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -266,6 +268,12 @@ export default function AdminUsersPage() {
     setRoleDialogOpen(true);
   };
 
+  const handleOpenDeleteDialog = (user: UserRecord) => {
+    setSelectedUser(user);
+    setConfirmResidentDelete(false);
+    setDeleteDialogOpen(true);
+  };
+
   const handleUpdateRole = async () => {
     if (!selectedUser) return;
     try {
@@ -325,8 +333,9 @@ export default function AdminUsersPage() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to delete user");
       }
-      toast.success("User account deleted successfully");
+      toast.success(data.message || "User account deleted successfully");
       setDeleteDialogOpen(false);
+      setConfirmResidentDelete(false);
       fetchUsers();
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Deletion failed";
@@ -826,10 +835,7 @@ export default function AdminUsersPage() {
                               <DropdownMenuSeparator />
 
                               <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setDeleteDialogOpen(true);
-                                }}
+                                onClick={() => handleOpenDeleteDialog(user)}
                                 className="text-xs text-destructive gap-2 cursor-pointer"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -935,10 +941,7 @@ export default function AdminUsersPage() {
                           <DropdownMenuSeparator />
 
                           <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setDeleteDialogOpen(true);
-                            }}
+                            onClick={() => handleOpenDeleteDialog(user)}
                             className="text-xs text-destructive gap-2 cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -1262,24 +1265,70 @@ export default function AdminUsersPage() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
+        <AlertDialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) setConfirmResidentDelete(false);
+          }}
+        >
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-destructive flex items-center gap-2">
                 <Trash2 className="h-5 w-5" />
                 Delete User Account
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to permanently delete the account for{" "}
-                <strong>{selectedUser?.name || selectedUser?.email}</strong>? This action cannot be undone.
+              <AlertDialogDescription asChild>
+                <div className="space-y-3 text-xs text-muted-foreground pt-1">
+                  <p>
+                    Are you sure you want to permanently delete the account for{" "}
+                    <strong className="text-foreground">{selectedUser?.name || selectedUser?.email}</strong>?
+                    This action cannot be undone.
+                  </p>
+
+                  {/* Active Resident Warning */}
+                  {selectedUser?.isResident && selectedUser.application?.assignedBlock ? (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200 space-y-1.5 text-left">
+                      <p className="font-semibold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                        <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                        Active Hostel Resident Warning
+                      </p>
+                      <p>
+                        This student currently occupies{" "}
+                        <strong className="text-foreground">
+                          Block {selectedUser.application.assignedBlock} - Room {selectedUser.application.roomNumber || "TBD"}
+                        </strong>.
+                      </p>
+                      <p className="text-[11px] opacity-90 leading-relaxed">
+                        Deleting this user will permanently erase their admission application, remove payment records, and automatically release their room allocation back to available hostel capacity.
+                      </p>
+
+                      <label className="flex items-start gap-2 pt-2 border-t border-amber-500/20 text-foreground font-medium cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={confirmResidentDelete}
+                          onChange={(e) => setConfirmResidentDelete(e.target.checked)}
+                          className="mt-0.5 rounded border-border text-primary focus:ring-primary h-4 w-4"
+                        />
+                        <span className="text-[11px]">
+                          I understand this student is an active resident and confirm releasing their room.
+                        </span>
+                      </label>
+                    </div>
+                  ) : selectedUser?.application ? (
+                    <div className="rounded-lg border border-border bg-muted/40 p-2.5 text-xs text-muted-foreground text-left">
+                      This user has an admission application (#{selectedUser.application.applicationNumber}) which will also be permanently deleted.
+                    </div>
+                  ) : null}
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="gap-2">
               <AlertDialogCancel disabled={actionLoading}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteUser}
-                disabled={actionLoading}
-                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                disabled={Boolean(actionLoading || (selectedUser?.isResident && !confirmResidentDelete))}
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground disabled:opacity-50"
               >
                 {actionLoading ? "Deleting..." : "Permanently Delete"}
               </AlertDialogAction>
