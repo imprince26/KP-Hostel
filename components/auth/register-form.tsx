@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaGoogle, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
+import { Mail, Lock, User, Phone, Eye, EyeOff, ShieldCheck, ArrowLeft, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 
@@ -32,15 +33,15 @@ export function RegisterForm() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name || formData.name.length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+    if (!formData.name || formData.name.trim().length < 2) {
+      newErrors.name = "Full name must be at least 2 characters";
     }
 
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Invalid email address";
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = "Please enter a valid email address";
     }
 
-    if (!formData.phone || formData.phone.length < 10) {
+    if (!formData.phone || formData.phone.trim().length < 10) {
       newErrors.phone = "Phone number must be at least 10 digits";
     }
 
@@ -60,7 +61,7 @@ export function RegisterForm() {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error("Please fix the errors in the form");
+      toast.error("Please complete all required fields correctly");
       return;
     }
 
@@ -73,7 +74,7 @@ export function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          role: "student", // Always register as student
+          role: "student",
         }),
       });
 
@@ -83,21 +84,23 @@ export function RegisterForm() {
         toast.error(data.error || "Registration failed");
         if (data.details) {
           const validationErrors: Record<string, string> = {};
-          data.details.forEach((err: any) => {
-            if (err.path) {
+          data.details.forEach((err: { path?: string[]; message: string }) => {
+            if (err.path && err.path[0]) {
               validationErrors[err.path[0]] = err.message;
             }
           });
           setErrors(validationErrors);
+        } else {
+          setErrors({ general: data.error || "Registration failed. Please try again." });
         }
         return;
       }
 
-      toast.success("OTP sent to your email!");
+      toast.success("Verification code sent to your email");
       setStep("otp");
-    } catch (error) {
+    } catch {
       toast.error("An error occurred. Please try again.");
-      setErrors({ general: "An error occurred. Please try again." });
+      setErrors({ general: "Network error occurred. Please check your connection." });
     } finally {
       setIsLoading(false);
     }
@@ -121,12 +124,12 @@ export function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || "Invalid OTP");
-        setErrors({ otp: data.error || "Invalid OTP" });
+        toast.error(data.error || "Invalid OTP code");
+        setErrors({ otp: data.error || "Invalid verification code" });
         return;
       }
 
-      toast.success("Registration successful!");
+      toast.success("Account verified and registered successfully!");
 
       // Auto sign in
       const result = await signIn("credentials", {
@@ -138,10 +141,12 @@ export function RegisterForm() {
       if (result?.ok) {
         router.push(callbackUrl);
         router.refresh();
+      } else {
+        router.push("/auth/login");
       }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
-      setErrors({ general: "An error occurred. Please try again." });
+    } catch {
+      toast.error("An error occurred during verification.");
+      setErrors({ general: "Verification failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -151,237 +156,308 @@ export function RegisterForm() {
     setIsLoading(true);
     try {
       await signIn("google", { callbackUrl });
-    } catch (error) {
+    } catch {
       toast.error("Failed to sign up with Google");
-      setErrors({ general: "Failed to sign up with Google" });
+      setErrors({ general: "Google sign-up failed. Please try again." });
       setIsLoading(false);
     }
   };
 
+  // OTP Step View
   if (step === "otp") {
     return (
-      <div className="w-full max-w-md mx-auto">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-card rounded-2xl shadow-xl p-8"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-card-foreground">Verify Email</h2>
-            <p className="mt-2 text-muted-foreground">
-              Enter the 6-digit code sent to {formData.email}
-            </p>
-          </div>
-
-          {errors.otp && (
-            <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
-              {errors.otp}
-            </div>
-          )}
-
-          <form onSubmit={handleVerifyOtp} className="space-y-6">
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-foreground mb-2">
-                Verification Code
-              </label>
-              <Input
-                id="otp"
-                type="text"
-                placeholder="000000"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                className="w-full text-center text-2xl tracking-widest"
-                maxLength={6}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || otp.length !== 6}
-            >
-              {isLoading ? "Verifying..." : "Verify & Register"}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setStep("form")}
-              className="text-sm text-primary hover:text-primary/80"
-              disabled={isLoading}
-            >
-              ← Back to registration
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-md mx-auto">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="bg-card rounded-2xl shadow-xl p-8"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-card rounded-2xl sm:rounded-3xl shadow-sm sm:shadow-lg border border-border/80 p-5 min-[400px]:p-6 sm:p-8"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-card-foreground">Create Account</h2>
-          <p className="mt-2 text-muted-foreground">
-            Join KP Vidhyarthi Bhavan family
+        <div className="text-center mb-6">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+            <ShieldCheck className="h-6 w-6" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground tracking-tight">
+            Verify Email
+          </h2>
+          <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
+            Enter the 6-digit code sent to
+          </p>
+          <p className="font-semibold text-xs text-foreground font-mono mt-0.5">
+            {formData.email}
           </p>
         </div>
 
-        {errors.general && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-sm">
-            {errors.general}
+        {errors.otp && (
+          <div className="mb-5 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{errors.otp}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+        <form onSubmit={handleVerifyOtp} className="space-y-5">
+          <div className="space-y-1.5">
+            <label htmlFor="otp" className="block text-xs font-medium text-foreground text-center">
+              Enter 6-Digit Code
+            </label>
+            <Input
+              id="otp"
+              type="text"
+              placeholder="000000"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="w-full text-center text-2xl font-mono tracking-[0.4em] h-13 rounded-xl bg-background border-border focus-visible:ring-2 focus-visible:ring-primary/20"
+              maxLength={6}
+              required
+              disabled={isLoading}
+              autoFocus
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full h-11 text-sm font-semibold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer"
+            disabled={isLoading || otp.length !== 6}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
+                Verifying...
+              </span>
+            ) : (
+              "Verify and Register"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => setStep("form")}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            disabled={isLoading}
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Back to registration details</span>
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Registration Form View
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="bg-card rounded-2xl sm:rounded-3xl shadow-sm sm:shadow-lg border border-border/80 p-4 min-[400px]:p-5 sm:p-6"
+    >
+      {/* Top Segment Tab Switcher */}
+      <div className="grid grid-cols-2 p-1 bg-muted/60 rounded-xl mb-3.5 border border-border/60">
+        <Link
+          href="/auth/login"
+          className="py-1.5 text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Sign In
+        </Link>
+        <div className="py-1.5 text-center text-xs font-semibold rounded-lg bg-card text-foreground shadow-2xs">
+          Create Account
+        </div>
+      </div>
+
+      {/* Header */}
+      <div className="text-center mb-3 sm:mb-3.5">
+        <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground tracking-tight">
+          Create Account
+        </h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Register to apply for KP Bhavan hostel admissions
+        </p>
+      </div>
+
+      {/* Error Banner */}
+      {errors.general && (
+        <div className="mb-3 p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{errors.general}</span>
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
+        {/* Full Name & Phone - 2 cols on sm+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+          <div className="space-y-1">
+            <label htmlFor="name" className="block text-xs font-medium text-foreground">
               Full Name
             </label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full"
-              required
-              disabled={isLoading}
-            />
-            {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="Ramesh Patel"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="pl-9 h-10 text-sm bg-background border-border rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
+                required
+                disabled={isLoading}
+                autoComplete="name"
+              />
+            </div>
+            {errors.name && <p className="text-[11px] text-destructive pl-1">{errors.name}</p>}
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full"
-              required
-              disabled={isLoading}
-            />
-            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="+91 9876543210"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full"
-              required
-              disabled={isLoading}
-            />
-            {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+          <div className="space-y-1">
+            <label htmlFor="phone" className="block text-xs font-medium text-foreground">
+              Mobile Number
             </label>
             <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                id="password"
+                id="phone"
+                type="tel"
+                placeholder="9876543210"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="pl-9 h-10 text-sm bg-background border-border rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
+                required
+                disabled={isLoading}
+                autoComplete="tel"
+              />
+            </div>
+            {errors.phone && <p className="text-[11px] text-destructive pl-1">{errors.phone}</p>}
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="space-y-1">
+          <label htmlFor="reg-email" className="block text-xs font-medium text-foreground">
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              id="reg-email"
+              type="email"
+              placeholder="student@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="pl-9 h-10 text-sm bg-background border-border rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
+              required
+              disabled={isLoading}
+              autoComplete="email"
+            />
+          </div>
+          {errors.email && <p className="text-[11px] text-destructive pl-1">{errors.email}</p>}
+        </div>
+
+        {/* Password and Confirm Password */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+          <div className="space-y-1">
+            <label htmlFor="reg-password" className="block text-xs font-medium text-foreground">
+              Password (Min. 8)
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                id="reg-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pr-10"
+                className="pl-9 pr-9 h-10 text-sm bg-background border-border rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
+            {errors.password && <p className="text-[11px] text-destructive pl-1">{errors.password}</p>}
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1">
+            <label htmlFor="confirmPassword" className="block text-xs font-medium text-foreground">
               Confirm Password
             </label>
             <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full pr-10"
+                className="pl-9 pr-9 h-10 text-sm bg-background border-border rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20"
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
-            {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && (
+              <p className="text-[11px] text-destructive pl-1">{errors.confirmPassword}</p>
+            )}
           </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90"
-            disabled={isLoading}
-          >
-            {isLoading ? "Creating account..." : "Create Account"}
-          </Button>
-        </form>
-
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-background text-muted">Or continue with</span>
-            </div>
-          </div>
-
-          <button
-            onClick={handleGoogleSignUp}
-            disabled={isLoading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FaGoogle className="text-muted-foreground" size={20} />
-            <span className="font-medium text-foreground">Sign up with Google</span>
-          </button>
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/auth/login" className="font-medium text-primary hover:text-primary/80">
-            Sign in
-          </Link>
-        </p>
-      </motion.div>
-    </div>
+        <Button
+          type="submit"
+          className="w-full h-10 text-sm font-semibold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer mt-1"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="animate-spin h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full" />
+              Sending verification code...
+            </span>
+          ) : (
+            "Continue & Verify Email"
+          )}
+        </Button>
+      </form>
+
+      {/* Social Divider */}
+      <div className="my-2.5 sm:my-3 flex items-center gap-3">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+          Or continue with
+        </span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+
+      {/* Google Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignUp}
+        disabled={isLoading}
+        className="w-full h-10 flex items-center justify-center gap-2.5 px-4 border border-border/80 bg-background hover:bg-muted/60 rounded-xl transition-all text-xs sm:text-sm font-semibold text-foreground active:scale-[0.99] disabled:opacity-50 cursor-pointer shadow-2xs"
+      >
+        <FaGoogle className="h-3.5 w-3.5 text-foreground/80 shrink-0" />
+        <span>Continue with Google</span>
+      </button>
+
+      {/* Footer link */}
+      <p className="mt-3 text-center text-xs text-muted-foreground">
+        Already have an account?{" "}
+        <Link href="/auth/login" className="font-semibold text-primary hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </motion.div>
   );
 }
