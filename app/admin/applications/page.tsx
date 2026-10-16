@@ -142,7 +142,7 @@ export default function AdminApplications() {
     }
 
     if (status === "authenticated") {
-      const userRole = (session.user as any).role;
+      const userRole = (session?.user as { role?: string } | undefined)?.role;
       if (userRole !== "admin") {
         router.push("/student/dashboard");
         return;
@@ -1088,7 +1088,7 @@ export default function AdminApplications() {
                     : "Please state the reason for rejecting this application (e.g., documentation incomplete, capacity full, etc.)..."
                 }
                 rows={4}
-                className="mt-1.5 min-h-[110px]"
+                className="mt-1.5 min-h-27.5"
               />
             </div>
           </div>

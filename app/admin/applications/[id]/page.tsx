@@ -18,7 +18,6 @@ import {
   XCircle,
   FileText,
   AlertCircle,
-  Printer,
   ShieldAlert,
   Home,
   Check,
@@ -283,17 +282,6 @@ export default function ApplicationDetailPage() {
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="gap-1.5 text-xs h-9"
-            >
-              <Printer className="h-3.5 w-3.5" />
-              Print
-            </Button>
-          </div>
         </div>
 
         {/* Main Header Card */}
@@ -640,7 +628,7 @@ export default function ApplicationDetailPage() {
                       : "Please specify the reason for rejection (documentation incomplete, eligibility, etc.)..."
                   }
                   rows={4}
-                  className="mt-1 min-h-[110px]"
+                  className="mt-1 min-h-27.5"
                 />
               </div>
             </div>

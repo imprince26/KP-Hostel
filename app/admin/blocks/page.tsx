@@ -12,7 +12,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle
 } from "react-icons/fi";
-import { FaRupeeSign } from "react-icons/fa";
+import { FaRupeeSign, FaBed } from "react-icons/fa";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ export default function AdminBlocks() {
     }
 
     if (status === "authenticated") {
-      const userRole = (session.user as any).role;
+      const userRole = (session?.user as { role?: string } | undefined)?.role;
       if (userRole !== "admin") {
         router.push("/student/dashboard");
         return;
@@ -301,46 +301,66 @@ export default function AdminBlocks() {
         )}
 
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <Card className="border-0 shadow-sm bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Blocks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">{blocks.length}</p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Blocks</p>
+                  <p className="text-2xl sm:text-3xl font-bold font-display text-foreground">{blocks.length}</p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <FiHome className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Capacity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {blocks.reduce((sum, b) => sum + (b.capacity || 0), 0)}
-              </p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Capacity</p>
+                  <p className="text-2xl sm:text-3xl font-bold font-display text-foreground">
+                    {blocks.reduce((sum, b) => sum + (b.capacity || 0), 0)}
+                  </p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <FiUsers className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Current Occupancy</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {blocks.reduce((sum, b) => sum + b.currentOccupancy, 0)}
-              </p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Current Occupancy</p>
+                  <p className="text-2xl sm:text-3xl font-bold font-display text-foreground">
+                    {blocks.reduce((sum, b) => sum + b.currentOccupancy, 0)}
+                  </p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <Card className="border-0 shadow-sm bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Available Rooms</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {blocks.reduce((sum, b) => sum + ((b.capacity || 0) - b.currentOccupancy), 0)}
-              </p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Available Rooms</p>
+                  <p className="text-2xl sm:text-3xl font-bold font-display text-foreground">
+                    {blocks.reduce((sum, b) => sum + ((b.capacity || 0) - b.currentOccupancy), 0)}
+                  </p>
+                </div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <FaBed className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

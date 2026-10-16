@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Gujarati, Anek_Gujarati, Outfit, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Gujarati, Anek_Gujarati, Outfit, Plus_Jakarta_Sans, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import { locales } from "@/i18n/request";
 import { ToastProvider } from "@/components/toast-provider";
 import { SessionProvider } from "@/components/session-provider";
@@ -23,6 +23,13 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -166,7 +173,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${plusJakartaSans.variable} ${outfit.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} ${notoSansGujarati.variable} ${anekGujarati.variable} font-sans antialiased`}
+        className={`${plusJakartaSans.variable} ${outfit.variable} ${playfair.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} ${notoSansGujarati.variable} ${anekGujarati.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
         <SessionProvider>

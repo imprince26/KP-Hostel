@@ -23,6 +23,8 @@ import {
   UserX,
   UserCog,
   Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -127,6 +129,10 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
   const [residentFilter, setResidentFilter] = useState<string>("all");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Dialog states
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
@@ -240,6 +246,19 @@ export default function AdminUsersPage() {
       return true;
     });
   }, [users, searchQuery, roleFilter, verificationFilter, residentFilter]);
+
+  // Reset page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, verificationFilter, residentFilter, itemsPerPage]);
+
+  // Pagination slices
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = useMemo(() => {
+    return filteredUsers.slice(startIndex, endIndex);
+  }, [filteredUsers, startIndex, endIndex]);
 
   const handleOpenRoleDialog = (user: UserRecord) => {
     setSelectedUser(user);
@@ -641,7 +660,7 @@ export default function AdminUsersPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {filteredUsers.map((user) => (
+                    {paginatedUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-muted/20 transition-colors">
                         {/* User Identity */}
                         <td className="px-5 py-4">
@@ -652,7 +671,7 @@ export default function AdminUsersPage() {
                                 {getInitials(user.name)}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="min-w-0 max-w-[200px]">
+                            <div className="min-w-0 max-w-50">
                               <p className="font-semibold text-foreground truncate text-sm">
                                 {user.name || "Unnamed User"}
                               </p>
@@ -691,7 +710,7 @@ export default function AdminUsersPage() {
                         {/* Academic Info */}
                         <td className="px-4 py-4">
                           {user.collegeName || user.course ? (
-                            <div className="max-w-[200px]">
+                            <div className="max-w-50">
                               <p className="font-medium text-foreground text-xs truncate">
                                 {user.collegeName || "College not set"}
                               </p>
@@ -828,7 +847,7 @@ export default function AdminUsersPage() {
 
             {/* Mobile / Tablet Cards View (< lg) */}
             <div className="lg:hidden space-y-3">
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <Card key={user.id} className="border-0 shadow-xs bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -959,6 +978,88 @@ export default function AdminUsersPage() {
                   </div>
                 </Card>
               ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/70">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground order-2 sm:order-1">
+                <span>
+                  Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
+                  <span className="font-semibold text-foreground">
+                    {Math.min(endIndex, filteredUsers.length)}
+                  </span>{" "}
+                  of <span className="font-semibold text-foreground">{filteredUsers.length}</span> users
+                </span>
+
+                <div className="flex items-center gap-1.5 pl-3 border-l border-border">
+                  <span className="hidden md:inline">Per page:</span>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(val) => {
+                      setItemsPerPage(Number(val));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-18 text-xs bg-card">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2.5 text-xs gap-1"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <span className="hidden min-[400px]:inline">Previous</span>
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        const distance = Math.abs(page - currentPage);
+                        return distance === 0 || distance === 1 || page === 1 || page === totalPages;
+                      })
+                      .map((page, index, array) => (
+                        <div key={page} className="flex items-center">
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <span className="px-1 text-xs text-muted-foreground select-none">...</span>
+                          )}
+                          <Button
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className="h-8 w-8 p-0 text-xs font-medium"
+                          >
+                            {page}
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2.5 text-xs gap-1"
+                  >
+                    <span className="hidden min-[400px]:inline">Next</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}

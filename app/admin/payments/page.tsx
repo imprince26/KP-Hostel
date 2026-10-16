@@ -155,7 +155,7 @@ export default function AdminPaymentsPage() {
     }
 
     if (status === "authenticated") {
-      const userRole = (session.user as any).role;
+      const userRole = (session?.user as { role?: string } | undefined)?.role;
       if (userRole !== "admin") {
         router.push("/student/dashboard");
         return;
