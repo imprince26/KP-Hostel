@@ -16,7 +16,8 @@ import {
   X,
   ChevronLeft,
   Shield,
-  Home
+  Home,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,11 @@ const adminNavigation = [
     name: "Dashboard",
     href: "/admin/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    name: "Users",
+    href: "/admin/users",
+    icon: Users,
   },
   {
     name: "Applications",

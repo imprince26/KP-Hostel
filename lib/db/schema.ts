@@ -340,6 +340,9 @@ export const semesterPayments = pgTable(
   ]
 );
 
+// Backward-compatible alias for payments
+export const payments = semesterPayments;
+
 // ============================================
 // Announcements
 // ============================================

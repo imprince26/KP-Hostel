@@ -185,7 +185,7 @@ export default function AdminDashboard() {
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
               </div>
-              <div className="size-11 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                 <FileText className="size-5" />
               </div>
             </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
 import {
   MdPayment,
   MdAdd,
@@ -216,6 +217,21 @@ export default function AdminPaymentsPage() {
     }
 
     setFilteredPayments(filtered);
+  };
+
+  const activePaymentFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filterSemester && filterSemester !== "all") count++;
+    if (filterStatus && filterStatus !== "all") count++;
+    if (filterYear) count++;
+    return count;
+  }, [filterSemester, filterStatus, filterYear]);
+
+  const handleResetPaymentFilters = () => {
+    setSearchTerm("");
+    setFilterSemester("");
+    setFilterStatus("");
+    setFilterYear("");
   };
 
   const searchStudents = async (search: string) => {
@@ -483,17 +499,76 @@ export default function AdminPaymentsPage() {
           </Card>
         </div>
 
-        {/* Filters and Search */}
-        <Card className="mb-6 border-0 shadow-sm bg-card">
+        {/* Mobile Filters View (< md) */}
+        <div className="md:hidden flex items-center gap-2 mb-6">
+          <div className="relative flex-1">
+            <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search by name, email, phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-10 bg-card text-sm"
+            />
+          </div>
+          <MobileFilterDrawer
+            title="Filter Payments"
+            description="Filter records by semester, status, and academic year"
+            activeCount={activePaymentFiltersCount}
+            onReset={handleResetPaymentFilters}
+          >
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Semester</Label>
+                <Select value={filterSemester} onValueChange={setFilterSemester}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Semesters" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Semesters</SelectItem>
+                    <SelectItem value="sem1">Semester 1</SelectItem>
+                    <SelectItem value="sem2">Semester 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Payment Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Academic Year</Label>
+                <Input
+                  placeholder="e.g., 2024-2025"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                />
+              </div>
+            </div>
+          </MobileFilterDrawer>
+        </div>
+
+        {/* Desktop Filters and Search (>= md) */}
+        <Card className="hidden md:block mb-6 border-0 shadow-sm bg-card">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <MdFilterList className="w-4 h-4 sm:w-5 sm:h-5" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-display">
+              <MdFilterList className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Filters & Search
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 space-y-1.5">
                 <Label className="text-sm">Search</Label>
                 <div className="relative">
                   <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -506,7 +581,7 @@ export default function AdminPaymentsPage() {
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label className="text-sm">Semester</Label>
                 <Select value={filterSemester} onValueChange={setFilterSemester}>
                   <SelectTrigger>
@@ -520,7 +595,7 @@ export default function AdminPaymentsPage() {
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label className="text-sm">Status</Label>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
                   <SelectTrigger>
@@ -535,7 +610,7 @@ export default function AdminPaymentsPage() {
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label className="text-sm">Academic Year</Label>
                 <Input
                   placeholder="e.g., 2024-2025"
@@ -545,21 +620,18 @@ export default function AdminPaymentsPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm("");
-                  setFilterSemester("");
-                  setFilterStatus("");
-                  setFilterYear("");
-                }}
-              >
-                <MdClose className="w-4 h-4 mr-2" />
-                Clear Filters
-              </Button>
-            </div>
+            {activePaymentFiltersCount > 0 && (
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetPaymentFilters}
+                >
+                  <MdClose className="w-4 h-4 mr-2" />
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -775,14 +847,14 @@ export default function AdminPaymentsPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Semester *</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Semester *</Label>
                   <Select
                     value={formData.semester}
                     onValueChange={(value) => setFormData({ ...formData, semester: value })}
                     disabled={dialogMode === "edit"}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select semester" />
                     </SelectTrigger>
                     <SelectContent>
@@ -792,55 +864,59 @@ export default function AdminPaymentsPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Academic Year *</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Academic Year *</Label>
                   <Input
                     placeholder="e.g., 2024-2025"
                     value={formData.academicYear}
                     onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })}
                     disabled={dialogMode === "edit"}
+                    className="mt-1"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>DD Number</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">DD Number</Label>
                   <Input
                     placeholder="Enter DD number"
                     value={formData.ddNumber}
                     onChange={(e) => setFormData({ ...formData, ddNumber: e.target.value })}
+                    className="mt-1"
                   />
                 </div>
 
-                <div>
-                  <Label>Bank Name</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Bank Name</Label>
                   <Input
                     placeholder="Enter bank name"
                     value={formData.bankName}
                     onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                    className="mt-1"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Amount Paid</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Amount Paid</Label>
                   <Input
                     type="number"
                     placeholder="Enter amount"
                     value={formData.amountPaid}
                     onChange={(e) => setFormData({ ...formData, amountPaid: e.target.value })}
+                    className="mt-1"
                   />
                 </div>
 
-                <div>
-                  <Label>Payment Status</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Payment Status</Label>
                   <Select
                     value={formData.paymentStatus}
                     onValueChange={(value) => setFormData({ ...formData, paymentStatus: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -852,22 +928,24 @@ export default function AdminPaymentsPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Paid Date</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium block">Paid Date</Label>
                 <Input
                   type="date"
                   value={formData.paidDate}
                   onChange={(e) => setFormData({ ...formData, paidDate: e.target.value })}
+                  className="mt-1"
                 />
               </div>
 
-              <div>
-                <Label>Notes</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium block">Notes</Label>
                 <Textarea
                   placeholder="Add any additional notes..."
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
+                  className="mt-1"
                 />
               </div>
             </div>

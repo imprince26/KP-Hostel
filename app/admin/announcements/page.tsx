@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,21 @@ export default function AnnouncementsPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "public" | "private">("all");
   const [audienceFilter, setAudienceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "pinned">("newest");
+
+  const activeAnnouncementFiltersCount = useMemo(() => {
+    let count = 0;
+    if (statusFilter !== "all") count++;
+    if (audienceFilter !== "all") count++;
+    if (sortBy !== "newest") count++;
+    return count;
+  }, [statusFilter, audienceFilter, sortBy]);
+
+  const handleResetAnnouncementFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setAudienceFilter("all");
+    setSortBy("newest");
+  };
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -476,8 +492,75 @@ export default function AnnouncementsPage() {
         </Dialog>
       </div>
 
-      {/* Filters and Search */}
-      <Card className="p-4 sm:p-6 border border-border/70 shadow-sm">
+      {/* Mobile Filters View (< md) */}
+      <div className="md:hidden flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search announcements..."
+            className="pl-10 h-10 w-full bg-card text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <MobileFilterDrawer
+          title="Filter Announcements"
+          description="Filter by publication status, audience group, or sorting"
+          activeCount={activeAnnouncementFiltersCount}
+          onReset={handleResetAnnouncementFilters}
+        >
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Publication Status</Label>
+              <Select value={statusFilter} onValueChange={(value: "all" | "public" | "private") => setStatusFilter(value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="public">Public Only</SelectItem>
+                  <SelectItem value="private">Private Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Target Audience</Label>
+              <Select value={audienceFilter} onValueChange={setAudienceFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Audience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Audience</SelectItem>
+                  <SelectItem value="male">Male Students</SelectItem>
+                  <SelectItem value="female">Female Students</SelectItem>
+                  <SelectItem value="block_A">Block A</SelectItem>
+                  <SelectItem value="block_B">Block B</SelectItem>
+                  <SelectItem value="block_C">Block C</SelectItem>
+                  <SelectItem value="block_D">Block D</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Sort Order</Label>
+              <Select value={sortBy} onValueChange={(value: "newest" | "oldest" | "pinned") => setSortBy(value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="pinned">Pinned First</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </MobileFilterDrawer>
+      </div>
+
+      {/* Desktop Filters and Search (>= md) */}
+      <Card className="hidden md:block p-4 sm:p-6 border border-border/70 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Search */}
           <div className="sm:col-span-2 lg:col-span-1 relative">

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Search } from "lucide-react";
+import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
 import {
   MdDescription,
   MdFilterList,
@@ -44,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, formatIndianDate } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Application {
@@ -212,6 +213,25 @@ export default function AdminApplications() {
     setFilteredApps(filtered);
     setCurrentPage(1); // Reset to first page when filters change
   }, [filterStatus, filterBlock, filterGender, filterCourse, searchQuery, sortBy, applications]);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filterStatus !== "all") count++;
+    if (filterBlock !== "all") count++;
+    if (filterGender !== "all") count++;
+    if (filterCourse !== "all") count++;
+    if (sortBy !== "newest") count++;
+    return count;
+  }, [filterStatus, filterBlock, filterGender, filterCourse, sortBy]);
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setFilterStatus("all");
+    setFilterBlock("all");
+    setFilterGender("all");
+    setFilterCourse("all");
+    setSortBy("newest");
+  };
 
   const fetchData = async () => {
     try {
@@ -392,10 +412,97 @@ export default function AdminApplications() {
           <p className="text-muted-foreground">Review and manage hostel admission applications</p>
         </div>
 
-        {/* Filters and Search */}
-        <Card className="mb-6 border-0 shadow-sm bg-card">
+        {/* Mobile Filters View (< md) */}
+        <div className="md:hidden flex items-center gap-2 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              id="search-mobile"
+              placeholder="Search applications..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-10 bg-card text-sm"
+            />
+          </div>
+          <MobileFilterDrawer
+            title="Filter Applications"
+            description="Filter applications by status, block, gender, or sorting"
+            activeCount={activeFiltersCount}
+            onReset={handleResetFilters}
+          >
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses ({applications.length})</SelectItem>
+                    <SelectItem value="submitted">New ({applications.filter(a => a.status === "submitted").length})</SelectItem>
+                    <SelectItem value="under_review">Under Review ({applications.filter(a => a.status === "under_review").length})</SelectItem>
+                    <SelectItem value="approved">Approved ({applications.filter(a => a.status === "approved").length})</SelectItem>
+                    <SelectItem value="rejected">Rejected ({applications.filter(a => a.status === "rejected").length})</SelectItem>
+                    <SelectItem value="active">Active ({applications.filter(a => a.status === "active").length})</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Block Assignment</Label>
+                <Select value={filterBlock} onValueChange={setFilterBlock}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Blocks" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Blocks</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {blocks.map(block => (
+                      <SelectItem key={block.id} value={block.name}>
+                        Block {block.name} ({applications.filter(a => a.assignedBlock === block.name).length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Gender</Label>
+                <Select value={filterGender} onValueChange={setFilterGender}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Genders" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Genders</SelectItem>
+                    <SelectItem value="male">Male ({applications.filter(a => a.gender === "male").length})</SelectItem>
+                    <SelectItem value="female">Female ({applications.filter(a => a.gender === "female").length})</SelectItem>
+                    <SelectItem value="other">Other ({applications.filter(a => a.gender === "other").length})</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Sort By</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="name">Name (A-Z)</SelectItem>
+                    <SelectItem value="applicationNumber">Application #</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </MobileFilterDrawer>
+        </div>
+
+        {/* Desktop Filters and Search (>= md) */}
+        <Card className="hidden md:block mb-6 border-0 shadow-sm bg-card">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-lg font-display">
               <MdFilterList className="w-5 h-5 text-primary" />
               Filter & Search
             </CardTitle>
@@ -410,14 +517,14 @@ export default function AdminApplications() {
                   placeholder="Search by application #, name, email, phone, college, course, guardian..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="max-w-lg"
+                  className="max-w-lg mt-1.5"
                 />
               </div>
 
               {/* Filters Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Status Filter */}
-                <div>
+                <div className="space-y-1.5">
                   <Label>Status</Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger>
@@ -435,7 +542,7 @@ export default function AdminApplications() {
                 </div>
 
                 {/* Block Filter */}
-                <div>
+                <div className="space-y-1.5">
                   <Label>Block Assignment</Label>
                   <Select value={filterBlock} onValueChange={setFilterBlock}>
                     <SelectTrigger>
@@ -454,7 +561,7 @@ export default function AdminApplications() {
                 </div>
 
                 {/* Gender Filter */}
-                <div>
+                <div className="space-y-1.5">
                   <Label>Gender</Label>
                   <Select value={filterGender} onValueChange={setFilterGender}>
                     <SelectTrigger>
@@ -470,7 +577,7 @@ export default function AdminApplications() {
                 </div>
 
                 {/* Sort By */}
-                <div>
+                <div className="space-y-1.5">
                   <Label>Sort By</Label>
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger>
@@ -487,18 +594,12 @@ export default function AdminApplications() {
               </div>
 
               {/* Clear Filters */}
-              {(filterStatus !== "all" || filterBlock !== "all" || filterGender !== "all" || filterCourse !== "all" || searchQuery) && (
+              {activeFiltersCount > 0 && (
                 <div className="flex justify-end">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setFilterStatus("all");
-                      setFilterBlock("all");
-                      setFilterGender("all");
-                      setFilterCourse("all");
-                      setSearchQuery("");
-                      setSortBy("newest");
-                    }}
+                    size="sm"
+                    onClick={handleResetFilters}
                   >
                     Clear All Filters
                   </Button>
@@ -571,12 +672,12 @@ export default function AdminApplications() {
                           </td>
                           <td className="py-3 px-4">{getStatusBadge(app.status)}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">
-                            {new Date(app.createdAt).toLocaleDateString()}
+                            {formatIndianDate(app.createdAt)}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex justify-end gap-2">
                               <Button
-                                onClick={() => setSelectedApp(app)}
+                                onClick={() => router.push(`/admin/applications/${app.id}`)}
                                 size="sm"
                                 variant="outline"
                               >
@@ -680,8 +781,18 @@ export default function AdminApplications() {
               <MdDescription className="text-primary" />
               Application Details
             </DialogTitle>
-            <DialogDescription>
-              {selectedApp?.applicationNumber}
+            <DialogDescription className="flex items-center justify-between">
+              <span>{selectedApp?.applicationNumber}</span>
+              {selectedApp && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 h-auto text-primary"
+                  onClick={() => router.push(`/admin/applications/${selectedApp.id}`)}
+                >
+                  Open Full Page
+                </Button>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -715,7 +826,7 @@ export default function AdminApplications() {
                   {(selectedApp.status === "approved" || selectedApp.status === "admitted") && (
                     <Button
                       onClick={() => handleActivateAdmission(selectedApp)}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-primary hover:bg-primary/90"
                     >
                       Activate Admission
                     </Button>
@@ -744,7 +855,7 @@ export default function AdminApplications() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Date of Birth</p>
-                    <p className="font-medium">{new Date(selectedApp.dateOfBirth).toLocaleDateString()}</p>
+                    <p className="font-medium">{formatIndianDate(selectedApp.dateOfBirth, "numeric")}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Gender</p>
@@ -855,13 +966,13 @@ export default function AdminApplications() {
                         <div>
                           <p className="text-sm text-primary/70">Start Date</p>
                           <p className="font-medium text-primary">
-                            {new Date(selectedApp.admissionStartDate).toLocaleDateString()}
+                            {formatIndianDate(selectedApp.admissionStartDate, "numeric")}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-primary/70">End Date</p>
                           <p className="font-medium text-primary">
-                            {new Date(selectedApp.admissionEndDate!).toLocaleDateString()}
+                            {formatIndianDate(selectedApp.admissionEndDate, "numeric")}
                           </p>
                         </div>
                       </>
@@ -904,14 +1015,14 @@ export default function AdminApplications() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 py-1">
             {reviewAction === "approve" && (
               <>
                 {/* Block Selection */}
-                <div>
-                  <Label>Hostel Block *</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium block">Hostel Block *</Label>
                   <Select value={selectedBlock} onValueChange={setSelectedBlock}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select block" />
                     </SelectTrigger>
                     <SelectContent>
@@ -925,43 +1036,46 @@ export default function AdminApplications() {
                 </div>
 
                 {/* Room Number */}
-                <div>
-                  <Label htmlFor="roomNumber">Room Number *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="roomNumber" className="text-sm font-medium block">Room Number *</Label>
                   <Input
                     id="roomNumber"
                     value={roomNumber}
                     onChange={(e) => setRoomNumber(e.target.value)}
                     placeholder="e.g., 101"
+                    className="mt-1"
                   />
                 </div>
 
                 {/* Admission Dates */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="admissionStart">Admission Start Date *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admissionStart" className="text-sm font-medium block">Admission Start Date *</Label>
                     <Input
                       id="admissionStart"
                       type="date"
                       value={admissionStart?.toISOString().split('T')[0] || ''}
                       onChange={(e) => setAdmissionStart(e.target.value ? new Date(e.target.value) : undefined)}
+                      className="mt-1"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="admissionEnd">Admission End Date *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="admissionEnd" className="text-sm font-medium block">Admission End Date *</Label>
                     <Input
                       id="admissionEnd"
                       type="date"
                       value={admissionEnd?.toISOString().split('T')[0] || ''}
                       onChange={(e) => setAdmissionEnd(e.target.value ? new Date(e.target.value) : undefined)}
+                      className="mt-1"
                     />
                   </div>
                 </div>
               </>
             )}
 
-            {/* Comments */}
-            <div>
-              <Label htmlFor="comments">
+            {/* Comments / Rejection Reason */}
+            <div className="space-y-2 pt-1.5">
+              <Label htmlFor="comments" className="text-sm font-medium text-foreground block">
                 {reviewAction === "approve" ? "Approval Message" : "Rejection Reason"} *
               </Label>
               <Textarea
@@ -971,9 +1085,10 @@ export default function AdminApplications() {
                 placeholder={
                   reviewAction === "approve"
                     ? "Congratulations! Your application has been approved..."
-                    : "We regret to inform you that..."
+                    : "Please state the reason for rejecting this application (e.g., documentation incomplete, capacity full, etc.)..."
                 }
                 rows={4}
+                className="mt-1.5 min-h-[110px]"
               />
             </div>
           </div>
@@ -1101,7 +1216,7 @@ export default function AdminApplications() {
             <Button
               onClick={confirmActivateAdmission}
               disabled={submitting}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-primary hover:bg-primary/90"
             >
               {submitting ? "Activating..." : "Activate Admission"}
             </Button>

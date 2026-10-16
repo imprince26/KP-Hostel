@@ -10,6 +10,54 @@ import {
   applicationRejectedTemplate,
 } from "@/lib/email-templates";
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as { role?: string }).role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const [app] = await db
+      .select()
+      .from(admissionApplications)
+      .where(eq(admissionApplications.id, id))
+      .limit(1);
+
+    if (!app) {
+      return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    }
+
+    let user = null;
+    if (app.userId) {
+      const [u] = await db.select().from(users).where(eq(users.id, app.userId)).limit(1);
+      user = u || null;
+    }
+
+    let reviewer = null;
+    if (app.reviewedBy) {
+      const [r] = await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(eq(users.id, app.reviewedBy))
+        .limit(1);
+      reviewer = r || null;
+    }
+
+    return NextResponse.json({ application: app, user, reviewer });
+  } catch (error) {
+    console.error("Error fetching single application:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch application" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

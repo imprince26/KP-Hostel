@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Info, ExternalLink, X, ShieldAlert } from "lucide-react";
 import {
   Dialog,
@@ -12,11 +12,35 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+const DISCLAIMER_STORAGE_KEY = "kp_disclaimer_dismissed_v1";
+
 export function ProjectDisclaimerBanner() {
   const [showModal, setShowModal] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
-  if (isDismissed) return null;
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const dismissed = localStorage.getItem(DISCLAIMER_STORAGE_KEY);
+      if (dismissed !== "true") {
+        setIsDismissed(false);
+      }
+    } catch {
+      setIsDismissed(false);
+    }
+  }, []);
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    try {
+      localStorage.setItem(DISCLAIMER_STORAGE_KEY, "true");
+    } catch {
+      // Ignore storage errors in restricted browser contexts
+    }
+  };
+
+  if (!mounted || isDismissed) return null;
 
   return (
     <>
@@ -36,9 +60,9 @@ export function ProjectDisclaimerBanner() {
               Read Disclaimer
             </button>
             <button
-              onClick={() => setIsDismissed(true)}
+              onClick={handleDismiss}
               aria-label="Dismiss banner"
-              className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted-foreground/10 cursor-pointer"
+              className="text-muted-foreground hover:text-foreground p-0.5 rounded hover:bg-muted-foreground/10 cursor-pointer transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>

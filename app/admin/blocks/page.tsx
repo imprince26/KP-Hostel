@@ -270,12 +270,12 @@ export default function AdminBlocks() {
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Hostel Block Management</h1>
-            <p className="text-muted-foreground">Manage hostel blocks, capacity, and fees</p>
+            <h1 className="text-2xl sm:text-4xl font-bold font-display tracking-tight text-foreground mb-1 sm:mb-2">Hostel Block Management</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage hostel blocks, capacity, and fees</p>
           </div>
-          <Button onClick={handleAddBlock}>
+          <Button onClick={handleAddBlock} className="w-full sm:w-auto shrink-0 shadow-sm cursor-pointer">
             <FiPlus className="mr-2" />
             Add New Block
           </Button>
@@ -454,10 +454,10 @@ export default function AdminBlocks() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             {/* Block Name */}
-            <div>
-              <Label htmlFor="blockName">Block Name *</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="blockName" className="text-sm font-medium">Block Name *</Label>
               <Input
                 id="blockName"
                 value={name}
@@ -468,8 +468,8 @@ export default function AdminBlocks() {
             </div>
 
             {/* Capacity */}
-            <div>
-              <Label htmlFor="capacity">Total Capacity (Number of Rooms) *</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="capacity" className="text-sm font-medium">Total Capacity (Number of Rooms) *</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -481,9 +481,9 @@ export default function AdminBlocks() {
             </div>
 
             {/* Fees */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="sem1Fee">Semester 1 Fee (₹) *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="sem1Fee" className="text-sm font-medium">Semester 1 Fee (₹) *</Label>
                 <Input
                   id="sem1Fee"
                   type="number"
@@ -494,8 +494,8 @@ export default function AdminBlocks() {
                   placeholder="e.g., 25000"
                 />
               </div>
-              <div>
-                <Label htmlFor="sem2Fee">Semester 2 Fee (₹) *</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="sem2Fee" className="text-sm font-medium">Semester 2 Fee (₹) *</Label>
                 <Input
                   id="sem2Fee"
                   type="number"
