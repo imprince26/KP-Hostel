@@ -32,11 +32,8 @@ export default function ResetPasswordPage() {
               className="rounded-lg border border-border/80 shadow-2xs group-hover:scale-105 transition-transform"
             />
             <div className="text-left">
-              <span className="block text-xs sm:text-sm font-bold font-display tracking-tight text-foreground leading-tight">
-                KP Vidhyarthi Bhavan
-              </span>
-              <span className="hidden sm:block text-[10px] text-muted-foreground font-mono leading-none mt-0.5">
-                Est. 1930 • Ahmedabad
+              <span className="block text-xs sm:text-sm font-bold font-display text-foreground leading-tight">
+                K. P. Vidhyarthi Bhavan
               </span>
             </div>
           </Link>
@@ -72,9 +69,12 @@ export default function ResetPasswordPage() {
           </Suspense>
         </div>
 
-        {/* Minimal Footer */}
+        {/* Footer */}
         <footer className="mt-4 sm:mt-5 text-center text-xs text-muted-foreground relative z-10 space-y-1">
-          <p>© {new Date().getFullYear()} KP Vidhyarthi Bhavan. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} K. P. Vidhyarthi Bhavan. All rights
+            reserved.
+          </p>
         </footer>
       </main>
     </div>

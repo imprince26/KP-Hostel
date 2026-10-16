@@ -77,15 +77,10 @@ export function HomeClient({ locale }: HomeClientProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
-        {/* Abstract Background Elements */}
-        <div className="absolute inset-0 w-full h-full bg-background pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_75%_55%_at_50%_-10%,hsl(var(--primary)/0.13),transparent_75%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--foreground)/0.04)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground)/0.04)_1px,transparent_1px)] bg-size-[32px_32px] mask-[radial-gradient(ellipse_65%_55%_at_50%_0%,#000_70%,transparent_100%)]" />
-        </div>
+      <section className="relative sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
 
         {/* Content Container */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-40">
           <div className="max-w-5xl mx-auto text-center">
             {/* Badge */}
             <motion.div
@@ -119,7 +114,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4 font-normal"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 sm:mb-12 max-w-3xl mx-auto px-4 font-normal"
             >
               {t("heroDescription")}
             </motion.p>

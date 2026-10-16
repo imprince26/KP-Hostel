@@ -56,8 +56,8 @@ export default function SignOutPage() {
             height={36}
             className="rounded-lg border border-border/80 shadow-2xs group-hover:scale-105 transition-transform"
           />
-          <span className="text-sm font-bold font-display tracking-tight text-foreground">
-            KP Vidhyarthi Bhavan
+          <span className="text-sm font-bold font-display text-foreground">
+            K. P. Vidhyarthi Bhavan
           </span>
         </Link>
       </div>
@@ -105,9 +105,7 @@ export default function SignOutPage() {
                   </Button>
                 </Link>
                 <Link href="/" className="w-full">
-                  <Button
-                    className="w-full h-10 text-xs font-semibold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
+                  <Button className="w-full h-10 text-xs font-semibold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground">
                     <Home className="h-3.5 w-3.5 mr-1.5" />
                     Go to Home
                   </Button>
@@ -122,9 +120,12 @@ export default function SignOutPage() {
         </div>
       </div>
 
-      {/* Minimal Footer */}
+      {/* Footer */}
       <footer className="text-center text-xs text-muted-foreground pb-2">
-        <p>© {new Date().getFullYear()} KP Vidhyarthi Bhavan. All rights reserved.</p>
+        <p>
+          © {new Date().getFullYear()} K. P. Vidhyarthi Bhavan. All rights
+          reserved.
+        </p>
       </footer>
     </div>
   );

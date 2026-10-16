@@ -129,13 +129,13 @@ export function Header() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm md:text-base xl:text-xl leading-none tracking-tight text-foreground">
-                    KP Vidhyarthi Bhavan
+                  <span className="font-bold text-sm md:text-base xl:text-xl leading-none text-foreground">
+                    K. P. Vidhyarthi Bhavan
                   </span>
                 </div>
-                <span className="text-xs font-medium tracking-wider uppercase text-primary">
-                  Est. 1930 &bull; Unofficial Project
-                </span>
+                {/* <span className="text-xs font-medium tracking-wider uppercase text-primary">
+                  Est. 1930
+                </span> */}
               </div>
             </Link>
 

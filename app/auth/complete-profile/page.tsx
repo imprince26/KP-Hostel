@@ -103,11 +103,8 @@ export default function CompleteProfilePage() {
               className="rounded-lg border border-border/80 shadow-2xs group-hover:scale-105 transition-transform"
             />
             <div className="text-left">
-              <span className="block text-xs sm:text-sm font-bold font-display tracking-tight text-foreground leading-tight">
-                KP Vidhyarthi Bhavan
-              </span>
-              <span className="hidden sm:block text-[10px] text-muted-foreground font-mono leading-none mt-0.5">
-                Est. 1930 • Ahmedabad
+              <span className="block text-xs sm:text-sm font-bold font-display text-foreground leading-tight">
+                K. P. Vidhyarthi Bhavan
               </span>
             </div>
           </Link>
@@ -118,10 +115,6 @@ export default function CompleteProfilePage() {
 
       {/* Main Single-Column Form Area */}
       <main className="flex-1 flex flex-col justify-center items-center px-4 py-4 sm:py-6 relative overflow-hidden">
-        {/* Subtle decorative background glow & grid */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-primary/4 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(hsl(var(--foreground)/0.03)_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none" />
-
         <div className="w-full max-w-110 relative z-10 mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -138,7 +131,8 @@ export default function CompleteProfilePage() {
                 Complete Profile
               </h1>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Please provide your contact phone number to finalize your hostel resident profile.
+                Please provide your contact phone number to finalize your hostel
+                resident profile.
               </p>
             </div>
 
@@ -152,7 +146,10 @@ export default function CompleteProfilePage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="phone" className="block text-xs font-medium text-foreground">
+                <label
+                  htmlFor="phone"
+                  className="block text-xs font-medium text-foreground"
+                >
                   Mobile Number
                 </label>
                 <div className="relative">
@@ -195,9 +192,12 @@ export default function CompleteProfilePage() {
           </motion.div>
         </div>
 
-        {/* Minimal Footer */}
+        {/* Footer */}
         <footer className="mt-4 sm:mt-5 text-center text-xs text-muted-foreground relative z-10 space-y-1">
-          <p>© {new Date().getFullYear()} KP Vidhyarthi Bhavan. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} K. P. Vidhyarthi Bhavan. All rights
+            reserved.
+          </p>
         </footer>
       </main>
     </div>

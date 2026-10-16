@@ -61,11 +61,11 @@ function emailWrapper(content: string, title: string): string {
       <td align="center" style="padding: 28px 12px;">
         <!-- Main Container -->
         <table role="presentation" class="email-container" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #FFFFFF; border-radius: 8px; border: 1px solid #E5E7EB; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <!-- Header: Only K.P Bhavan -->
+          <!-- Header: Only  K. P. Vidhyarthi Bhavan -->
           <tr>
             <td class="email-header" style="background-color: ${PRIMARY_COLOR}; padding: 24px 20px; text-align: center; border-bottom: 3px solid ${ACCENT_COLOR};">
               <h1 class="main-title" style="margin: 0; color: #FFFFFF; font-size: 22px; font-weight: 700; letter-spacing: -0.3px;">
-                K.P Bhavan
+                K. P. Vidhyarthi Bhavan
               </h1>
             </td>
           </tr>

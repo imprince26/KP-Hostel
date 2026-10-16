@@ -12,7 +12,6 @@ import {
   FaPhone,
   FaEnvelope,
 } from "react-icons/fa";
-import { Info } from "lucide-react";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -38,13 +37,13 @@ export function Footer() {
   ];
 
   return (
-    <footer className="relative bg-background border-t border-border overflow-hidden">
+    <footer className="relative max-w-7xl mx-auto bg-background border-t border-border overflow-hidden">
       <div className="container px-4 py-16 md:py-20 relative z-10">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="bg-primary p-2 rounded-xl shadow-xs">
+              <div className="bg-secondary p-2 rounded-xl shadow-xs">
                 <Image
                   src="/logo.jpg"
                   alt="KP Vidhyarthi Bhavan"
@@ -55,10 +54,10 @@ export function Footer() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-foreground leading-none">
-                  KP Vidhyarthi Bhavan
+                  K. P. Vidhyarthi Bhavan
                 </span>
                 <span className="text-xs text-primary uppercase tracking-wider mt-1 font-semibold">
-                  Est. 1932 &bull; Student Project
+                  Est. 1932
                 </span>
               </div>
             </div>
@@ -146,7 +145,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Modern Background Typographic Watermark (similar to Grok on x.ai) */}
       <div
         className="w-full overflow-hidden select-none pointer-events-none border-t border-border/40 bg-muted/20 py-4 sm:py-6"
         aria-hidden="true"
@@ -163,16 +161,14 @@ export function Footer() {
         <div className="container px-4 py-5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>
-              &copy; {new Date().getFullYear()} KP Hostel Project. All rights
-              reserved.
+              &copy; {new Date().getFullYear()} K. P. Vidhyarthi Bhavan. All
+              rights reserved.
             </p>
             <div className="flex items-center gap-4">
-              <span>Independent Student Portfolio</span>
-              <span>&bull;</span>
               <span>
                 Engineered by{" "}
                 <Link
-                  href="https://www.princepatel.me"
+                  href="https://prince-patel.vercel.app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary font-semibold hover:underline"

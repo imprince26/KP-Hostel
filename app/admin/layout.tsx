@@ -119,7 +119,11 @@ export default function AdminLayout({
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileMenuOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
         </Button>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center overflow-hidden shrink-0">
@@ -130,13 +134,15 @@ export default function AdminLayout({
               height={32}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextElementSibling?.classList.remove("hidden");
               }}
             />
-            <span className="hidden text-primary-foreground font-bold text-sm">KP</span>
+            <span className="hidden text-primary-foreground font-bold text-sm">
+              KP
+            </span>
           </div>
-          <h1 className="text-lg font-semibold text-foreground">KP Hostel</h1>
+          <h1 className="text-lg font-semibold text-foreground">KP Bhavan</h1>
         </div>
         <NotificationDialog />
       </div>
@@ -146,7 +152,9 @@ export default function AdminLayout({
         className={cn(
           "fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out border-r border-border bg-card",
           sidebarOpen ? "w-64" : "w-20",
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex flex-col h-full">
@@ -161,19 +169,19 @@ export default function AdminLayout({
                   height={40}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden",
+                    );
                   }}
                 />
               </div>
               {sidebarOpen && (
                 <div className="flex-1 min-w-0">
                   <h2 className="text-sm font-bold text-primary leading-tight">
-                    KP Vidhyarthi Bhavan
+                    K. P. Vidhyarthi Bhavan
                   </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Admin Portal
-                  </p>
+                  <p className="text-xs text-muted-foreground">Admin Portal</p>
                 </div>
               )}
             </div>
@@ -200,7 +208,7 @@ export default function AdminLayout({
                 <ChevronLeft
                   className={cn(
                     "h-5 w-5 transition-transform duration-300",
-                    !sidebarOpen && "rotate-180"
+                    !sidebarOpen && "rotate-180",
                   )}
                 />
               </Button>
@@ -222,7 +230,10 @@ export default function AdminLayout({
                     <p className="text-sm font-medium text-foreground truncate">
                       {session?.user?.name}
                     </p>
-                    <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-primary/10 text-primary border-primary/20"
+                    >
                       Admin
                     </Badge>
                   </div>
@@ -237,7 +248,8 @@ export default function AdminLayout({
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-2">
             {adminNavigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.name}
@@ -247,7 +259,7 @@ export default function AdminLayout({
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -275,7 +287,7 @@ export default function AdminLayout({
               variant="ghost"
               className={cn(
                 "w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10",
-                !sidebarOpen && "justify-center px-0"
+                !sidebarOpen && "justify-center px-0",
               )}
             >
               <Link href="/auth/signout">
@@ -299,7 +311,7 @@ export default function AdminLayout({
       <main
         className={cn(
           "transition-all duration-300 ease-in-out pt-16 lg:pt-0",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-20"
+          sidebarOpen ? "lg:ml-64" : "lg:ml-20",
         )}
       >
         <div className="min-h-screen">{children}</div>
