@@ -13,6 +13,14 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 
+const legalLinks = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Use" },
+  { href: "/cookies", label: "Cookie Policy" },
+  { href: "/disclaimer", label: "Disclaimer" },
+  { href: "/credits", label: "Image & Content Credits" },
+] as const;
+
 export function Footer() {
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
@@ -38,7 +46,7 @@ export function Footer() {
 
   return (
     <footer className="relative max-w-7xl mx-auto bg-background border-t border-border overflow-hidden">
-      <div className="container px-4 py-16 md:py-20 relative z-10">
+      <div className="container mx-auto px-4 py-16 md:py-20 relative z-10">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Section */}
           <div className="space-y-6">
@@ -158,13 +166,37 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-border bg-muted/60">
-        <div className="container px-4 py-5">
+        <div className="container mx-auto px-4 py-5">
+          <nav
+            aria-label="Legal and credits"
+            className="mb-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs"
+          >
+            {legalLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>
               &copy; {new Date().getFullYear()} K. P. Vidhyarthi Bhavan. All
               rights reserved.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-x-4 gap-y-2 text-center sm:text-right">
+              <span>
+                Photographs &copy;{" "}
+                <Link
+                  href="/credits"
+                  className="text-primary font-semibold hover:underline"
+                >
+                  K. P. Vidhyarthi Bhavan, Ahmedabad
+                </Link>
+              </span>
               <span>
                 Engineered by{" "}
                 <Link

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,6 +116,22 @@ export default function GalleryClient() {
               ))}
             </AnimatePresence>
           </motion.div>
+
+          {/* Photo credit */}
+          <p className="mt-10 md:mt-12 text-center text-xs text-muted-foreground">
+            All photographs are the property of{" "}
+            <span className="font-semibold text-foreground">
+              K. P. Vidhyarthi Bhavan, Ahmedabad
+            </span>
+            . They are reproduced here with acknowledgement for demonstration purposes only.{" "}
+            <Link
+              href="/credits"
+              className="text-primary font-semibold hover:underline"
+            >
+              View full credits
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
