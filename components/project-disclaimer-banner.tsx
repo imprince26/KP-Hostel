@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Info, ExternalLink, X, ShieldAlert } from "lucide-react";
+import { useCallback, useState, useSyncExternalStore } from "react";
+import { X, ShieldAlert } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,33 +14,50 @@ import { Button } from "@/components/ui/button";
 
 const DISCLAIMER_STORAGE_KEY = "kp_disclaimer_dismissed_v1";
 
-export function ProjectDisclaimerBanner() {
-  const [showModal, setShowModal] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(true);
-  const [mounted, setMounted] = useState(false);
+/**
+ * Reads the dismissal flag from localStorage.
+ *
+ * `useSyncExternalStore` is used instead of a mount effect so the banner can
+ * be hidden during server rendering without setting state inside an effect.
+ */
+function useDismissedFlag() {
+  const subscribe = useCallback((onStoreChange: () => void) => {
+    window.addEventListener("storage", onStoreChange);
+    return () => window.removeEventListener("storage", onStoreChange);
+  }, []);
 
-  useEffect(() => {
-    setMounted(true);
+  const getSnapshot = useCallback(() => {
     try {
-      const dismissed = localStorage.getItem(DISCLAIMER_STORAGE_KEY);
-      if (dismissed !== "true") {
-        setIsDismissed(false);
-      }
+      return window.localStorage.getItem(DISCLAIMER_STORAGE_KEY) === "true";
     } catch {
-      setIsDismissed(false);
+      return false;
     }
   }, []);
 
+  const getServerSnapshot = useCallback(() => false, []);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+export function ProjectDisclaimerBanner() {
+  const [showModal, setShowModal] = useState(false);
+  const storedDismissed = useDismissedFlag();
+  // `storage` events only fire in other tabs, so keep a local flag as well to
+  // hide the banner immediately in the tab where it was dismissed.
+  const [dismissedNow, setDismissedNow] = useState(false);
+  const dismissed = dismissedNow || storedDismissed;
+
   const handleDismiss = () => {
-    setIsDismissed(true);
     try {
-      localStorage.setItem(DISCLAIMER_STORAGE_KEY, "true");
+      window.localStorage.setItem(DISCLAIMER_STORAGE_KEY, "true");
     } catch {
       // Ignore storage errors in restricted browser contexts
     }
+    setDismissedNow(true);
+    setShowModal(false);
   };
 
-  if (!mounted || isDismissed) return null;
+  if (dismissed) return null;
 
   return (
     <>
@@ -85,7 +102,7 @@ export function ProjectDisclaimerBanner() {
                 This website is an independent student academic and portfolio project created by <strong>Prince Patel</strong> to demonstrate modern full-stack web engineering, admission workflows, and student management systems
               </p>
               <p className="bg-muted p-3 rounded-lg border border-border text-foreground font-medium text-xs leading-relaxed">
-                It is <strong>NOT</strong> the official website of Shree Kadva Patidar Vidhyarthi Bhavan (K.P Vidhyarthi Bhavan) in Ellisbridge, Ahmedabad, nor is it endorsed, authorized, or operated by the hostel administration.
+                It is <strong>NOT</strong> the official website of Shree Kadva Patidar Vidhyarthi Bhavan (K.P. Vidhyarthi Bhavan) in Ellisbridge, Ahmedabad, nor is it endorsed, authorized, or operated by the hostel administration.
               </p>
               <p>
                 All student applications, notifications, and room allocations performed on this portal are demonstration prototypes. For official inquiries regarding the real hostel, please visit their physical office premises located in Ellisbridge, Ahmedabad.

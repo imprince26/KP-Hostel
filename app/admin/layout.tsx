@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import NotificationDialog from "@/components/NotificationDialog";
+import { useRequireLegalConsent } from "@/hooks/use-consent-gate";
 import Image from "next/image";
 
 const adminNavigation = [
@@ -80,19 +81,18 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [hasVerifiedAdmin, setHasVerifiedAdmin] = useState(false);
+  const isAdmin = session?.user?.role === "admin";
+  const needsConsent = useRequireLegalConsent();
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user && "role" in session.user && session.user.role === "admin") {
-      setHasVerifiedAdmin(true);
-    } else if (status === "unauthenticated") {
+    if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user && "role" in session.user && session.user.role !== "admin") {
+    } else if (status === "authenticated" && !isAdmin) {
       router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  if (!hasVerifiedAdmin && status === "loading") {
+  if (status === "loading" || needsConsent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -100,7 +100,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!hasVerifiedAdmin && (!session || !session.user || !("role" in session.user) || session.user.role !== "admin")) {
+  if (!isAdmin) {
     return null;
   }
 

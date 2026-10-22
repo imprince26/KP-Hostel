@@ -9,15 +9,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaSearchPlus, FaTimes } from "react-icons/fa";
 
+type GalleryCategory =
+  | "All"
+  | "Exterior"
+  | "Rooms"
+  | "Mess"
+  | "Common Areas"
+  | "Facilities"
+  | "Events";
+
 export default function GalleryClient() {
   const t = useTranslations("gallery");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState<GalleryCategory>("All");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const categories = ["All", "Exterior", "Rooms", "Mess", "Common Areas", "Facilities"];
+  const categories: { id: GalleryCategory; label: string }[] = [
+    { id: "All", label: "All" },
+    { id: "Exterior", label: t("exterior") },
+    { id: "Rooms", label: t("rooms") },
+    { id: "Mess", label: t("mess") },
+    { id: "Common Areas", label: t("common") },
+    { id: "Facilities", label: t("facilities") },
+  ];
 
   // Using the actual images found in the public folder
-  const galleryImages = [
+  const galleryImages: { src: string; category: GalleryCategory; alt: string }[] = [
     { src: "/1.webp", category: "Exterior", alt: "Building View" },
     { src: "/gallery/Lobby.png", category: "Exterior", alt: "Hostel Entrance" },
     { src: "/intro/3.png", category: "Facilities", alt: "Student Facilities" },
@@ -72,12 +88,12 @@ export default function GalleryClient() {
           <div className="flex flex-wrap justify-center gap-2.5 mb-10 md:mb-12">
             {categories.map((category) => (
               <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category.id)}
                 className="rounded-full px-5 h-9 text-xs sm:text-sm font-medium"
               >
-                {category === "All" ? "All" : t(category.toLowerCase().split(' ')[0].toLowerCase() as any) || category}
+                {category.label}
               </Button>
             ))}
           </div>

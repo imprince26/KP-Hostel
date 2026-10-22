@@ -183,10 +183,12 @@ export default function AdmissionPage() {
 
       setApplicationNumber(result.applicationNumber);
       toast.success("Application submitted successfully!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission error:", error);
-      setSubmitError(error.message || "Failed to submit application");
-      toast.error(error.message);
+      const message =
+        error instanceof Error ? error.message : "Failed to submit application";
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -964,6 +966,9 @@ export default function AdmissionPage() {
 
                   {photoPreview && !isUploadingPhoto && (
                     <div className="flex items-center gap-6 p-6 bg-accent border-2 border-accent rounded-lg">
+                      {/* Local object URL preview: next/image cannot optimise a
+                          blob: URL, so a plain img is the correct choice here. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photoPreview}
                         alt="Preview"

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { motion } from "motion/react";
 import {
   FiUser, FiMail, FiPhone, FiMapPin, FiBook, FiHome, FiCalendar,
@@ -538,11 +539,13 @@ export default function ApplicationView() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-square rounded-lg overflow-hidden border-2 border-border">
-                    <img
+                  <div className="aspect-square rounded-lg overflow-hidden border-2 border-border relative">
+                    <Image
                       src={application.passportPhoto}
                       alt="Passport Photo"
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw"
+                      className="object-cover"
                     />
                   </div>
                 </CardContent>

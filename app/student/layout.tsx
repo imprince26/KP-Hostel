@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NotificationDialog from "@/components/NotificationDialog";
+import { useRequireLegalConsent } from "@/hooks/use-consent-gate";
 import Image from "next/image";
 
 const studentNavigation = [
@@ -54,19 +55,18 @@ export default function StudentLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [hasVerifiedStudent, setHasVerifiedStudent] = useState(false);
+  const isStudent = session?.user?.role === "student";
+  const needsConsent = useRequireLegalConsent();
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user && "role" in session.user && session.user.role === "student") {
-      setHasVerifiedStudent(true);
-    } else if (status === "unauthenticated") {
+    if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (status === "authenticated" && session?.user && "role" in session.user && session.user.role !== "student") {
+    } else if (status === "authenticated" && !isStudent) {
       router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, isStudent, router]);
 
-  if (!hasVerifiedStudent && status === "loading") {
+  if (status === "loading" || needsConsent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -74,7 +74,7 @@ export default function StudentLayout({
     );
   }
 
-  if (!hasVerifiedStudent && (!session || !session.user || !("role" in session.user) || session.user.role !== "student")) {
+  if (!isStudent) {
     return null;
   }
 
