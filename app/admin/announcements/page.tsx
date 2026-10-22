@@ -63,6 +63,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
 
 interface Announcement {
   announcement: {
@@ -86,13 +87,15 @@ interface Announcement {
 export default function AnnouncementsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const invalidateAdminQuery = useInvalidateAdminQuery();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "public" | "private">("all");
   const [audienceFilter, setAudienceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "pinned">("newest");
+
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
   const activeAnnouncementFiltersCount = useMemo(() => {
     let count = 0;
@@ -132,38 +135,23 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (session?.user.role !== "admin") {
+    } else if (status === "authenticated" && !isAdmin) {
       router.push("/");
-    } else {
-      fetchAnnouncements();
     }
-  }, [session, status, router]);
+  }, [status, isAdmin, router]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [searchTerm, statusFilter, audienceFilter, sortBy, announcements]); // eslint-disable-line react-hooks/exhaustive-deps
+  const announcementsQuery = useAdminQuery<{ announcements: Announcement[] }>(
+    adminQueryKeys.announcements,
+    "/api/admin/announcements",
+    isAdmin
+  );
 
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/announcements");
-      const data = await res.json();
+  const announcements = useMemo(
+    () => announcementsQuery.data?.announcements ?? [],
+    [announcementsQuery.data]
+  );
 
-      if (res.ok) {
-        setAnnouncements(data.announcements);
-        setFilteredAnnouncements(data.announcements);
-      } else {
-        toast.error(data.error || "Failed to fetch announcements");
-      }
-    } catch (error) {
-      console.error("Error fetching announcements:", error);
-      toast.error("Failed to fetch announcements");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilters = () => {
+  const filteredAnnouncements = useMemo(() => {
     let filtered = [...announcements];
 
     // Search filter
@@ -207,8 +195,10 @@ export default function AnnouncementsPage() {
       return dateB - dateA; // newest
     });
 
-    setFilteredAnnouncements(filtered);
-  };
+    return filtered;
+  }, [announcements, searchTerm, statusFilter, audienceFilter, sortBy]);
+
+  const loading = status === "loading" || (isAdmin && announcementsQuery.isPending);
 
   const handleAddAnnouncement = async () => {
     if (!formData.title || !formData.content) {
@@ -229,7 +219,7 @@ export default function AnnouncementsPage() {
         toast.success("Announcement created successfully");
         setAddDialogOpen(false);
         resetForm();
-        fetchAnnouncements();
+        invalidateAdminQuery(adminQueryKeys.announcements);
       } else {
         toast.error(data.error || "Failed to create announcement");
       }
@@ -265,7 +255,7 @@ export default function AnnouncementsPage() {
         toast.success("Announcement updated successfully");
         setEditDialogOpen(false);
         resetForm();
-        fetchAnnouncements();
+        invalidateAdminQuery(adminQueryKeys.announcements);
       } else {
         toast.error(data.error || "Failed to update announcement");
       }
@@ -293,7 +283,7 @@ export default function AnnouncementsPage() {
 
       if (res.ok) {
         toast.success("Announcement deleted successfully");
-        fetchAnnouncements();
+        invalidateAdminQuery(adminQueryKeys.announcements);
       } else {
         toast.error(data.error || "Failed to delete announcement");
       }

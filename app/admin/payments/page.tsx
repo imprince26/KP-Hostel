@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 interface Student {
   user: {
@@ -108,18 +110,12 @@ interface Stats {
 export default function AdminPaymentsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const invalidateAdminQuery = useInvalidateAdminQuery();
 
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [filteredPayments, setFilteredPayments] = useState<Payment[]>([]);
-  const [stats, setStats] = useState<Stats>({
-    total: 0,
-    paid: 0,
-    pending: 0,
-    partial: 0,
-    totalAmount: 0,
-  });
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSemester, setFilterSemester] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -134,7 +130,7 @@ export default function AdminPaymentsPage() {
 
   // Form states
   const [studentSearch, setStudentSearch] = useState("");
-  const [students, setStudents] = useState<Student[]>([]);
+  const debouncedStudentSearch = useDebouncedValue(studentSearch);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({
     semester: "",
@@ -154,42 +150,47 @@ export default function AdminPaymentsPage() {
       return;
     }
 
-    if (status === "authenticated") {
-      const userRole = (session?.user as { role?: string } | undefined)?.role;
-      if (userRole !== "admin") {
-        router.push("/student/dashboard");
-        return;
-      }
-      fetchPayments();
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/student/dashboard");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [searchTerm, filterSemester, filterStatus, filterYear, payments]);
+  const paymentsQuery = useAdminQuery<{
+    payments: Payment[];
+    stats?: Stats;
+  }>(adminQueryKeys.payments, "/api/admin/payments", isAdmin);
 
-  const fetchPayments = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/admin/payments");
-      const data = await res.json();
+  const studentsQuery = useAdminQuery<{ students: Student[] }>(
+    adminQueryKeys.paymentStudents(debouncedStudentSearch),
+    debouncedStudentSearch.length >= 2
+      ? `/api/admin/payments/students?search=${encodeURIComponent(debouncedStudentSearch)}`
+      : null,
+    isAdmin
+  );
 
-      if (res.ok) {
-        setPayments(data.payments);
-        setFilteredPayments(data.payments);
-        setStats(data.stats);
-      } else {
-        toast.error(data.error || "Failed to fetch payments");
-      }
-    } catch (error) {
-      console.error("Error fetching payments:", error);
-      toast.error("Failed to fetch payments");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const payments = useMemo(
+    () => paymentsQuery.data?.payments ?? [],
+    [paymentsQuery.data]
+  );
 
-  const applyFilters = () => {
+  const stats = useMemo<Stats>(
+    () =>
+      paymentsQuery.data?.stats ?? {
+        total: 0,
+        paid: 0,
+        pending: 0,
+        partial: 0,
+        totalAmount: 0,
+      },
+    [paymentsQuery.data]
+  );
+
+  const students = useMemo(
+    () => studentsQuery.data?.students ?? [],
+    [studentsQuery.data]
+  );
+
+  const filteredPayments = useMemo(() => {
     let filtered = [...payments];
 
     if (searchTerm) {
@@ -216,8 +217,10 @@ export default function AdminPaymentsPage() {
       filtered = filtered.filter((p) => p.payment.academicYear === filterYear);
     }
 
-    setFilteredPayments(filtered);
-  };
+    return filtered;
+  }, [payments, searchTerm, filterSemester, filterStatus, filterYear]);
+
+  const loading = status === "loading" || (isAdmin && paymentsQuery.isPending);
 
   const activePaymentFiltersCount = useMemo(() => {
     let count = 0;
@@ -234,30 +237,11 @@ export default function AdminPaymentsPage() {
     setFilterYear("");
   };
 
-  const searchStudents = async (search: string) => {
-    if (!search || search.length < 2) {
-      setStudents([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/admin/payments/students?search=${encodeURIComponent(search)}`);
-      const data = await res.json();
-
-      if (res.ok) {
-        setStudents(data.students || []);
-      }
-    } catch (error) {
-      console.error("Error searching students:", error);
-    }
-  };
-
   const handleAddPayment = () => {
     setDialogMode("add");
     setSelectedPayment(null);
     setSelectedStudent(null);
     setStudentSearch("");
-    setStudents([]);
     setFormData({
       semester: "",
       academicYear: new Date().getFullYear().toString(),
@@ -345,7 +329,7 @@ export default function AdminPaymentsPage() {
       if (res.ok) {
         toast.success(data.message || `Payment ${dialogMode === "add" ? "added" : "updated"} successfully`);
         setDialogOpen(false);
-        fetchPayments();
+        invalidateAdminQuery(adminQueryKeys.payments);
       } else {
         toast.error(data.error || `Failed to ${dialogMode} payment`);
       }
@@ -376,7 +360,7 @@ export default function AdminPaymentsPage() {
         toast.success("Payment record deleted successfully");
         setDeleteDialogOpen(false);
         setPaymentToDelete(null);
-        fetchPayments();
+        invalidateAdminQuery(adminQueryKeys.payments);
       } else {
         toast.error(data.error || "Failed to delete payment");
       }
@@ -798,7 +782,6 @@ export default function AdminPaymentsPage() {
                       value={studentSearch}
                       onChange={(e) => {
                         setStudentSearch(e.target.value);
-                        searchStudents(e.target.value);
                       }}
                     />
                     {selectedStudent ? (
@@ -824,7 +807,6 @@ export default function AdminPaymentsPage() {
                             onClick={() => {
                               setSelectedStudent(student);
                               setStudentSearch("");
-                              setStudents([]);
                             }}
                           >
                             <p className="font-medium">{student.user.name}</p>

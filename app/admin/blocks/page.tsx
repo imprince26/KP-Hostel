@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
 
 interface HostelBlock {
   id: string;
@@ -60,8 +61,11 @@ interface HostelBlock {
 export default function AdminBlocks() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [blocks, setBlocks] = useState<HostelBlock[]>([]);
-  const [loading, setLoading] = useState(true);
+  const invalidateAdminQuery = useInvalidateAdminQuery();
+
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -85,40 +89,23 @@ export default function AdminBlocks() {
       return;
     }
 
-    if (status === "authenticated") {
-      const userRole = (session?.user as { role?: string } | undefined)?.role;
-      if (userRole !== "admin") {
-        router.push("/student/dashboard");
-        return;
-      }
-      fetchBlocks();
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/student/dashboard");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  const fetchBlocks = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const res = await fetch("/api/admin/blocks");
+  const blocksQuery = useAdminQuery<{ blocks: HostelBlock[] }>(
+    adminQueryKeys.blocks,
+    "/api/admin/blocks",
+    isAdmin
+  );
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+  const blocks = useMemo(
+    () => blocksQuery.data?.blocks ?? [],
+    [blocksQuery.data]
+  );
 
-      const data = await res.json();
-
-      if (data.blocks) {
-        setBlocks(data.blocks);
-      } else if (data.error) {
-        setError(data.error);
-      }
-    } catch (error) {
-      console.error("Error fetching blocks:", error);
-      setError("Failed to load blocks. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = status === "loading" || (isAdmin && blocksQuery.isPending);
 
   const handleAddBlock = () => {
     setDialogMode("add");
@@ -186,7 +173,7 @@ export default function AdminBlocks() {
       if (res.ok) {
         setSuccess(`Block ${dialogMode === "add" ? "created" : "updated"} successfully!`);
         setDialogOpen(false);
-        fetchBlocks();
+        invalidateAdminQuery(adminQueryKeys.blocks);
         // Clear form
         setName("");
         setCapacity("");
@@ -223,7 +210,7 @@ export default function AdminBlocks() {
       const data = await res.json();
       if (res.ok) {
         setSuccess("Block deleted successfully!");
-        fetchBlocks();
+        invalidateAdminQuery(adminQueryKeys.blocks);
         setDeleteDialogOpen(false);
         setBlockToDelete(null);
       } else {

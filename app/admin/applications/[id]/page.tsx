@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,11 +105,11 @@ export default function ApplicationDetailPage() {
   const router = useRouter();
   const params = useParams();
   const applicationId = params?.id as string;
+  const invalidateAdminQuery = useInvalidateAdminQuery();
 
-  const [application, setApplication] = useState<ApplicationDetail | null>(null);
-  const [user, setUser] = useState<LinkedUser | null>(null);
-  const [reviewer, setReviewer] = useState<Reviewer | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
   // Review Dialog State
   const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
@@ -123,54 +124,41 @@ export default function ApplicationDetailPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (
-      status === "authenticated" &&
-      session?.user &&
-      "role" in session.user &&
-      session.user.role !== "admin"
-    ) {
+    } else if (status === "authenticated" && !isAdmin) {
       router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  const fetchApplication = async () => {
-    if (!applicationId) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/applications/${applicationId}`);
-      if (!res.ok) {
-        if (res.status === 404) {
-          toast.error("Application not found");
-          router.push("/admin/applications");
-          return;
-        }
-        throw new Error("Failed to load application");
-      }
-      const data = await res.json();
-      setApplication(data.application);
-      setUser(data.user);
-      setReviewer(data.reviewer);
+  const applicationQuery = useAdminQuery<{
+    application: ApplicationDetail;
+    user: LinkedUser;
+    reviewer: Reviewer | null;
+  }>(
+    adminQueryKeys.application(applicationId ?? ""),
+    applicationId ? `/api/admin/applications/${applicationId}` : null,
+    isAdmin
+  );
 
-      // Pre-fill allotment values if already set
-      if (data.application?.assignedBlock) {
-        setSelectedBlock(data.application.assignedBlock);
-      }
-      if (data.application?.roomNumber) {
-        setRoomNumber(data.application.roomNumber);
-      }
-    } catch (error) {
-      console.error("Error loading application:", error);
-      toast.error("Failed to fetch application details");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const application = applicationQuery.data?.application ?? null;
+  const user = applicationQuery.data?.user ?? null;
+  const reviewer = applicationQuery.data?.reviewer ?? null;
 
+  // Pre-fill allotment values once the application is loaded
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchApplication();
+    if (!application) return;
+    if (application.assignedBlock) setSelectedBlock(application.assignedBlock);
+    if (application.roomNumber) setRoomNumber(application.roomNumber);
+  }, [application]);
+
+  // Redirect when the application does not exist
+  useEffect(() => {
+    if (applicationQuery.isError && (applicationQuery.error as { status?: number })?.status === 404) {
+      toast.error("Application not found");
+      router.push("/admin/applications");
     }
-  }, [applicationId, status]);
+  }, [applicationQuery.isError, applicationQuery.error, router]);
+
+  const loading = status === "loading" || (isAdmin && applicationQuery.isPending);
 
   const handleReviewSubmit = async () => {
     if (!application) return;
@@ -219,7 +207,7 @@ export default function ApplicationDetailPage() {
       );
       setReviewAction(null);
       setAdminNotes("");
-      fetchApplication();
+      invalidateAdminQuery(adminQueryKeys.applications);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Review submission failed";
       toast.error(msg);

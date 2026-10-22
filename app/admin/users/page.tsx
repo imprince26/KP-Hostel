@@ -69,6 +69,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
 import { formatIndianDate } from "@/lib/utils";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
 
 interface UserRecord {
   id: string;
@@ -113,17 +114,11 @@ interface UserStats {
 export default function AdminUsersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const invalidateAdminQuery = useInvalidateAdminQuery();
 
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [stats, setStats] = useState<UserStats>({
-    total: 0,
-    students: 0,
-    admins: 0,
-    verified: 0,
-    residents: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -148,48 +143,35 @@ export default function AdminUsersPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (
-      status === "authenticated" &&
-      session?.user &&
-      "role" in session.user &&
-      session.user.role !== "admin"
-    ) {
+    } else if (status === "authenticated" && !isAdmin) {
       router.push("/");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  const fetchUsers = async () => {
-    try {
-      setRefreshing(true);
-      const res = await fetch("/api/admin/users");
-      if (!res.ok) {
-        throw new Error("Failed to load user directory");
-      }
-      const data = await res.json();
-      setUsers(data.users || []);
-      setStats(
-        data.stats || {
-          total: 0,
-          students: 0,
-          admins: 0,
-          verified: 0,
-          residents: 0,
-        }
-      );
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load user records");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const usersQuery = useAdminQuery<{
+    users: UserRecord[];
+    stats?: UserStats;
+  }>(adminQueryKeys.users, "/api/admin/users", isAdmin);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchUsers();
-    }
-  }, [status]);
+  const users = useMemo(
+    () => usersQuery.data?.users ?? [],
+    [usersQuery.data]
+  );
+
+  const stats = useMemo<UserStats>(
+    () =>
+      usersQuery.data?.stats ?? {
+        total: 0,
+        students: 0,
+        admins: 0,
+        verified: 0,
+        residents: 0,
+      },
+    [usersQuery.data]
+  );
+
+  const loading = status === "loading" || (isAdmin && usersQuery.isPending);
+  const refreshing = usersQuery.isFetching && !usersQuery.isPending;
 
   // Active filter count for mobile badge
   const activeFiltersCount = useMemo(() => {
@@ -289,7 +271,7 @@ export default function AdminUsersPage() {
       }
       toast.success(`Role updated to ${targetRole} for ${selectedUser.name || "user"}`);
       setRoleDialogOpen(false);
-      fetchUsers();
+      invalidateAdminQuery(adminQueryKeys.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Role update failed";
       toast.error(msg);
@@ -315,7 +297,7 @@ export default function AdminUsersPage() {
           ? `Marked ${user.name || "user"} as verified`
           : `Removed verification for ${user.name || "user"}`
       );
-      fetchUsers();
+      invalidateAdminQuery(adminQueryKeys.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Verification update failed";
       toast.error(msg);
@@ -336,7 +318,7 @@ export default function AdminUsersPage() {
       toast.success(data.message || "User account deleted successfully");
       setDeleteDialogOpen(false);
       setConfirmResidentDelete(false);
-      fetchUsers();
+      invalidateAdminQuery(adminQueryKeys.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Deletion failed";
       toast.error(msg);
@@ -383,7 +365,7 @@ export default function AdminUsersPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchUsers}
+              onClick={() => usersQuery.refetch()}
               disabled={refreshing}
               className="w-full sm:w-auto h-9 text-xs sm:text-sm gap-2"
             >

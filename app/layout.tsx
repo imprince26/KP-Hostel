@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans_Gujarati, Anek_Gujarati, Outfit, Plus_Jaka
 import { locales } from "@/i18n/request";
 import { ToastProvider } from "@/components/toast-provider";
 import { SessionProvider } from "@/components/session-provider";
+import { QueryProvider } from "@/components/query-provider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -177,7 +178,7 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <SessionProvider>
-          {children}
+          <QueryProvider>{children}</QueryProvider>
         </SessionProvider>
         <ToastProvider />
       </body>

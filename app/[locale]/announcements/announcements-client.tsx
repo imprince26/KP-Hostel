@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { motion } from "motion/react";
 import {
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { createExcerpt } from "@/lib/announcement-utils";
+import { apiGet } from "@/lib/api-client";
 
 interface Announcement {
   announcement: {
@@ -55,36 +57,26 @@ interface Announcement {
 
 export default function AnnouncementsClient() {
   const t = useTranslations("announcements");
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "pinned" | "important">("all");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
-  const fetchAnnouncements = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch("/api/announcements/public");
-      const data = await response.json();
+  const announcementsQuery = useQuery<{ announcements: Announcement[] }>({
+    queryKey: ["public", "announcements"],
+    queryFn: ({ signal }) =>
+      apiGet<{ announcements: Announcement[] }>("/api/announcements/public", signal),
+    staleTime: 5 * 60_000,
+  });
 
-      if (response.ok) {
-        setAnnouncements(data.announcements || []);
-      } else {
-        setError(data.error || "Failed to fetch announcements");
-      }
-    } catch (err) {
-      setError("Failed to load announcements. Please try again.");
-      console.error("Error fetching announcements:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const announcements = useMemo(
+    () => announcementsQuery.data?.announcements ?? [],
+    [announcementsQuery.data]
+  );
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
+  const loading = announcementsQuery.isPending;
+  const error = announcementsQuery.isError
+    ? (announcementsQuery.error as Error)?.message ?? "Failed to load announcements. Please try again."
+    : null;
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -214,7 +206,7 @@ export default function AnnouncementsClient() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={fetchAnnouncements}
+                  onClick={() => announcementsQuery.refetch()}
                   className="ml-4 h-8"
                 >
                   <RefreshCw className="h-3.5 w-3.5 mr-1.5" />

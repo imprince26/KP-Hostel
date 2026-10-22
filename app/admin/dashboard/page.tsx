@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Users, FileText, Building2, TrendingUp, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { adminQueryKeys, useAdminQuery } from "@/hooks/use-admin-data";
 
 interface DashboardStats {
   totalStudents: number;
@@ -29,9 +30,10 @@ interface RecentApplication {
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentApps, setRecentApps] = useState<RecentApplication[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -39,46 +41,40 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (status === "authenticated") {
-      if (session?.user && "role" in session.user && session.user.role !== "admin") {
-        router.push("/student/dashboard");
-        return;
-      }
-      fetchDashboardData();
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/student/dashboard");
     }
-  }, [status, session, router]);
+  }, [status, isAdmin, router]);
 
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch stats
-      const statsRes = await fetch("/api/admin/stats");
-      const statsData = await statsRes.json();
+  const statsQuery = useAdminQuery<{ stats: DashboardStats }>(
+    adminQueryKeys.stats,
+    "/api/admin/stats",
+    isAdmin
+  );
 
-      // Fetch recent applications
-      const appsRes = await fetch("/api/admin/applications?limit=5");
-      const appsData = await appsRes.json();
+  const recentAppsQuery = useAdminQuery<{
+    applications: { application: RecentApplication }[];
+  }>(
+    adminQueryKeys.recentApplications,
+    "/api/admin/applications?limit=5",
+    isAdmin
+  );
 
-      if (statsData.stats) {
-        setStats(statsData.stats);
-      }
+  const stats = statsQuery.data?.stats ?? null;
 
-      if (appsData.applications) {
-        // Transform the data from API format to flat structure
-        const transformedApps = appsData.applications.map((item: any) => ({
-          ...item.application,
-          userName: item.user?.name,
-          userEmail: item.user?.email,
-          userPhone: item.user?.phone,
-        }));
+  const recentApps = useMemo<RecentApplication[]>(
+    () =>
+      (recentAppsQuery.data?.applications ?? []).map((item) => ({
+        id: item.application.id,
+        applicationNumber: item.application.applicationNumber,
+        fullName: item.application.fullName,
+        status: item.application.status,
+        createdAt: item.application.createdAt,
+      })),
+    [recentAppsQuery.data]
+  );
 
-        setRecentApps(transformedApps.slice(0, 5));
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = status === "loading" || (isAdmin && statsQuery.isPending);
 
   const getStatusBadge = (status: string) => {
     const config = {

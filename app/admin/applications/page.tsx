@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { cn, formatIndianDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
 
 interface Application {
   id: string;
@@ -103,10 +104,7 @@ export default function AdminApplications() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [filteredApps, setFilteredApps] = useState<Application[]>([]);
-  const [blocks, setBlocks] = useState<HostelBlock[]>([]);
-  const [loading, setLoading] = useState(true);
+  const invalidateAdminQuery = useInvalidateAdminQuery();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterBlock, setFilterBlock] = useState<string>("all");
   const [filterGender, setFilterGender] = useState<string>("all");
@@ -116,11 +114,46 @@ export default function AdminApplications() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredApps.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentApps = filteredApps.slice(startIndex, endIndex);
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+      return;
+    }
+
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/student/dashboard");
+    }
+  }, [status, isAdmin, router]);
+
+  const applicationsQuery = useAdminQuery<{
+    applications: {
+      application: Record<string, unknown>;
+      user?: { name?: string | null; email?: string | null; phone?: string | null };
+    }[];
+  }>(adminQueryKeys.applicationList, "/api/admin/applications", isAdmin);
+
+  const blocksQuery = useAdminQuery<{ blocks: HostelBlock[] }>(
+    adminQueryKeys.blocks,
+    "/api/admin/blocks",
+    isAdmin
+  );
+
+  const applications = useMemo<Application[]>(
+    () =>
+      (applicationsQuery.data?.applications ?? []).map((item) => ({
+        ...(item.application as unknown as Application),
+        userName: item.user?.name ?? undefined,
+        userEmail: item.user?.email ?? undefined,
+        userPhone: item.user?.phone ?? undefined,
+      })),
+    [applicationsQuery.data]
+  );
+
+  const blocks = useMemo(() => blocksQuery.data?.blocks ?? [], [blocksQuery.data]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -135,30 +168,8 @@ export default function AdminApplications() {
   const [submitting, setSubmitting] = useState(false);
   const [showActivationDialog, setShowActivationDialog] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login");
-      return;
-    }
-
-    if (status === "authenticated") {
-      const userRole = (session?.user as { role?: string } | undefined)?.role;
-      if (userRole !== "admin") {
-        router.push("/student/dashboard");
-        return;
-      }
-      fetchData();
-
-      // Check if there's an app ID in URL params
-      const appId = searchParams.get("id");
-      if (appId) {
-        // Will open modal after data is fetched
-      }
-    }
-  }, [status, session, router, searchParams]);
-
-  useEffect(() => {
-    let filtered = applications;
+  const filteredApps = useMemo(() => {
+    let filtered = [...applications];
 
     // Filter by status
     if (filterStatus !== "all") {
@@ -210,9 +221,28 @@ export default function AdminApplications() {
       }
     });
 
-    setFilteredApps(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    return filtered;
   }, [filterStatus, filterBlock, filterGender, filterCourse, searchQuery, sortBy, applications]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredApps.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentApps = filteredApps.slice(startIndex, endIndex);
+
+  // Reset to first page whenever the filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, filterBlock, filterGender, filterCourse, searchQuery, sortBy]);
+
+  // Deep link support: /admin/applications?id=<applicationId>
+  useEffect(() => {
+    const appId = searchParams.get("id");
+    if (!appId || applications.length === 0) return;
+
+    const app = applications.find(a => a.id === appId);
+    if (app) setSelectedApp(app);
+  }, [searchParams, applications]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -231,54 +261,6 @@ export default function AdminApplications() {
     setFilterGender("all");
     setFilterCourse("all");
     setSortBy("newest");
-  };
-
-  const fetchData = async () => {
-    try {
-      // Fetch applications
-      const appsRes = await fetch("/api/admin/applications");
-      const appsData = await appsRes.json();
-
-      console.log("API Response:", appsData);
-      console.log("Applications:", appsData.applications);
-
-      if (appsData.applications && appsData.applications.length > 0) {
-        // Transform the data from API format to flat structure
-        const transformedApps = appsData.applications.map((item: any) => ({
-          ...item.application,
-          userName: item.user?.name,
-          userEmail: item.user?.email,
-          userPhone: item.user?.phone,
-        }));
-
-        console.log("Transformed Applications:", transformedApps);
-        setApplications(transformedApps);
-        setFilteredApps(transformedApps);
-
-        // Check if app ID in URL
-        const appId = searchParams.get("id");
-        if (appId) {
-          const app = transformedApps.find((a: Application) => a.id === appId);
-          if (app) setSelectedApp(app);
-        }
-      } else {
-        console.log("No applications found in response");
-        setApplications([]);
-        setFilteredApps([]);
-      }
-
-      // Fetch blocks for assignment
-      const blocksRes = await fetch("/api/admin/blocks");
-      const blocksData = await blocksRes.json();
-      if (blocksData.blocks) {
-        setBlocks(blocksData.blocks);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load applications");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -332,7 +314,7 @@ export default function AdminApplications() {
         toast.success(`Application ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`);
         setSelectedApp(null);
         setReviewAction(null);
-        fetchData(); // Refresh data
+        invalidateAdminQuery(adminQueryKeys.applications);
       } else {
         toast.error(data.error || "Failed to submit review");
       }
@@ -379,7 +361,7 @@ export default function AdminApplications() {
         toast.success("Admission activated successfully!");
         setSelectedApp(null);
         setShowActivationDialog(false);
-        fetchData();
+        invalidateAdminQuery(adminQueryKeys.applications);
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to activate admission");
@@ -392,7 +374,7 @@ export default function AdminApplications() {
     }
   };
 
-  if (loading) {
+  if (status === "loading" || (isAdmin && applicationsQuery.isPending)) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">

@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { adminQueryKeys, useAdminQuery } from "@/hooks/use-admin-data";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 interface Student {
   id: string;
@@ -43,18 +45,21 @@ export default function MessagingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const isAdmin =
+    status === "authenticated" &&
+    (session?.user as { role?: string } | undefined)?.role === "admin";
+
   // Message type
   const [messageType, setMessageType] = useState<"email" | "sms" | "both">("email");
 
   // Recipients
   const [recipientType, setRecipientType] = useState<"all" | "block" | "gender" | "custom">("all");
   const [recipientFilter, setRecipientFilter] = useState("");
-  const [recipientCount, setRecipientCount] = useState(0);
 
   // Custom recipients
   const [studentSearch, setStudentSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
+  const debouncedStudentSearch = useDebouncedValue(studentSearch);
 
   // Email content
   const [emailSubject, setEmailSubject] = useState("");
@@ -120,76 +125,41 @@ export default function MessagingPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-    } else if (session?.user && "role" in session.user && session.user.role !== "admin") {
+    } else if (status === "authenticated" && !isAdmin) {
       router.push("/");
     }
-  }, [session, status, router]);
+  }, [status, isAdmin, router]);
 
-  useEffect(() => {
-    if (recipientType !== "custom") {
-      fetchRecipientCount();
-    } else {
-      setRecipientCount(selectedStudents.length);
-    }
-  }, [recipientType, recipientFilter, selectedStudents]);
+  const recipientsQuery = useAdminQuery<{ count: number }>(
+    adminQueryKeys.messagingRecipients(recipientType, recipientFilter),
+    recipientType === "all"
+      ? "/api/admin/messaging/send?recipientType=all"
+      : recipientType === "block" || recipientType === "gender"
+        ? recipientFilter
+          ? `/api/admin/messaging/send?recipientType=${recipientType}&recipientFilter=${encodeURIComponent(recipientFilter)}`
+          : null
+        : null,
+    isAdmin
+  );
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (studentSearch && studentSearch.length >= 2) {
-        searchStudents();
-      } else {
-        setSearchResults([]);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [studentSearch]);
+  const studentsQuery = useAdminQuery<{ students: Student[] }>(
+    adminQueryKeys.messagingStudents(debouncedStudentSearch),
+    debouncedStudentSearch.length >= 2
+      ? `/api/admin/messaging/students?search=${encodeURIComponent(debouncedStudentSearch)}`
+      : null,
+    isAdmin
+  );
 
-  const fetchRecipientCount = async () => {
-    if (recipientType === "all") {
-      try {
-        const res = await fetch("/api/admin/messaging/send?recipientType=all");
-        const data = await res.json();
-        if (res.ok) {
-          setRecipientCount(data.count);
-        }
-      } catch (error) {
-        console.error("Error fetching count:", error);
-      }
-    } else if ((recipientType === "block" || recipientType === "gender") && recipientFilter) {
-      try {
-        const res = await fetch(
-          `/api/admin/messaging/send?recipientType=${recipientType}&recipientFilter=${recipientFilter}`
-        );
-        const data = await res.json();
-        if (res.ok) {
-          setRecipientCount(data.count);
-        }
-      } catch (error) {
-        console.error("Error fetching count:", error);
-      }
-    }
-  };
+  const recipientCount =
+    recipientType === "custom" ? selectedStudents.length : recipientsQuery.data?.count ?? 0;
 
-  const searchStudents = async () => {
-    try {
-      const res = await fetch(
-        `/api/admin/messaging/students?search=${encodeURIComponent(studentSearch)}`
-      );
-      const data = await res.json();
-      if (res.ok) {
-        setSearchResults(data.students);
-      }
-    } catch (error) {
-      console.error("Error searching students:", error);
-    }
-  };
+  const searchResults = studentsQuery.data?.students ?? [];
 
   const addStudent = (student: Student) => {
     if (!selectedStudents.find((s) => s.id === student.id)) {
       setSelectedStudents([...selectedStudents, student]);
     }
     setStudentSearch("");
-    setSearchResults([]);
   };
 
   const removeStudent = (studentId: string) => {
