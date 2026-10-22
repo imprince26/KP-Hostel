@@ -11,6 +11,13 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import {
+  ADMISSION_STATUSES,
+  BLOCK_CODES,
+  GENDERS,
+  PAYMENT_STATUSES,
+  SEMESTERS,
+} from "@/lib/domain";
 
 // ============================================
 // Auth Tables (NextAuth + Drizzle Adapter)
@@ -45,6 +52,11 @@ export const users = pgTable(
     resetTokenExpiry: timestamp("resetTokenExpiry", { mode: "date" }),
     emailVerificationOtp: text("emailVerificationOtp"),
     emailVerificationOtpExpiry: timestamp("emailVerificationOtpExpiry", { mode: "date" }),
+    // Legal consent: recorded when the user accepts the privacy policy and
+    // the terms of use. `termsVersion` identifies the wording that was shown.
+    acceptedTermsAt: timestamp("acceptedTermsAt", { mode: "date" }),
+    acceptedPrivacyAt: timestamp("acceptedPrivacyAt", { mode: "date" }),
+    termsVersion: text("termsVersion"),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },
@@ -127,21 +139,13 @@ export const authenticators = pgTable(
 // Admission & Hostel Tables
 // ============================================
 
-export const genderEnum = pgEnum("gender", ["male", "female", "other"]);
-export const blockEnum = pgEnum("hostel_block", ["A", "B", "C", "D"]);
+export const genderEnum = pgEnum("gender", GENDERS);
+export const blockEnum = pgEnum("hostel_block", BLOCK_CODES);
 
-export const admissionStatusEnum = pgEnum("admission_status", [
-  "submitted",
-  "under_review",
-  "approved",
-  "rejected",
-  "admitted",
-  "active",
-  "completed",
-]);
+export const admissionStatusEnum = pgEnum("admission_status", ADMISSION_STATUSES);
 
-export const semesterEnum = pgEnum("semester", ["sem1", "sem2"]);
-export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "partial"]);
+export const semesterEnum = pgEnum("semester", SEMESTERS);
+export const paymentStatusEnum = pgEnum("payment_status", PAYMENT_STATUSES);
 
 export const admissionApplications = pgTable(
   "admissionApplications",

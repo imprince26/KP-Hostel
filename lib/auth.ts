@@ -6,12 +6,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
+import type { Adapter } from "next-auth/adapters";
+import { USER_ROLES, isOneOf, type UserRole } from "@/lib/domain";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: string;
+      role: UserRole;
       name?: string | null;
       email?: string | null;
       image?: string | null;
@@ -30,13 +32,16 @@ declare module "next-auth" {
       course?: string | null;
       year?: string | null;
       needsProfileCompletion?: boolean;
+      acceptedTermsAt?: string | null;
+      acceptedPrivacyAt?: string | null;
+      termsVersion?: string | null;
       createdAt?: string;
       avatar?: string | null;
     } & DefaultSession["user"];
   }
 
   interface User {
-    role: string;
+    role: UserRole;
     phone?: string | null;
     dateOfBirth?: string | null;
     gender?: string | null;
@@ -57,7 +62,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: string;
+    role: UserRole;
     phone?: string | null;
     dateOfBirth?: string | null;
     gender?: string | null;
@@ -76,13 +81,18 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
+  // `@auth/drizzle-adapter` targets the Auth.js v5 adapter shape while this
+  // project runs NextAuth v4. The method surface is compatible and the session
+  // strategy is JWT, so the adapter is only exercised for OAuth account
+  // linking; the cast documents the version mismatch without changing runtime
+  // behaviour.
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
     authenticatorsTable: authenticators,
-  }) as any,
+  }) as unknown as Adapter,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -129,7 +139,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: isOneOf(USER_ROLES, user.role) ? user.role : "student",
           image: user.image,
         };
       },
@@ -156,15 +166,15 @@ export const authOptions: NextAuthOptions = {
 
         if (dbUser) {
           token.id = dbUser.id;
-          token.role = dbUser.role || "student";
+          token.role = isOneOf(USER_ROLES, dbUser.role) ? dbUser.role : "student";
           token.phone = dbUser.phone;
           token.avatar = dbUser.avatar;
-          
+
           // Set default role for OAuth users if not set
           if (account?.provider === "google" && !dbUser.role) {
             await db
               .update(users)
-              .set({ 
+              .set({
                 role: "student",
                 emailVerified: new Date(),
               })
@@ -174,7 +184,7 @@ export const authOptions: NextAuthOptions = {
         } else {
           // Fallback if user not found in DB yet
           token.id = user.id;
-          token.role = user.role || "student";
+          token.role = user.role ?? "student";
         }
       }
       
@@ -190,7 +200,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role;
         session.user.phone = token.phone;
         session.user.avatar = token.avatar as string | null;
         
@@ -205,7 +215,10 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             session.user.createdAt = dbUser.createdAt?.toISOString();
             session.user.avatar = dbUser.avatar; // Always use latest from DB
-            
+            session.user.acceptedTermsAt = dbUser.acceptedTermsAt?.toISOString() ?? null;
+            session.user.acceptedPrivacyAt = dbUser.acceptedPrivacyAt?.toISOString() ?? null;
+            session.user.termsVersion = dbUser.termsVersion ?? null;
+
             // Check if user needs to complete profile (no phone)
             if (!dbUser.phone) {
               session.user.needsProfileCompletion = true;

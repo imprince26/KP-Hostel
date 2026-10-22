@@ -13,6 +13,14 @@ interface SMSOptions {
   templateId?: string; // DLT template ID for India
 }
 
+interface MSG91Payload {
+  sender: string;
+  route: string;
+  country: string;
+  sms: { message: string; to: string[] }[];
+  DLT_TE_ID?: string;
+}
+
 export async function sendSMS(options: SMSOptions): Promise<boolean> {
   // Check if SMS is enabled
   if (process.env.SMS_ENABLED !== "true") {
@@ -29,7 +37,7 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
   }
 
   try {
-    const payload: any = {
+    const payload: MSG91Payload = {
       sender: senderId,
       route: "4", // Transactional route
       country: "91",
