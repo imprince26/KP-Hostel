@@ -16,8 +16,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userRole = (session.user as any).role;
-    if (userRole !== "admin") {
+    if (session.user.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -83,7 +82,7 @@ export async function PUT(
     }
 
     // Update block
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: Partial<typeof hostelBlocks.$inferInsert> = { updatedAt: new Date() };
     if (name !== undefined) updateData.name = name;
     if (capacity !== undefined) updateData.capacity = capacity;
     if (semester1Fee !== undefined) updateData.sem1Fees = semester1Fee;
@@ -120,8 +119,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userRole = (session.user as any).role;
-    if (userRole !== "admin") {
+    if (session.user.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

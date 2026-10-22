@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { admissionApplications, users } from "@/lib/db/schema";
 import { eq, desc, or, ilike } from "drizzle-orm";
+import { ADMISSION_STATUSES, isOneOf } from "@/lib/domain";
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,8 +32,8 @@ export async function GET(req: NextRequest) {
       .orderBy(desc(admissionApplications.createdAt))
       .$dynamic();
 
-    if (status && status !== "all") {
-      query = query.where(eq(admissionApplications.status, status as any));
+    if (status && status !== "all" && isOneOf(ADMISSION_STATUSES, status)) {
+      query = query.where(eq(admissionApplications.status, status));
     }
 
     if (limit) {

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { semesterPayments, admissionApplications, users } from "@/lib/db/schema";
 import { eq, desc, and, sql, ilike, or } from "drizzle-orm";
+import { PAYMENT_STATUSES, SEMESTERS, isOneOf } from "@/lib/domain";
 
 // GET - Fetch all semester payments with student details
 export async function GET(req: NextRequest) {
@@ -21,12 +22,12 @@ export async function GET(req: NextRequest) {
 
     // Build query conditions
     const conditions = [];
-    
-    if (semester) {
-      conditions.push(eq(semesterPayments.semester, semester as any));
+
+    if (isOneOf(SEMESTERS, semester)) {
+      conditions.push(eq(semesterPayments.semester, semester));
     }
-    if (status) {
-      conditions.push(eq(semesterPayments.paymentStatus, status as any));
+    if (isOneOf(PAYMENT_STATUSES, status)) {
+      conditions.push(eq(semesterPayments.paymentStatus, status));
     }
     if (academicYear) {
       conditions.push(eq(semesterPayments.academicYear, academicYear));
@@ -52,10 +53,11 @@ export async function GET(req: NextRequest) {
       .from(semesterPayments)
       .leftJoin(users, eq(semesterPayments.studentId, users.id))
       .leftJoin(admissionApplications, eq(semesterPayments.applicationId, admissionApplications.id))
-      .orderBy(desc(semesterPayments.createdAt));
+      .orderBy(desc(semesterPayments.createdAt))
+      .$dynamic();
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
+      query = query.where(and(...conditions));
     }
 
     let payments = await query;

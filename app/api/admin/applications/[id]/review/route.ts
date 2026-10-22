@@ -21,7 +21,14 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { action, comments, assignedBlock, roomNumber, admissionStartDate, admissionEndDate } = await req.json();
+    const { action, comments } = (await req.json()) as {
+      action?: "approve" | "reject";
+      comments?: string;
+      assignedBlock?: string;
+      roomNumber?: string;
+      admissionStartDate?: string;
+      admissionEndDate?: string;
+    };
 
     if (!action || !["approve", "reject"].includes(action)) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
@@ -30,7 +37,7 @@ export async function POST(
     const status = action === "approve" ? "approved" : "rejected";
 
     // Update application
-    const updateData: any = {
+    const updateData: Partial<typeof admissionApplications.$inferInsert> = {
       status,
       reviewedBy: session.user.id,
       reviewedAt: new Date(),
@@ -39,12 +46,6 @@ export async function POST(
 
     if (status === "rejected") {
       updateData.rejectionReason = comments || "Application did not meet requirements";
-    }
-
-    if (status === "approved") {
-      // For approval, we don't require block/room assignment anymore
-      // This will be done during activation after offline admission
-      updateData.status = "approved";
     }
 
     const [updated] = await db

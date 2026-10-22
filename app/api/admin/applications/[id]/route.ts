@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { admissionApplications, notifications, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import type { BlockCode } from "@/lib/domain";
 import { sendEmail } from "@/lib/email";
 import {
   applicationApprovedTemplate,
@@ -69,7 +70,18 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await req.json();
+    const body = (await req.json()) as {
+      action?: "approve" | "reject";
+      status?: "approved" | "rejected";
+      comments?: string;
+      adminNotes?: string;
+      rejectionReason?: string;
+      assignedBlock?: BlockCode;
+      roomNumber?: string;
+      admissionStartDate?: string;
+      admissionEndDate?: string;
+      allotmentDate?: string;
+    };
 
     // Support both old format (status, rejectionReason) and new format (action, comments)
     const action = body.action;
@@ -80,7 +92,7 @@ export async function PATCH(
     }
 
     // Update application
-    const updateData: any = {
+    const updateData: Partial<typeof admissionApplications.$inferInsert> = {
       status,
       reviewedBy: session.user.id,
       reviewedAt: new Date(),

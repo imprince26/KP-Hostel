@@ -6,6 +6,22 @@ import { users, admissionApplications } from "@/lib/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { sendEmail } from "@/lib/email";
 import { adminMessageTemplate } from "@/lib/email-templates";
+import { BLOCK_CODES, GENDERS, isOneOf } from "@/lib/domain";
+
+type Recipient = {
+  user: typeof users.$inferSelect;
+  application: typeof admissionApplications.$inferSelect | null | undefined;
+};
+
+type SendMessageBody = {
+  messageType?: "email" | "sms" | "both";
+  recipientType?: "all" | "block" | "gender" | "custom";
+  recipientFilter?: string;
+  customRecipients?: string[];
+  emailSubject?: string;
+  emailContent?: string;
+  smsContent?: string;
+};
 
 // POST - Send bulk emails/SMS
 export async function POST(req: NextRequest) {
@@ -15,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const body = (await req.json()) as SendMessageBody;
     const {
       messageType, // "email" | "sms" | "both"
       recipientType, // "all" | "block" | "gender" | "custom"
@@ -53,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build recipient query
-    let recipients: any[] = [];
+    let recipients: Recipient[] = [];
 
     if (recipientType === "all") {
       // Get all students
@@ -65,7 +81,7 @@ export async function POST(req: NextRequest) {
         .from(users)
         .leftJoin(admissionApplications, eq(users.id, admissionApplications.userId))
         .where(eq(users.role, "student"));
-    } else if (recipientType === "block" && recipientFilter) {
+    } else if (recipientType === "block" && isOneOf(BLOCK_CODES, recipientFilter)) {
       // Get students by block
       const applications = await db
         .select()
@@ -85,7 +101,7 @@ export async function POST(req: NextRequest) {
           application: applications.find((app) => app.userId === user.id),
         }));
       }
-    } else if (recipientType === "gender" && recipientFilter) {
+    } else if (recipientType === "gender" && isOneOf(GENDERS, recipientFilter)) {
       // Get students by gender
       const applications = await db
         .select()
@@ -122,6 +138,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validation above guarantees these exist for the selected message types.
+    const subject = emailSubject ?? "";
+    const content = emailContent ?? "";
+    const smsBody = smsContent ?? "";
+
     // Send messages
     const results = {
       total: recipients.length,
@@ -136,8 +157,8 @@ export async function POST(req: NextRequest) {
         if ((messageType === "email" || messageType === "both") && recipient.user.email) {
           const template = adminMessageTemplate(
             recipient.user.name || "Student",
-            emailSubject,
-            emailContent,
+            subject,
+            content,
             session.user.name || "K.P. Vidhyarthi Bhavan Administration"
           );
 
@@ -153,7 +174,7 @@ export async function POST(req: NextRequest) {
         // Send SMS (placeholder - requires SMS service integration)
         if ((messageType === "sms" || messageType === "both") && recipient.user.phone) {
           // TODO: Integrate SMS service (Twilio, AWS SNS, etc.)
-          // await sendSMS(recipient.user.phone, smsContent);
+          // await sendSMS(recipient.user.phone, smsBody);
           results.smsSent++;
         }
       } catch (error) {
@@ -194,17 +215,17 @@ export async function GET(req: NextRequest) {
     if (recipientType === "all") {
       const students = await db.select().from(users).where(eq(users.role, "student"));
       count = students.length;
-    } else if (recipientType === "block" && recipientFilter) {
+    } else if (recipientType === "block" && isOneOf(BLOCK_CODES, recipientFilter)) {
       const applications = await db
         .select()
         .from(admissionApplications)
-        .where(eq(admissionApplications.assignedBlock, recipientFilter as any));
+        .where(eq(admissionApplications.assignedBlock, recipientFilter));
       count = applications.length;
-    } else if (recipientType === "gender" && recipientFilter) {
+    } else if (recipientType === "gender" && isOneOf(GENDERS, recipientFilter)) {
       const applications = await db
         .select()
         .from(admissionApplications)
-        .where(eq(admissionApplications.gender, recipientFilter as any));
+        .where(eq(admissionApplications.gender, recipientFilter));
       count = applications.length;
     }
 

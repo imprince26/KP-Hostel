@@ -39,9 +39,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const data = await req.json();
+    const data = (await req.json()) as Partial<
+      Pick<
+        typeof users.$inferInsert,
+        | "name"
+        | "phone"
+        | "avatar"
+        | "bio"
+        | "dateOfBirth"
+        | "address"
+        | "city"
+        | "state"
+        | "pincode"
+        | "guardianName"
+        | "guardianPhone"
+        | "collegeName"
+        | "course"
+        | "year"
+      >
+    >;
 
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: Partial<typeof users.$inferInsert> = { updatedAt: new Date() };
 
     // Only update fields that are provided
     if (data.name) updateData.name = data.name;
