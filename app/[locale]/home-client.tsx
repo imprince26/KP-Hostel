@@ -371,8 +371,8 @@ export function HomeClient({ locale }: HomeClientProps) {
 
       {/* Gallery Strip */}
       <section className="py-16 md:py-24 bg-background overflow-hidden">
-        <div className="container px-4 mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+        <div className="container mx-auto px-4 mb-8 md:mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">
             Life at Campus
           </h2>
         </div>
