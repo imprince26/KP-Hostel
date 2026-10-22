@@ -163,8 +163,23 @@ export default function RootLayout({
     }
   };
 
+  const fontVariables = [
+    plusJakartaSans.variable,
+    outfit.variable,
+    playfair.variable,
+    jetbrainsMono.variable,
+    geistSans.variable,
+    geistMono.variable,
+    notoSansGujarati.variable,
+    anekGujarati.variable,
+  ].join(" ");
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    // The next/font variables must live on <html>: Tailwind resolves the
+    // `--font-sans` / `--font-display` theme variables on the root element, so
+    // on <body> they would resolve to an invalid value and every custom font
+    // would silently fall back to the system stack.
+    <html lang="en" suppressHydrationWarning className={fontVariables}>
       <head>
         <link rel="shortcut icon" href="/logo.jpg" type="image/x-icon" />
         <link rel="apple-touch-icon" href="/logo.jpg" />
@@ -173,10 +188,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body
-        className={`${plusJakartaSans.variable} ${outfit.variable} ${playfair.variable} ${jetbrainsMono.variable} ${geistSans.variable} ${geistMono.variable} ${notoSansGujarati.variable} ${anekGujarati.variable} font-sans antialiased`}
-        suppressHydrationWarning={true}
-      >
+      <body className="font-sans antialiased" suppressHydrationWarning={true}>
         <SessionProvider>
           <QueryProvider>{children}</QueryProvider>
         </SessionProvider>

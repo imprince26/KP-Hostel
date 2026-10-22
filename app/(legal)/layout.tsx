@@ -21,10 +21,12 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
 
   return (
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <Header />
-      {children}
-      <Footer />
-      <ScrollToTop />
+      <div lang="en">
+        <Header />
+        {children}
+        <Footer />
+        <ScrollToTop />
+      </div>
     </NextIntlClientProvider>
   );
 }

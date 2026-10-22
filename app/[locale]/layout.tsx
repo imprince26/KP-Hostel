@@ -31,10 +31,18 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <Header />
-      {children}
-      <Footer />
-      <ScrollToTop />
+      {/*
+        `lang` has to sit on the locale subtree because the root layout owns the
+        <html> element and cannot know the locale without becoming dynamic.
+        The `:lang(gu)` rule in globals.css then resolves the Gujarati
+        typefaces for every string on the Gujarati site.
+      */}
+      <div lang={locale}>
+        <Header />
+        {children}
+        <Footer />
+        <ScrollToTop />
+      </div>
     </NextIntlClientProvider>
   );
 }
