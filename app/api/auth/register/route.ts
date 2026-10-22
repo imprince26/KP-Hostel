@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { generateOTP, getOTPExpiry } from "@/lib/otp";
+import { TERMS_VERSION } from "@/lib/legal";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -15,6 +16,8 @@ const registerSchema = z.object({
   phone: z.string().min(10, "Invalid phone number"),
   role: z.enum(["student", "admin"]).default("student"),
   otp: z.string().length(6, "OTP must be 6 digits").optional(),
+  acceptedTerms: z.boolean().optional(),
+  acceptedPrivacy: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -23,6 +26,17 @@ export async function POST(req: NextRequest) {
     
     // Validate input
     const validatedData = registerSchema.parse(body);
+
+    // Legal consent is mandatory for a new account.
+    if (!validatedData.acceptedTerms || !validatedData.acceptedPrivacy) {
+      return NextResponse.json(
+        {
+          error:
+            "You must accept the Privacy Policy and the Terms of Use to create an account",
+        },
+        { status: 400 }
+      );
+    }
     
     // Check if user already exists
     const [existingUser] = await db
@@ -51,13 +65,16 @@ export async function POST(req: NextRequest) {
           .set({
             emailVerificationOtp: otp,
             emailVerificationOtpExpiry: otpExpiry,
+            acceptedTermsAt: new Date(),
+            acceptedPrivacyAt: new Date(),
+            termsVersion: TERMS_VERSION,
             updatedAt: new Date(),
           })
           .where(eq(users.id, existingUser.id));
       } else {
         // Create new unverified user
         const passwordHash = await bcrypt.hash(validatedData.password, 12);
-        
+
         await db
           .insert(users)
           .values({
@@ -70,6 +87,9 @@ export async function POST(req: NextRequest) {
             emailVerificationOtp: otp,
             emailVerificationOtpExpiry: otpExpiry,
             emailVerified: null, // Not verified yet
+            acceptedTermsAt: new Date(),
+            acceptedPrivacyAt: new Date(),
+            termsVersion: TERMS_VERSION,
             createdAt: new Date(),
             updatedAt: new Date(),
           });

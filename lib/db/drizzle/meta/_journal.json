@@ -15,6 +15,13 @@
       "when": 1766408159451,
       "tag": "0001_redundant_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792676383187,
+      "tag": "0002_blue_agent_brand",
+      "breakpoints": true
     }
   ]
 }

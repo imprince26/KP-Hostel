@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FaGoogle } from "react-icons/fa";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ShieldCheck, ArrowLeft, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
@@ -24,6 +25,7 @@ export function RegisterForm() {
     password: "",
     confirmPassword: "",
   });
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -53,6 +55,10 @@ export function RegisterForm() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
+    if (!acceptedLegal) {
+      newErrors.legal = "You must accept the Privacy Policy and Terms of Use";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,6 +81,8 @@ export function RegisterForm() {
         body: JSON.stringify({
           ...formData,
           role: "student",
+          acceptedTerms: acceptedLegal,
+          acceptedPrivacy: acceptedLegal,
         }),
       });
 
@@ -413,6 +421,43 @@ export function RegisterForm() {
               <p className="text-[11px] text-destructive pl-1">{errors.confirmPassword}</p>
             )}
           </div>
+        </div>
+
+        {/* Legal consent */}
+        <div className="space-y-1.5 pt-0.5">
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <Checkbox
+              checked={acceptedLegal}
+              onCheckedChange={(value) => {
+                setAcceptedLegal(value === true);
+                if (value === true) setErrors((prev) => ({ ...prev, legal: "" }));
+              }}
+              disabled={isLoading}
+              className="mt-0.5"
+            />
+            <span className="text-[11px] leading-relaxed text-muted-foreground">
+              I have read and agree to the{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className="text-primary font-medium hover:underline"
+              >
+                Privacy Policy
+              </Link>{" "}
+              and the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                className="text-primary font-medium hover:underline"
+              >
+                Terms of Use
+              </Link>
+              , and I consent to the processing of my personal data.
+            </span>
+          </label>
+          {errors.legal && (
+            <p className="text-[11px] text-destructive pl-1">{errors.legal}</p>
+          )}
         </div>
 
         <Button
