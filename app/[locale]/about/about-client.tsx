@@ -21,7 +21,7 @@ export function AboutClient() {
       icon: FaHistory,
       title: t("establishmentTitle"),
       content: t("establishmentContent"),
-      image: "/001.png",
+      image: "/001.webp",
     },
     {
       id: "building",
@@ -34,7 +34,7 @@ export function AboutClient() {
           content: t("constructionContent"),
         },
       ],
-      image: "/002.png",
+      image: "/002.webp",
     },
     {
       id: "inauguration",
@@ -47,14 +47,14 @@ export function AboutClient() {
           content: t("historicalContent"),
         },
       ],
-      image: "/003.png",
+      image: "/003.webp",
     },
     {
       id: "progress",
       icon: FaAward,
       title: t("progressTitle"),
       content: t("progressContent"),
-      image: "/004.png",
+      image: "/004.webp",
     },
     {
       id: "milestones",
@@ -67,7 +67,7 @@ export function AboutClient() {
           content: t("diamondJubileeContent"),
         },
       ],
-      image: "/1.png",
+      image: "/1.webp",
     },
     {
       id: "leadership",
@@ -80,7 +80,7 @@ export function AboutClient() {
           content: t("otherCommunitiesContent"),
         },
       ],
-      image: "/2.png",
+      image: "/2.webp",
     },
   ];
 
@@ -133,6 +133,7 @@ export function AboutClient() {
                       src={section.image}
                       alt={section.title}
                       fill
+                      sizes="(min-width: 768px) 50vw, 100vw"
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent md:hidden" />

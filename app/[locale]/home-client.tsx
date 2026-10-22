@@ -51,8 +51,8 @@ export function HomeClient({ locale }: HomeClientProps) {
 
   // Elegant, understated block colors (Slate/Dark theme)
   const blocks = [
-    { key: "a", letter: "A", image: "/2.png" },
-    { key: "b", letter: "B", image: "/1.png" },
+    { key: "a", letter: "A", image: "/2.webp" },
+    { key: "b", letter: "B", image: "/1.webp" },
     { key: "c", letter: "C", image: "/gallery/Room3.png" },
     { key: "d", letter: "D", image: "/gallery/Room1.png" },
   ];
@@ -65,10 +65,10 @@ export function HomeClient({ locale }: HomeClientProps) {
   ];
 
   const galleryImages = [
-    "/001.png",
-    "/003.png",
-    "/004.png",
-    "/gallery/mess.png",
+    "/001.webp",
+    "/003.webp",
+    "/004.webp",
+    "/gallery/Mess.png",
     "/gallery/mandir.png",
     "/gallery/Lobby.png",
     "/gallery/1.png",
@@ -197,9 +197,10 @@ export function HomeClient({ locale }: HomeClientProps) {
             >
               <div className="relative aspect-4/5 rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="/1.png"
+                  src="/1.webp"
                   alt="Student Life"
                   fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
@@ -339,6 +340,7 @@ export function HomeClient({ locale }: HomeClientProps) {
                   src={block.image}
                   alt={`Block ${block.letter}`}
                   fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
@@ -387,6 +389,7 @@ export function HomeClient({ locale }: HomeClientProps) {
                   src={src}
                   alt="Gallery"
                   fill
+                  sizes="(min-width: 768px) 384px, 256px"
                   className="object-cover hover:scale-110 transition-transform duration-500"
                 />
               </div>

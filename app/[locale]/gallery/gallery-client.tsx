@@ -18,14 +18,14 @@ export default function GalleryClient() {
 
   // Using the actual images found in the public folder
   const galleryImages = [
-    { src: "/1.png", category: "Exterior", alt: "Building View" },
+    { src: "/1.webp", category: "Exterior", alt: "Building View" },
     { src: "/gallery/Lobby.png", category: "Exterior", alt: "Hostel Entrance" },
     { src: "/intro/3.png", category: "Facilities", alt: "Student Facilities" },
     { src: "/gallery/Room2.png", category: "Rooms", alt: "Student Room" },
     { src: "/gallery/Lobby-2.png", category: "Common Areas", alt: "Lobby Area" },
     { src: "/gallery/mandir.png", category: "Facilities", alt: "Mandir" },
     { src: "/gallery/Room1.png", category: "Rooms", alt: "Double Room" },
-    { src: "/gallery/mess.png", category: "Mess", alt: "Kitchen" },
+    { src: "/gallery/Mess.png", category: "Mess", alt: "Kitchen" },
     { src: "/gallery/event1.png", category: "Events", alt: "Events Image" },
     { src: "/gallery/event2.png", category: "Events", alt: "Events Image" },
     { src: "/gallery/event3.png", category: "Events", alt: "Events Image" },
@@ -105,6 +105,7 @@ export default function GalleryClient() {
                         src={image.src}
                         alt={image.alt}
                         fill
+                        sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
