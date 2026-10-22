@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FiFileText, FiClock, FiCheck, FiX, FiEye, FiFilter, FiAlertCircle } from "react-icons/fi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Dialog,
   DialogContent,
@@ -129,10 +131,11 @@ export default function StudentApplications() {
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">My Applications</h1>
-          <p className="text-muted-foreground">Track and manage your hostel admission applications</p>
-        </div>
+        <PageHeader
+          title="My Applications"
+          description="Track and manage your hostel admission applications"
+          className="text-center"
+        />
 
         {/* Filter Controls */}
         <Card className="shadow-sm">
@@ -186,20 +189,24 @@ export default function StudentApplications() {
         {/* Applications List */}
         {filteredApps.length === 0 ? (
           <Card className="shadow-sm">
-            <CardContent className="py-16 text-center">
-              <FiFileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No applications found</h3>
-              <p className="text-muted-foreground mb-6">
-                {filterStatus === "all"
-                  ? "You haven't submitted any applications yet."
-                  : `No ${filterStatus.replace("_", " ")} applications found.`}
-              </p>
-              <Button
-                onClick={() => router.push("/en/admission")}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Submit New Application
-              </Button>
+            <CardContent className="p-0">
+              <EmptyState
+                icon={FiFileText}
+                title="No applications found"
+                description={
+                  filterStatus === "all"
+                    ? "You haven't submitted any applications yet."
+                    : `No ${filterStatus.replace("_", " ")} applications found.`
+                }
+                action={
+                  <Button
+                    onClick={() => router.push("/en/admission")}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Submit New Application
+                  </Button>
+                }
+              />
             </CardContent>
           </Card>
         ) : (

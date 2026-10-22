@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { format } from "date-fns";
 import { CalendarIcon, Search } from "lucide-react";
 import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
@@ -12,11 +13,9 @@ import {
   MdVisibility,
   MdCheck,
   MdClose,
-  MdSchedule,
   MdPerson,
   MdEmail,
   MdPhone,
-  MdLocationOn,
   MdSchool,
   MdHome,
   MdCheckCircle,
@@ -24,7 +23,7 @@ import {
 } from "react-icons/md";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,7 +46,11 @@ import {
 } from "@/components/ui/select";
 import { cn, formatIndianDate } from "@/lib/utils";
 import { toast } from "sonner";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { AdmissionStatusBadge } from "@/components/admin/status-badge";
+import { PaginationBar } from "@/components/admin/pagination-bar";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
 
 interface Application {
   id: string;
@@ -104,7 +107,7 @@ export default function AdminApplications() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterBlock, setFilterBlock] = useState<string>("all");
   const [filterGender, setFilterGender] = useState<string>("all");
@@ -129,15 +132,15 @@ export default function AdminApplications() {
     }
   }, [status, isAdmin, router]);
 
-  const applicationsQuery = useAdminQuery<{
+  const applicationsQuery = useApiQuery<{
     applications: {
       application: Record<string, unknown>;
       user?: { name?: string | null; email?: string | null; phone?: string | null };
     }[];
-  }>(adminQueryKeys.applicationList, "/api/admin/applications", isAdmin);
+  }>(queryKeys.admin.applicationList, "/api/admin/applications", isAdmin);
 
-  const blocksQuery = useAdminQuery<{ blocks: HostelBlock[] }>(
-    adminQueryKeys.blocks,
+  const blocksQuery = useApiQuery<{ blocks: HostelBlock[] }>(
+    queryKeys.admin.blocks,
     "/api/admin/blocks",
     isAdmin
   );
@@ -263,21 +266,6 @@ export default function AdminApplications() {
     setSortBy("newest");
   };
 
-  const getStatusBadge = (status: string) => {
-    const config = {
-      submitted: { label: "New", class: "bg-primary/10 text-primary border-primary/20" },
-      under_review: { label: "Under Review", class: "bg-primary/10 text-primary border-primary/20" },
-      approved: { label: "Approved", class: "bg-primary/10 text-primary border-primary/20" },
-      rejected: { label: "Rejected", class: "bg-primary/10 text-primary border-primary/20" },
-      active: { label: "Active", class: "bg-primary/10 text-primary border-primary/20" },
-    };
-
-    const { label, class: className } = config[status as keyof typeof config] ||
-      { label: status, class: "bg-muted text-muted-foreground border-muted" };
-
-    return <Badge variant="outline" className={className}>{label}</Badge>;
-  };
-
   const handleReview = (app: Application, action: "approve" | "reject") => {
     setSelectedApp(app);
     setReviewAction(action);
@@ -314,7 +302,7 @@ export default function AdminApplications() {
         toast.success(`Application ${reviewAction === "approve" ? "approved" : "rejected"} successfully!`);
         setSelectedApp(null);
         setReviewAction(null);
-        invalidateAdminQuery(adminQueryKeys.applications);
+        invalidateAdminQuery(queryKeys.admin.applications);
       } else {
         toast.error(data.error || "Failed to submit review");
       }
@@ -361,7 +349,7 @@ export default function AdminApplications() {
         toast.success("Admission activated successfully!");
         setSelectedApp(null);
         setShowActivationDialog(false);
-        invalidateAdminQuery(adminQueryKeys.applications);
+        invalidateAdminQuery(queryKeys.admin.applications);
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to activate admission");
@@ -389,10 +377,11 @@ export default function AdminApplications() {
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Application Review</h1>
-          <p className="text-muted-foreground">Review and manage hostel admission applications</p>
-        </div>
+        <PageHeader
+          title="Application Review"
+          description="Review and manage hostel admission applications"
+          className="mb-8"
+        />
 
         {/* Mobile Filters View (< md) */}
         <div className="md:hidden flex items-center gap-2 mb-6">
@@ -599,11 +588,11 @@ export default function AdminApplications() {
           </CardHeader>
           <CardContent className="pt-6">
             {filteredApps.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <MdDescription className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-semibold">No applications found</p>
-                <p className="text-sm">Try adjusting your filters or search query</p>
-              </div>
+              <EmptyState
+                icon={MdDescription}
+                title="No applications found"
+                description="Try adjusting your filters or search query"
+              />
             ) : (
               <>
                 <div className="overflow-x-auto">
@@ -652,7 +641,7 @@ export default function AdminApplications() {
                               <p className="text-xs text-muted-foreground">{app.course} - {app.year}</p>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{getStatusBadge(app.status)}</td>
+                          <td className="py-3 px-4"><AdmissionStatusBadge status={app.status} /></td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">
                             {formatIndianDate(app.createdAt)}
                           </td>
@@ -705,50 +694,13 @@ export default function AdminApplications() {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {startIndex + 1} to {Math.min(endIndex, filteredApps.length)} of {filteredApps.length} applications
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        Previous
-                      </Button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(page => {
-                          const distance = Math.abs(page - currentPage);
-                          return distance === 0 || distance === 1 || page === 1 || page === totalPages;
-                        })
-                        .map((page, index, array) => (
-                          <div key={page} className="flex items-center">
-                            {index > 0 && array[index - 1] !== page - 1 && (
-                              <span className="px-2 text-muted-foreground">...</span>
-                            )}
-                            <Button
-                              variant={currentPage === page ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handlePageChange(page)}
-                            >
-                              {page}
-                            </Button>
-                          </div>
-                        ))}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <PaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={filteredApps.length}
+                  itemLabel="applications"
+                />
               </>
             )}
           </CardContent>
@@ -784,7 +736,7 @@ export default function AdminApplications() {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Status</h4>
-                  {getStatusBadge(selectedApp.status)}
+                  <AdmissionStatusBadge status={selectedApp.status} />
                 </div>
                 <div className="flex gap-2">
                   {(selectedApp.status === "submitted" || selectedApp.status === "under_review") && (
@@ -920,11 +872,15 @@ export default function AdminApplications() {
                   <MdCamera className="text-primary" />
                   Passport Photo
                 </h4>
-                <img
-                  src={selectedApp.passportPhoto}
-                  alt="Passport"
-                  className="w-40 h-40 object-cover rounded-lg border-2 border-gray-200"
-                />
+                <div className="relative w-40 h-40">
+                  <Image
+                    src={selectedApp.passportPhoto}
+                    alt="Passport"
+                    fill
+                    sizes="160px"
+                    className="object-cover rounded-lg border-2 border-gray-200"
+                  />
+                </div>
               </div>
 
               {/* Room Assignment (if approved) */}
@@ -1103,7 +1059,7 @@ export default function AdminApplications() {
               Activate Admission
             </DialogTitle>
             <DialogDescription>
-              Assign block, room, and admission dates to activate this student's admission.
+              Assign block, room, and admission dates to activate this student&rsquo;s admission.
             </DialogDescription>
           </DialogHeader>
 

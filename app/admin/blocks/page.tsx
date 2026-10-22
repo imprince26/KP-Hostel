@@ -13,13 +13,13 @@ import {
   FiAlertTriangle
 } from "react-icons/fi";
 import { FaRupeeSign, FaBed } from "react-icons/fa";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
+
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface HostelBlock {
   id: string;
@@ -61,7 +62,7 @@ interface HostelBlock {
 export default function AdminBlocks() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
 
   const isAdmin =
     status === "authenticated" &&
@@ -94,8 +95,8 @@ export default function AdminBlocks() {
     }
   }, [status, isAdmin, router]);
 
-  const blocksQuery = useAdminQuery<{ blocks: HostelBlock[] }>(
-    adminQueryKeys.blocks,
+  const blocksQuery = useApiQuery<{ blocks: HostelBlock[] }>(
+    queryKeys.admin.blocks,
     "/api/admin/blocks",
     isAdmin
   );
@@ -173,7 +174,7 @@ export default function AdminBlocks() {
       if (res.ok) {
         setSuccess(`Block ${dialogMode === "add" ? "created" : "updated"} successfully!`);
         setDialogOpen(false);
-        invalidateAdminQuery(adminQueryKeys.blocks);
+        invalidateAdminQuery(queryKeys.admin.blocks);
         // Clear form
         setName("");
         setCapacity("");
@@ -210,7 +211,7 @@ export default function AdminBlocks() {
       const data = await res.json();
       if (res.ok) {
         setSuccess("Block deleted successfully!");
-        invalidateAdminQuery(adminQueryKeys.blocks);
+        invalidateAdminQuery(queryKeys.admin.blocks);
         setDeleteDialogOpen(false);
         setBlockToDelete(null);
       } else {
@@ -257,16 +258,17 @@ export default function AdminBlocks() {
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold font-display tracking-tight text-foreground mb-1 sm:mb-2">Hostel Block Management</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Manage hostel blocks, capacity, and fees</p>
-          </div>
-          <Button onClick={handleAddBlock} className="w-full sm:w-auto shrink-0 shadow-sm cursor-pointer">
-            <FiPlus className="mr-2" />
-            Add New Block
-          </Button>
-        </div>
+        <PageHeader
+          title="Hostel Block Management"
+          description="Manage hostel blocks, capacity, and fees"
+          actions={
+            <Button onClick={handleAddBlock} className="w-full sm:w-auto shrink-0 shadow-sm cursor-pointer">
+              <FiPlus className="mr-2" />
+              Add New Block
+            </Button>
+          }
+          className="mb-6 sm:mb-8"
+        />
 
         {/* Messages */}
         {error && (

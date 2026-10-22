@@ -12,10 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   MoreVertical,
-  Mail,
   Phone,
-  Calendar,
-  MapPin,
   RefreshCw,
   ExternalLink,
   Trash2,
@@ -23,8 +20,6 @@ import {
   UserX,
   UserCog,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -33,6 +28,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
+import { PageHeader } from "@/components/ui/page-header";
+import { PaginationBar } from "@/components/admin/pagination-bar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -69,7 +67,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
 import { formatIndianDate } from "@/lib/utils";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
 
 interface UserRecord {
   id: string;
@@ -114,7 +112,7 @@ interface UserStats {
 export default function AdminUsersPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
 
   const isAdmin =
     status === "authenticated" &&
@@ -148,10 +146,10 @@ export default function AdminUsersPage() {
     }
   }, [status, isAdmin, router]);
 
-  const usersQuery = useAdminQuery<{
+  const usersQuery = useApiQuery<{
     users: UserRecord[];
     stats?: UserStats;
-  }>(adminQueryKeys.users, "/api/admin/users", isAdmin);
+  }>(queryKeys.admin.users, "/api/admin/users", isAdmin);
 
   const users = useMemo(
     () => usersQuery.data?.users ?? [],
@@ -271,7 +269,7 @@ export default function AdminUsersPage() {
       }
       toast.success(`Role updated to ${targetRole} for ${selectedUser.name || "user"}`);
       setRoleDialogOpen(false);
-      invalidateAdminQuery(adminQueryKeys.users);
+      invalidateAdminQuery(queryKeys.admin.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Role update failed";
       toast.error(msg);
@@ -297,7 +295,7 @@ export default function AdminUsersPage() {
           ? `Marked ${user.name || "user"} as verified`
           : `Removed verification for ${user.name || "user"}`
       );
-      invalidateAdminQuery(adminQueryKeys.users);
+      invalidateAdminQuery(queryKeys.admin.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Verification update failed";
       toast.error(msg);
@@ -318,7 +316,7 @@ export default function AdminUsersPage() {
       toast.success(data.message || "User account deleted successfully");
       setDeleteDialogOpen(false);
       setConfirmResidentDelete(false);
-      invalidateAdminQuery(adminQueryKeys.users);
+      invalidateAdminQuery(queryKeys.admin.users);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Deletion failed";
       toast.error(msg);
@@ -352,16 +350,10 @@ export default function AdminUsersPage() {
     <div className="min-h-screen bg-muted/30 py-4 sm:py-8 px-3 sm:px-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground mb-1">
-              User Management
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Manage student accounts, role permissions, and hostel resident profiles
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        <PageHeader
+          title="User Management"
+          description="Manage student accounts, role permissions, and hostel resident profiles"
+          actions={
             <Button
               variant="outline"
               size="sm"
@@ -372,91 +364,17 @@ export default function AdminUsersPage() {
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <Card className="border-0 shadow-xs bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Total Users</p>
-                  <p className="text-xl sm:text-2xl font-bold font-display mt-0.5 text-foreground">
-                    {stats.total}
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Users className="w-4 h-4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xs bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Students</p>
-                  <p className="text-xl sm:text-2xl font-bold font-display mt-0.5 text-foreground">
-                    {stats.students}
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <GraduationCap className="w-4 h-4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xs bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Hostel Residents</p>
-                  <p className="text-xl sm:text-2xl font-bold font-display mt-0.5 text-foreground">
-                    {stats.residents}
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xs bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Verified</p>
-                  <p className="text-xl sm:text-2xl font-bold font-display mt-0.5 text-foreground">
-                    {stats.verified}
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-xs bg-card col-span-2 sm:col-span-1">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">Admins</p>
-                  <p className="text-xl sm:text-2xl font-bold font-display mt-0.5 text-foreground">
-                    {stats.admins}
-                  </p>
-                </div>
-                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <StatCardGrid columns={5}>
+          <StatCard label="Total Users" value={stats.total} icon={Users} size="sm" />
+          <StatCard label="Students" value={stats.students} icon={GraduationCap} size="sm" />
+          <StatCard label="Hostel Residents" value={stats.residents} icon={Building} size="sm" />
+          <StatCard label="Verified" value={stats.verified} icon={CheckCircle2} size="sm" />
+          <StatCard label="Admins" value={stats.admins} icon={Shield} size="sm" />
+        </StatCardGrid>
 
         {/* Filters and Search Container */}
         {/* Mobile Filter View (< md) */}
@@ -966,86 +884,19 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/70">
-              <div className="flex items-center gap-3 text-xs text-muted-foreground order-2 sm:order-1">
-                <span>
-                  Showing <span className="font-semibold text-foreground">{startIndex + 1}</span> to{" "}
-                  <span className="font-semibold text-foreground">
-                    {Math.min(endIndex, filteredUsers.length)}
-                  </span>{" "}
-                  of <span className="font-semibold text-foreground">{filteredUsers.length}</span> users
-                </span>
-
-                <div className="flex items-center gap-1.5 pl-3 border-l border-border">
-                  <span className="hidden md:inline">Per page:</span>
-                  <Select
-                    value={itemsPerPage.toString()}
-                    onValueChange={(val) => {
-                      setItemsPerPage(Number(val));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-18 text-xs bg-card">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {totalPages > 1 && (
-                <div className="flex items-center gap-1.5 order-1 sm:order-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="h-8 px-2.5 text-xs gap-1"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                    <span className="hidden min-[400px]:inline">Previous</span>
-                  </Button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((page) => {
-                        const distance = Math.abs(page - currentPage);
-                        return distance === 0 || distance === 1 || page === 1 || page === totalPages;
-                      })
-                      .map((page, index, array) => (
-                        <div key={page} className="flex items-center">
-                          {index > 0 && array[index - 1] !== page - 1 && (
-                            <span className="px-1 text-xs text-muted-foreground select-none">...</span>
-                          )}
-                          <Button
-                            variant={currentPage === page ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="h-8 w-8 p-0 text-xs font-medium"
-                          >
-                            {page}
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="h-8 px-2.5 text-xs gap-1"
-                  >
-                    <span className="hidden min-[400px]:inline">Next</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )}
-            </div>
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredUsers.length}
+              itemLabel="users"
+              itemsPerPage={itemsPerPage}
+              onItemsPerChange={(size) => {
+                setItemsPerPage(size);
+                setCurrentPage(1);
+              }}
+              className="pt-4 border-t border-border/70"
+            />
           </>
         )}
 

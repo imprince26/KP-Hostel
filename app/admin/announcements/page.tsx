@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { MobileFilterDrawer } from "@/components/admin/mobile-filter-drawer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +44,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
-import { stripHtml, createExcerpt } from "@/lib/announcement-utils";
+import { stripHtml } from "@/lib/announcement-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +63,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
 
 interface Announcement {
   announcement: {
@@ -87,7 +89,7 @@ interface Announcement {
 export default function AnnouncementsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "public" | "private">("all");
   const [audienceFilter, setAudienceFilter] = useState<string>("all");
@@ -140,8 +142,8 @@ export default function AnnouncementsPage() {
     }
   }, [status, isAdmin, router]);
 
-  const announcementsQuery = useAdminQuery<{ announcements: Announcement[] }>(
-    adminQueryKeys.announcements,
+  const announcementsQuery = useApiQuery<{ announcements: Announcement[] }>(
+    queryKeys.admin.announcements,
     "/api/admin/announcements",
     isAdmin
   );
@@ -219,7 +221,7 @@ export default function AnnouncementsPage() {
         toast.success("Announcement created successfully");
         setAddDialogOpen(false);
         resetForm();
-        invalidateAdminQuery(adminQueryKeys.announcements);
+        invalidateAdminQuery(queryKeys.admin.announcements);
       } else {
         toast.error(data.error || "Failed to create announcement");
       }
@@ -255,7 +257,7 @@ export default function AnnouncementsPage() {
         toast.success("Announcement updated successfully");
         setEditDialogOpen(false);
         resetForm();
-        invalidateAdminQuery(adminQueryKeys.announcements);
+        invalidateAdminQuery(queryKeys.admin.announcements);
       } else {
         toast.error(data.error || "Failed to update announcement");
       }
@@ -283,7 +285,7 @@ export default function AnnouncementsPage() {
 
       if (res.ok) {
         toast.success("Announcement deleted successfully");
-        invalidateAdminQuery(adminQueryKeys.announcements);
+        invalidateAdminQuery(queryKeys.admin.announcements);
       } else {
         toast.error(data.error || "Failed to delete announcement");
       }
@@ -347,18 +349,17 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Announcements</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Create and manage hostel announcements</p>
-        </div>
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto shrink-0">
-              <Plus className="mr-2 h-4 w-4" />
-              New Announcement
-            </Button>
-          </DialogTrigger>
+      <PageHeader
+        title="Announcements"
+        description="Create and manage hostel announcements"
+        actions={
+          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto shrink-0">
+                <Plus className="mr-2 h-4 w-4" />
+                New Announcement
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
             <DialogHeader>
               <DialogTitle>Create Announcement</DialogTitle>
@@ -480,7 +481,8 @@ export default function AnnouncementsPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
 
       {/* Mobile Filters View (< md) */}
       <div className="md:hidden flex items-center gap-2">
@@ -668,12 +670,12 @@ export default function AnnouncementsPage() {
       {/* Announcements List */}
       <div className="space-y-4">
         {filteredAnnouncements.length === 0 ? (
-          <Card className="p-12">
-            <div className="text-center text-muted-foreground">
-              <Megaphone className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">No announcements found</p>
-              <p className="text-sm">Try adjusting your filters or create a new announcement</p>
-            </div>
+          <Card className="p-0">
+            <EmptyState
+              icon={Megaphone}
+              title="No announcements found"
+              description="Try adjusting your filters or create a new announcement"
+            />
           </Card>
         ) : (
           filteredAnnouncements.map((a) => (

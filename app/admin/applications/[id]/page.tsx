@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,7 @@ export default function ApplicationDetailPage() {
   const router = useRouter();
   const params = useParams();
   const applicationId = params?.id as string;
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
 
   const isAdmin =
     status === "authenticated" &&
@@ -129,12 +129,12 @@ export default function ApplicationDetailPage() {
     }
   }, [status, isAdmin, router]);
 
-  const applicationQuery = useAdminQuery<{
+  const applicationQuery = useApiQuery<{
     application: ApplicationDetail;
     user: LinkedUser;
     reviewer: Reviewer | null;
   }>(
-    adminQueryKeys.application(applicationId ?? ""),
+    queryKeys.admin.application(applicationId ?? ""),
     applicationId ? `/api/admin/applications/${applicationId}` : null,
     isAdmin
   );
@@ -162,6 +162,7 @@ export default function ApplicationDetailPage() {
 
   const handleReviewSubmit = async () => {
     if (!application) return;
+    if (!reviewAction) return;
 
     if (reviewAction === "reject" && !adminNotes.trim()) {
       toast.error("Please provide a rejection reason");
@@ -175,7 +176,16 @@ export default function ApplicationDetailPage() {
 
     try {
       setActionLoading(true);
-      const payload: Record<string, any> = {
+      const payload: {
+        status: "approved" | "rejected";
+        action: "approve" | "reject";
+        comments: string;
+        rejectionReason?: string;
+        assignedBlock?: string;
+        roomNumber?: string;
+        admissionStartDate?: string;
+        admissionEndDate?: string;
+      } = {
         status: reviewAction === "approve" ? "approved" : "rejected",
         action: reviewAction,
         comments: adminNotes,
@@ -207,7 +217,7 @@ export default function ApplicationDetailPage() {
       );
       setReviewAction(null);
       setAdminNotes("");
-      invalidateAdminQuery(adminQueryKeys.applications);
+      invalidateAdminQuery(queryKeys.admin.applications);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Review submission failed";
       toast.error(msg);

@@ -6,8 +6,12 @@ import { useRouter } from "next/navigation";
 import { Users, FileText, Building2, TrendingUp, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { adminQueryKeys, useAdminQuery } from "@/hooks/use-admin-data";
+
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { AdmissionStatusBadge } from "@/components/admin/status-badge";
+import { queryKeys, useApiQuery } from "@/hooks/use-data";
 
 interface DashboardStats {
   totalStudents: number;
@@ -46,16 +50,16 @@ export default function AdminDashboard() {
     }
   }, [status, isAdmin, router]);
 
-  const statsQuery = useAdminQuery<{ stats: DashboardStats }>(
-    adminQueryKeys.stats,
+  const statsQuery = useApiQuery<{ stats: DashboardStats }>(
+    queryKeys.admin.stats,
     "/api/admin/stats",
     isAdmin
   );
 
-  const recentAppsQuery = useAdminQuery<{
+  const recentAppsQuery = useApiQuery<{
     applications: { application: RecentApplication }[];
   }>(
-    adminQueryKeys.recentApplications,
+    queryKeys.admin.recentApplications,
     "/api/admin/applications?limit=5",
     isAdmin
   );
@@ -76,21 +80,6 @@ export default function AdminDashboard() {
 
   const loading = status === "loading" || (isAdmin && statsQuery.isPending);
 
-  const getStatusBadge = (status: string) => {
-    const config = {
-      submitted: { label: "New", variant: "secondary" as const },
-      under_review: { label: "Review", variant: "outline" as const },
-      approved: { label: "Approved", variant: "default" as const },
-      rejected: { label: "Rejected", variant: "destructive" as const },
-      active: { label: "Active", variant: "default" as const },
-    };
-
-    const { label, variant } = config[status as keyof typeof config] ||
-      { label: status, variant: "secondary" as const };
-
-    return <Badge variant={variant}>{label}</Badge>;
-  };
-
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -104,109 +93,55 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/60">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Hostel operations, live occupancy, and admission metrics
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/admin/applications")}
-          >
-            Review Applications
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => router.push("/admin/announcements")}
-          >
-            New Announcement
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Hostel operations, live occupancy, and admission metrics"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/admin/applications")}
+            >
+              Review Applications
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => router.push("/admin/announcements")}
+            >
+              New Announcement
+            </Button>
+          </>
+        }
+      />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Total Students
-                </p>
-                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {stats?.totalStudents || 0}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">Registered users</p>
-              </div>
-              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Users className="size-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Active Admissions
-                </p>
-                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {stats?.activeAdmissions || 0}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">Current residents</p>
-              </div>
-              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Building2 className="size-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Pending Applications
-                </p>
-                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {stats?.pendingApplications || 0}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">Awaiting review</p>
-              </div>
-              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <FileText className="size-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/70 shadow-sm bg-card hover:border-primary/40 transition-colors">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Occupancy Rate
-                </p>
-                <h3 className="text-2xl font-bold tracking-tight text-foreground mt-1">
-                  {stats?.occupancyRate || 0}%
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">Room utilization</p>
-              </div>
-              <div className="size-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <TrendingUp className="size-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatCardGrid columns={4}>
+        <StatCard
+          label="Total Students"
+          value={stats?.totalStudents || 0}
+          icon={Users}
+          hint="Registered users"
+        />
+        <StatCard
+          label="Active Admissions"
+          value={stats?.activeAdmissions || 0}
+          icon={Building2}
+          hint="Current residents"
+        />
+        <StatCard
+          label="Pending Applications"
+          value={stats?.pendingApplications || 0}
+          icon={FileText}
+          hint="Awaiting review"
+        />
+        <StatCard
+          label="Occupancy Rate"
+          value={`${stats?.occupancyRate || 0}%`}
+          icon={TrendingUp}
+          hint="Room utilization"
+        />
+      </StatCardGrid>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Applications */}
@@ -232,10 +167,11 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             {recentApps.length === 0 ? (
-              <div className="p-10 text-center text-muted-foreground">
-                <FileText className="size-10 mx-auto mb-3 opacity-40" />
-                <p className="text-sm">No recent applications submitted</p>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No recent applications submitted"
+                description="New admission requests will appear here as soon as they are submitted."
+              />
             ) : (
               <div className="divide-y divide-border/60">
                 {recentApps.map((app) => (
@@ -249,7 +185,7 @@ export default function AdminDashboard() {
                         <p className="font-medium text-sm text-foreground truncate">
                           {app.fullName}
                         </p>
-                        {getStatusBadge(app.status)}
+                        <AdmissionStatusBadge status={app.status} />
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {app.applicationNumber} &bull; {new Date(app.createdAt).toLocaleDateString("en-IN", {

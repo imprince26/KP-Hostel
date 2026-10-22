@@ -1,26 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { 
-  FiUser, FiFileText, FiBell, FiSettings, FiHome, 
-  FiCalendar, FiDollarSign, FiCheck, FiClock, FiX 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  FiFileText, FiBell, FiHome, FiSettings,
+  FiCalendar, FiDollarSign, FiCheck, FiClock, FiX
 } from "react-icons/fi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { createExcerpt, containsHtml } from "@/lib/announcement-utils";
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { NotificationDetailDialog } from "@/components/notifications/notification-detail-dialog";
+import { createExcerpt } from "@/lib/announcement-utils";
+import { apiSend } from "@/lib/api-client";
+import type { NotificationRecord, StudentApplication } from "@/lib/api-types";
+import { queryKeys, useApiQuery } from "@/hooks/use-data";
 
 interface DashboardStats {
   totalApplications: number;
@@ -35,98 +32,81 @@ interface DashboardStats {
   };
 }
 
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-}
-
 export default function StudentDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [selectedNotification, setSelectedNotification] = useState<NotificationRecord | null>(null);
 
-  const handleNotificationClick = async (notif: Notification) => {
-    setSelectedNotification(notif);
-    if (!notif.read) {
-      try {
-        await fetch("/api/notifications", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ notificationId: notif.id }),
-        });
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
-        );
-      } catch (err) {
-        console.error("Failed to mark notification as read:", err);
-      }
-    }
-  };
+  const isStudent = status === "authenticated";
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-      return;
-    }
-
-    if (status === "authenticated") {
-      fetchDashboardData();
     }
   }, [status, router]);
 
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch applications
-      const appsRes = await fetch("/api/admission/apply");
-      const appsData = await appsRes.json();
-      
-      // Fetch notifications
-      const notifRes = await fetch("/api/notifications");
-      const notifData = await notifRes.json();
+  const applicationsQuery = useApiQuery<{ applications: StudentApplication[] }>(
+    queryKeys.student.applications,
+    "/api/admission/apply",
+    isStudent
+  );
 
-      if (appsData.applications) {
-        const applications = appsData.applications;
-        const approved = applications.filter((app: any) => app.status === "approved").length;
-        const pending = applications.filter((app: any) => app.status === "submitted").length;
-        const rejected = applications.filter((app: any) => app.status === "rejected").length;
-        
-        // Find active admission details
-        const activeApp = applications.find((app: any) => 
-          app.status === "active" && app.assignedBlock && app.roomNumber
-        );
+  const notificationsQuery = useApiQuery<{ notifications: NotificationRecord[] }>(
+    queryKeys.notifications,
+    "/api/notifications",
+    isStudent
+  );
 
-        setStats({
-          totalApplications: applications.length,
-          approvedApplications: approved,
-          pendingApplications: pending,
-          rejectedApplications: rejected,
-          roomDetails: activeApp ? {
-            block: activeApp.assignedBlock,
-            roomNumber: activeApp.roomNumber,
-            admissionStart: activeApp.admissionStartDate,
-            admissionEnd: activeApp.admissionEndDate,
-          } : undefined,
-        });
-      }
+  const stats = useMemo<DashboardStats | null>(() => {
+    const applications = applicationsQuery.data?.applications;
+    if (!applications) return null;
 
-      if (notifData.notifications) {
-        setNotifications(notifData.notifications.slice(0, 5)); // Latest 5
-      }
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
+    const countByStatus = (status: StudentApplication["status"]) =>
+      applications.filter((app) => app.status === status).length;
+
+    const activeApp = applications.find(
+      (app) =>
+        app.status === "active" && app.assignedBlock && app.roomNumber
+    );
+
+    return {
+      totalApplications: applications.length,
+      approvedApplications: countByStatus("approved"),
+      pendingApplications: countByStatus("submitted"),
+      rejectedApplications: countByStatus("rejected"),
+      roomDetails: activeApp
+        ? {
+            block: activeApp.assignedBlock as string,
+            roomNumber: activeApp.roomNumber as string,
+            admissionStart: activeApp.admissionStartDate as string,
+            admissionEnd: activeApp.admissionEndDate as string,
+          }
+        : undefined,
+    };
+  }, [applicationsQuery.data]);
+
+  const notifications = useMemo(
+    () => (notificationsQuery.data?.notifications ?? []).slice(0, 5),
+    [notificationsQuery.data]
+  );
+
+  const markAsRead = useMutation({
+    mutationFn: (notificationId: string) =>
+      apiSend("/api/notifications", "PATCH", { notificationId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
+    },
+  });
+
+  const handleNotificationClick = (notif: NotificationRecord) => {
+    setSelectedNotification(notif);
+    if (!notif.read) {
+      markAsRead.mutate(notif.id);
     }
   };
 
-  if (loading) {
+  if (status === "loading" || (isStudent && applicationsQuery.isPending)) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div className="text-center">
@@ -176,59 +156,32 @@ export default function StudentDashboard() {
         )}
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Applications</CardTitle>
-                <FiFileText className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">{stats?.totalApplications || 0}</p>
-              <p className="text-sm text-muted-foreground mt-1">All time</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
-                <FiClock className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">{stats?.pendingApplications || 0}</p>
-              <p className="text-sm text-muted-foreground mt-1">Under review</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
-                <FiCheck className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">{stats?.approvedApplications || 0}</p>
-              <p className="text-sm text-muted-foreground mt-1">Accepted</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
-                <FiX className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">{stats?.rejectedApplications || 0}</p>
-              <p className="text-sm text-muted-foreground mt-1">Not approved</p>
-            </CardContent>
-          </Card>
-        </div>
+        <StatCardGrid columns={4} className="mb-8">
+          <StatCard
+            label="Total Applications"
+            value={stats?.totalApplications || 0}
+            icon={FiFileText}
+            hint="All time"
+          />
+          <StatCard
+            label="Pending"
+            value={stats?.pendingApplications || 0}
+            icon={FiClock}
+            hint="Under review"
+          />
+          <StatCard
+            label="Approved"
+            value={stats?.approvedApplications || 0}
+            icon={FiCheck}
+            hint="Accepted"
+          />
+          <StatCard
+            label="Rejected"
+            value={stats?.rejectedApplications || 0}
+            icon={FiX}
+            hint="Not approved"
+          />
+        </StatCardGrid>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Quick Actions */}
@@ -296,44 +249,42 @@ export default function StudentDashboard() {
             </CardHeader>
             <CardContent className="pt-6">
               {notifications.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FiBell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">No notifications yet</p>
-                </div>
+                <EmptyState
+                  icon={FiBell}
+                  title="No notifications yet"
+                  description="Updates and notices will appear here."
+                />
               ) : (
                 <div className="space-y-3">
-                  {notifications.map((notif) => {
-                    const plainSnippet = createExcerpt(notif.message, 110);
-                    return (
-                      <div
-                        key={notif.id}
-                        onClick={() => handleNotificationClick(notif)}
-                        className={`p-3.5 rounded-lg border cursor-pointer hover:shadow-xs transition-all text-left ${
-                          notif.read 
-                            ? "bg-muted/30 border-border hover:bg-muted/50" 
-                            : "bg-primary/5 border-primary/20 hover:bg-primary/10"
-                        }`}
-                      >
-                        <div className="flex items-start gap-2.5">
-                          {!notif.read && (
-                            <div className="w-2 h-2 bg-primary rounded-full mt-1.5 shrink-0" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-foreground hover:text-primary transition-colors">
-                              {notif.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                              {plainSnippet}
-                            </p>
-                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/50 text-[11px] text-muted-foreground">
-                              <span className="text-primary font-medium">Click to view full notice</span>
-                              <span>{new Date(notif.createdAt).toLocaleDateString()}</span>
-                            </div>
+                  {notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-3.5 rounded-lg border cursor-pointer hover:shadow-xs transition-all text-left ${
+                        notif.read
+                          ? "bg-muted/30 border-border hover:bg-muted/50"
+                          : "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        {!notif.read && (
+                          <div className="w-2 h-2 bg-primary rounded-full mt-1.5 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground hover:text-primary transition-colors">
+                            {notif.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                            {createExcerpt(notif.message, 110)}
+                          </p>
+                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-border/50 text-[11px] text-muted-foreground">
+                            <span className="text-primary font-medium">Click to view full notice</span>
+                            <span>{new Date(notif.createdAt).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -341,56 +292,10 @@ export default function StudentDashboard() {
         </div>
 
         {/* Full Notification Modal */}
-        <Dialog
-          open={!!selectedNotification}
-          onOpenChange={(isOpen) => !isOpen && setSelectedNotification(null)}
-        >
-          <DialogContent className="max-w-lg max-h-[85vh] p-0 flex flex-col overflow-hidden">
-            {selectedNotification && (
-              <>
-                <DialogHeader className="px-6 py-5 border-b border-border bg-muted/30 shrink-0">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs capitalize bg-primary/10 text-primary border-primary/20">
-                      {selectedNotification.type.replace("_", " ")}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(selectedNotification.createdAt).toLocaleString("en-IN", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </span>
-                  </div>
-                  <DialogTitle className="text-lg font-bold text-foreground">
-                    {selectedNotification.title}
-                  </DialogTitle>
-                </DialogHeader>
-
-                <ScrollArea className="flex-1 p-6 max-h-[calc(85vh-10rem)]">
-                  {containsHtml(selectedNotification.message) ? (
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed wrap-break-word"
-                      dangerouslySetInnerHTML={{ __html: selectedNotification.message }}
-                    />
-                  ) : (
-                    <p className="text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
-                      {selectedNotification.message}
-                    </p>
-                  )}
-                </ScrollArea>
-
-                <DialogFooter className="px-6 py-3 border-t border-border bg-muted/20 shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedNotification(null)}
-                  >
-                    Close
-                  </Button>
-                </DialogFooter>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        <NotificationDetailDialog
+          notification={selectedNotification}
+          onClose={() => setSelectedNotification(null)}
+        />
 
         {/* Important Information */}
         <Card className="mt-6 border-0 shadow-sm bg-card">

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+
 import { toast } from "sonner";
 import {
   Mail,
@@ -30,8 +30,11 @@ import {
 } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { adminQueryKeys, useAdminQuery } from "@/hooks/use-admin-data";
+import { queryKeys, useApiQuery } from "@/hooks/use-data";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { PageHeader } from "@/components/ui/page-header";
+
+type RecipientType = "all" | "block" | "gender" | "custom";
 
 interface Student {
   id: string;
@@ -53,7 +56,7 @@ export default function MessagingPage() {
   const [messageType, setMessageType] = useState<"email" | "sms" | "both">("email");
 
   // Recipients
-  const [recipientType, setRecipientType] = useState<"all" | "block" | "gender" | "custom">("all");
+  const [recipientType, setRecipientType] = useState<RecipientType>("all");
   const [recipientFilter, setRecipientFilter] = useState("");
 
   // Custom recipients
@@ -72,7 +75,12 @@ export default function MessagingPage() {
   const [selectedTemplate, setSelectedTemplate] = useState("");
 
   // Results
-  const [sendResults, setSendResults] = useState<any>(null);
+  const [sendResults, setSendResults] = useState<{
+    total: number;
+    emailsSent: number;
+    smsSent: number;
+    failed: number;
+  } | null>(null);
 
   // Confirmation dialog
   const [sendConfirmDialog, setSendConfirmDialog] = useState<{
@@ -130,8 +138,8 @@ export default function MessagingPage() {
     }
   }, [status, isAdmin, router]);
 
-  const recipientsQuery = useAdminQuery<{ count: number }>(
-    adminQueryKeys.messagingRecipients(recipientType, recipientFilter),
+  const recipientsQuery = useApiQuery<{ count: number }>(
+    queryKeys.admin.messagingRecipients(recipientType, recipientFilter),
     recipientType === "all"
       ? "/api/admin/messaging/send?recipientType=all"
       : recipientType === "block" || recipientType === "gender"
@@ -142,8 +150,8 @@ export default function MessagingPage() {
     isAdmin
   );
 
-  const studentsQuery = useAdminQuery<{ students: Student[] }>(
-    adminQueryKeys.messagingStudents(debouncedStudentSearch),
+  const studentsQuery = useApiQuery<{ students: Student[] }>(
+    queryKeys.admin.messagingStudents(debouncedStudentSearch),
     debouncedStudentSearch.length >= 2
       ? `/api/admin/messaging/students?search=${encodeURIComponent(debouncedStudentSearch)}`
       : null,
@@ -269,10 +277,10 @@ export default function MessagingPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Bulk Messaging</h1>
-        <p className="text-muted-foreground">Send emails and SMS to students</p>
-      </div>
+      <PageHeader
+        title="Bulk Messaging"
+        description="Send emails and SMS to students"
+      />
 
       {/* Results Card */}
       {sendResults && (
@@ -356,7 +364,7 @@ export default function MessagingPage() {
             <div className="space-y-4">
               <div>
                 <Label>Recipient Type</Label>
-                <Select value={recipientType} onValueChange={(v: any) => setRecipientType(v)}>
+                <Select value={recipientType} onValueChange={(v) => setRecipientType(v as RecipientType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

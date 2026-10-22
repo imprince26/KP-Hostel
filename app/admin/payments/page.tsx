@@ -18,7 +18,7 @@ import {
   MdClose
 } from "react-icons/md";
 import { FaRupeeSign } from "react-icons/fa";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +50,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { adminQueryKeys, useAdminQuery, useInvalidateAdminQuery } from "@/hooks/use-admin-data";
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PaymentStatusBadge } from "@/components/admin/status-badge";
+import { queryKeys, useApiQuery, useInvalidateQuery } from "@/hooks/use-data";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 interface Student {
@@ -110,7 +114,7 @@ interface Stats {
 export default function AdminPaymentsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const invalidateAdminQuery = useInvalidateAdminQuery();
+  const invalidateAdminQuery = useInvalidateQuery();
 
   const isAdmin =
     status === "authenticated" &&
@@ -155,13 +159,13 @@ export default function AdminPaymentsPage() {
     }
   }, [status, isAdmin, router]);
 
-  const paymentsQuery = useAdminQuery<{
+  const paymentsQuery = useApiQuery<{
     payments: Payment[];
     stats?: Stats;
-  }>(adminQueryKeys.payments, "/api/admin/payments", isAdmin);
+  }>(queryKeys.admin.payments, "/api/admin/payments", isAdmin);
 
-  const studentsQuery = useAdminQuery<{ students: Student[] }>(
-    adminQueryKeys.paymentStudents(debouncedStudentSearch),
+  const studentsQuery = useApiQuery<{ students: Student[] }>(
+    queryKeys.admin.paymentStudents(debouncedStudentSearch),
     debouncedStudentSearch.length >= 2
       ? `/api/admin/payments/students?search=${encodeURIComponent(debouncedStudentSearch)}`
       : null,
@@ -329,7 +333,7 @@ export default function AdminPaymentsPage() {
       if (res.ok) {
         toast.success(data.message || `Payment ${dialogMode === "add" ? "added" : "updated"} successfully`);
         setDialogOpen(false);
-        invalidateAdminQuery(adminQueryKeys.payments);
+        invalidateAdminQuery(queryKeys.admin.payments);
       } else {
         toast.error(data.error || `Failed to ${dialogMode} payment`);
       }
@@ -360,7 +364,7 @@ export default function AdminPaymentsPage() {
         toast.success("Payment record deleted successfully");
         setDeleteDialogOpen(false);
         setPaymentToDelete(null);
-        invalidateAdminQuery(adminQueryKeys.payments);
+        invalidateAdminQuery(queryKeys.admin.payments);
       } else {
         toast.error(data.error || "Failed to delete payment");
       }
@@ -368,19 +372,6 @@ export default function AdminPaymentsPage() {
       console.error("Error deleting payment:", error);
       toast.error("Failed to delete payment");
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const config = {
-      paid: { label: "Paid", variant: "default" as const },
-      pending: { label: "Pending", variant: "secondary" as const },
-      partial: { label: "Partial", variant: "outline" as const },
-    };
-
-    const { label, variant } = config[status as keyof typeof config] ||
-      { label: status, variant: "secondary" as const };
-
-    return <Badge variant={variant}>{label}</Badge>;
   };
 
   const getSemesterLabel = (semester: string) => {
@@ -402,86 +393,29 @@ export default function AdminPaymentsPage() {
     <div className="min-h-screen bg-muted/30 py-4 sm:py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Payment Management</h1>
-          <p className="text-muted-foreground">Track and manage student semester payments</p>
-        </div>
+        <PageHeader
+          title="Payment Management"
+          description="Track and manage student semester payments"
+        />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-          <Card className="border-0 shadow-sm bg-card">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Records</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.total}</p>
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MdPayment className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Paid</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.paid}</p>
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MdCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Pending</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.pending}</p>
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MdSchedule className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm bg-card">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Partial</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.partial}</p>
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MdWarning className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="col-span-2 lg:col-span-1 border-0 shadow-sm bg-card">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Total Amount</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground flex items-center">
-                    <FaRupeeSign className="w-4 h-4 sm:w-5 sm:h-5" />
-                    {stats.totalAmount.toLocaleString('en-IN')}
-                  </p>
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MdTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <StatCardGrid columns={5} className="mb-6">
+          <StatCard label="Total Records" value={stats.total} icon={MdPayment} size="lg" />
+          <StatCard label="Paid" value={stats.paid} icon={MdCheckCircle} size="lg" />
+          <StatCard label="Pending" value={stats.pending} icon={MdSchedule} size="lg" />
+          <StatCard label="Partial" value={stats.partial} icon={MdWarning} size="lg" />
+          <StatCard
+            label="Total Amount"
+            value={
+              <span className="flex items-center">
+                <FaRupeeSign className="size-4 sm:size-5" />
+                {stats.totalAmount.toLocaleString("en-IN")}
+              </span>
+            }
+            icon={MdTrendingUp}
+            size="lg"
+          />
+        </StatCardGrid>
 
         {/* Mobile Filters View (< md) */}
         <div className="md:hidden flex items-center gap-2 mb-6">
@@ -668,12 +602,12 @@ export default function AdminPaymentsPage() {
                 <tbody className="divide-y divide-border">
                   {filteredPayments.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <FaRupeeSign className="w-12 h-12 mb-3 opacity-50" />
-                          <p className="text-lg font-medium">No payment records found</p>
-                          <p className="text-sm mt-1">Try adjusting your filters or add a new payment record</p>
-                        </div>
+                      <td colSpan={8} className="p-0">
+                        <EmptyState
+                          icon={FaRupeeSign}
+                          title="No payment records found"
+                          description="Try adjusting your filters or add a new payment record"
+                        />
                       </td>
                     </tr>
                   ) : (
@@ -720,7 +654,7 @@ export default function AdminPaymentsPage() {
                           )}
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(payment.payment.paymentStatus)}
+                          <PaymentStatusBadge status={payment.payment.paymentStatus} />
                         </td>
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden xl:table-cell">
                           <span className="text-sm text-foreground">
