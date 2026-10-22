@@ -15,7 +15,6 @@ import {
   Filter,
   RefreshCw,
   ArrowRight,
-  BookOpen,
   Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -26,13 +25,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { DialogScrollArea, ScrollableDialog } from "@/components/ui/scrollable-dialog";
 import { createExcerpt } from "@/lib/announcement-utils";
 import { apiGet } from "@/lib/api-client";
 
@@ -365,7 +364,7 @@ export default function AnnouncementsClient() {
         open={!!selectedAnnouncement}
         onOpenChange={(isOpen) => !isOpen && setSelectedAnnouncement(null)}
       >
-        <DialogContent className="max-w-2xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
+        <ScrollableDialog className="max-w-2xl">
           {selectedAnnouncement && (
             <>
               <DialogHeader className="p-6 pb-4 border-b border-border bg-muted/30 shrink-0 text-left">
@@ -399,7 +398,7 @@ export default function AnnouncementsClient() {
                 )}
               </DialogHeader>
 
-              <ScrollArea className="flex-1 p-6 max-h-[calc(85vh-12rem)]">
+              <DialogScrollArea className="p-6">
                 <div
                   className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: selectedAnnouncement.announcement.content }}
@@ -414,7 +413,7 @@ export default function AnnouncementsClient() {
                     </span>
                   </div>
                 )}
-              </ScrollArea>
+              </DialogScrollArea>
 
               <DialogFooter className="px-6 py-3 border-t border-border bg-muted/20 shrink-0">
                 <Button
@@ -427,7 +426,7 @@ export default function AnnouncementsClient() {
               </DialogFooter>
             </>
           )}
-        </DialogContent>
+        </ScrollableDialog>
       </Dialog>
     </div>
   );
