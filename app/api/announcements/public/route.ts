@@ -36,7 +36,15 @@ export async function GET(req: NextRequest) {
       (item) => !item.announcement.expiresAt || new Date(item.announcement.expiresAt) > now
     );
 
-    return NextResponse.json({ announcements: validAnnouncements });
+    return NextResponse.json(
+      { announcements: validAnnouncements },
+      {
+        headers: {
+          // Public data: let the CDN serve it and refresh in the background.
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching public announcements:", error);
     return NextResponse.json(
