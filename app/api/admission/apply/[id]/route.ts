@@ -47,8 +47,6 @@ export async function GET(
         roomNumber: admissionApplications.roomNumber,
         admissionStartDate: admissionApplications.admissionStartDate,
         admissionEndDate: admissionApplications.admissionEndDate,
-        adminNotes: admissionApplications.adminNotes,
-        reviewedBy: admissionApplications.reviewedBy,
         reviewedAt: admissionApplications.reviewedAt,
         rejectionReason: admissionApplications.rejectionReason,
         createdAt: admissionApplications.createdAt,
