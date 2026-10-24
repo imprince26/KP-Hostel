@@ -140,7 +140,6 @@ UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
 | `bun run start` | Serve the production build |
 | `bun run lint` | ESLint |
 | `bun run typecheck` | `tsc --noEmit` |
-| `bun run images:optimize` | Re-encode oversized images in `public/` to WebP |
 | `bunx drizzle-kit generate` | Generate a migration after editing `lib/db/schema.ts` |
 | `bunx drizzle-kit push` | Apply the schema to `DATABASE_URL` |
 | `bunx drizzle-kit studio` | Browse the database in Drizzle Studio |
