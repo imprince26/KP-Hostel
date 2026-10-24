@@ -139,7 +139,7 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1 bg-muted p-1.5 rounded-full max-w-2xl">
-              {navigation.slice(0, 6).map((item) => {
+              {navigation.slice(0, 5).map((item) => {
                 const isActive = item.href === `/${locale}`
                   ? pathname === `/${locale}` || pathname === `/${locale}/`
                   : pathname.startsWith(item.href);
