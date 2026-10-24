@@ -179,15 +179,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom text selection */
+/* Custom text selection: a light primary wash instead of a solid block, so
+   selected body copy stays readable in both light and dark themes. */
 ::selection {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  color: var(--foreground);
 }
 
 ::-moz-selection {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  color: var(--foreground);
 }
 
 /* Custom scrollbar */
