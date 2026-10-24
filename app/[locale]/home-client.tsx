@@ -77,7 +77,7 @@ export function HomeClient({ locale }: HomeClientProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
+      <section className="relative min-h-screen sm:min-h-[90vh] flex items-center justify-center overflow-hidden bg-background">
 
         {/* Content Container */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-40">
@@ -90,7 +90,7 @@ export function HomeClient({ locale }: HomeClientProps) {
               className="inline-flex items-center gap-2.5 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 mb-6 sm:mb-8 backdrop-blur-md shadow-xs"
             >
               <span className="size-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs sm:text-sm font-semibold tracking-wider text-primary uppercase font-mono">
+              <span className="text-xs sm:text-sm font-semibold tracking-wider text-primary uppercase font-display">
                 {t("heroSubtitle")}
               </span>
             </motion.div>
