@@ -11,65 +11,58 @@ type NotificationTreatment = {
   iconClassName: string;
 };
 
+const SUCCESS_CLASSES = {
+  badgeClassName: "text-primary bg-primary/10 border-primary/20",
+  iconClassName: "text-primary",
+};
+
+const WARNING_CLASSES = {
+  badgeClassName: "text-secondary-foreground bg-secondary border-border",
+  iconClassName: "text-secondary-foreground",
+};
+
+const ERROR_CLASSES = {
+  badgeClassName: "text-destructive bg-destructive/10 border-destructive/20",
+  iconClassName: "text-destructive",
+};
+
 /**
  * Visual treatment per notification type.
  *
- * Both the bell dialog and the student dashboard need the same icon and
- * label for a notification, so the mapping lives in one place.
+ * Both the bell dialog, the dashboard and the notifications page need the same
+ * icon and label for a notification, so the mapping lives in one place. The
+ * colours are theme tokens only, so the badges follow the light and dark
+ * palettes instead of hard-coding a hue.
  */
 const TYPE_TREATMENT: Record<string, NotificationTreatment> = {
-  success: {
-    icon: CheckCircle2,
-    label: "Approved",
-    badgeClassName:
-      "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200",
-    iconClassName: "text-emerald-600 dark:text-emerald-400",
-  },
+  success: { icon: CheckCircle2, label: "Approved", ...SUCCESS_CLASSES },
   application_approved: {
     icon: CheckCircle2,
     label: "Approved",
-    badgeClassName:
-      "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200",
-    iconClassName: "text-emerald-600 dark:text-emerald-400",
+    ...SUCCESS_CLASSES,
   },
   admission_activated: {
     icon: CheckCircle2,
-    label: "Approved",
-    badgeClassName:
-      "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200",
-    iconClassName: "text-emerald-600 dark:text-emerald-400",
+    label: "Active",
+    ...SUCCESS_CLASSES,
   },
-  warning: {
-    icon: AlertTriangle,
-    label: "Important",
-    badgeClassName:
-      "text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200",
-    iconClassName: "text-amber-600 dark:text-amber-400",
-  },
+  warning: { icon: AlertTriangle, label: "Important", ...WARNING_CLASSES },
   payment_due: {
     icon: AlertTriangle,
-    label: "Important",
-    badgeClassName:
-      "text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200",
-    iconClassName: "text-amber-600 dark:text-amber-400",
+    label: "Payment due",
+    ...WARNING_CLASSES,
   },
-  error: {
-    icon: AlertCircle,
-    label: "Action Needed",
-    badgeClassName: "text-destructive bg-destructive/10 border-destructive/20",
-    iconClassName: "text-destructive",
-  },
+  error: { icon: AlertCircle, label: "Action needed", ...ERROR_CLASSES },
   application_rejected: {
     icon: AlertCircle,
-    label: "Action Needed",
-    badgeClassName: "text-destructive bg-destructive/10 border-destructive/20",
-    iconClassName: "text-destructive",
+    label: "Not approved",
+    ...ERROR_CLASSES,
   },
-  announcement: {
+  announcement: { icon: Info, label: "Announcement", ...SUCCESS_CLASSES },
+  application_submitted: {
     icon: Info,
-    label: "Announcement",
-    badgeClassName: "text-primary bg-primary/10 border-primary/20",
-    iconClassName: "text-primary",
+    label: "Submitted",
+    ...SUCCESS_CLASSES,
   },
 };
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck } from "lucide-react";
+import { ArrowRight, Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -47,11 +48,8 @@ export function NotificationDialog() {
   });
 
   const markAllAsRead = useMutation({
-    mutationFn: async (notificationIds: string[]) => {
-      await Promise.all(
-        notificationIds.map((id) => apiSend("/api/notifications", "PATCH", { notificationId: id }))
-      );
-    },
+    mutationFn: () =>
+      apiSend("/api/notifications", "PATCH", { markAllRead: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
     },
@@ -106,12 +104,9 @@ export function NotificationDialog() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
-                    markAllAsRead.mutate(
-                      notifications.filter((n) => !n.read).map((n) => n.id)
-                    )
-                  }
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  onClick={() => markAllAsRead.mutate()}
+                  disabled={markAllAsRead.isPending}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <CheckCheck className="size-3.5" />
                   Mark all as read
@@ -149,12 +144,18 @@ export function NotificationDialog() {
             )}
           </DialogScrollArea>
 
-          {notifications.length > 0 && (
-            <div className="px-6 py-3 border-t border-border bg-muted/20 text-xs text-muted-foreground text-center shrink-0">
-              Total {notifications.length} notification
-              {notifications.length !== 1 ? "s" : ""}
-            </div>
-          )}
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-muted/20 px-6 py-3">
+            <span className="text-xs text-muted-foreground">
+              {notifications.length} notification
+              {notifications.length === 1 ? "" : "s"}
+            </span>
+            <Button asChild variant="ghost" size="sm" className="text-primary">
+              <Link href="/student/notifications" onClick={() => setOpen(false)}>
+                View all
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
         </ScrollableDialog>
       </Dialog>
 
