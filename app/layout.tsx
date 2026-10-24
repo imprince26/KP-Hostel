@@ -4,6 +4,7 @@ import { locales } from "@/i18n/request";
 import { ToastProvider } from "@/components/toast-provider";
 import { SessionProvider } from "@/components/session-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { DisclaimerDialog } from "@/components/disclaimer-dialog";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -192,6 +193,7 @@ export default function RootLayout({
         <SessionProvider>
           <QueryProvider>{children}</QueryProvider>
         </SessionProvider>
+        <DisclaimerDialog />
         <ToastProvider />
       </body>
     </html>
