@@ -36,6 +36,7 @@ declare module "next-auth" {
       acceptedPrivacyAt?: string | null;
       termsVersion?: string | null;
       createdAt?: string;
+      lastLoginAt?: string | null;
       avatar?: string | null;
     } & DefaultSession["user"];
   }
@@ -181,6 +182,13 @@ export const authOptions: NextAuthOptions = {
               .where(eq(users.id, dbUser.id));
             token.role = "student";
           }
+
+          // Record the sign-in. The session callback reads the row back, so the
+          // account screen can show the exact date and time of the last login.
+          await db
+            .update(users)
+            .set({ lastLoginAt: new Date() })
+            .where(eq(users.id, dbUser.id));
         } else {
           // Fallback if user not found in DB yet
           token.id = user.id;
@@ -214,10 +222,25 @@ export const authOptions: NextAuthOptions = {
           
           if (dbUser) {
             session.user.createdAt = dbUser.createdAt?.toISOString();
+            session.user.lastLoginAt = dbUser.lastLoginAt?.toISOString() ?? null;
             session.user.avatar = dbUser.avatar; // Always use latest from DB
             session.user.acceptedTermsAt = dbUser.acceptedTermsAt?.toISOString() ?? null;
             session.user.acceptedPrivacyAt = dbUser.acceptedPrivacyAt?.toISOString() ?? null;
             session.user.termsVersion = dbUser.termsVersion ?? null;
+
+            // Profile fields, so the portal can show and gate on them without
+            // an extra request per page.
+            session.user.phone = dbUser.phone;
+            session.user.dateOfBirth = dbUser.dateOfBirth;
+            session.user.address = dbUser.address;
+            session.user.city = dbUser.city;
+            session.user.state = dbUser.state;
+            session.user.pincode = dbUser.pincode;
+            session.user.guardianName = dbUser.guardianName;
+            session.user.guardianPhone = dbUser.guardianPhone;
+            session.user.collegeName = dbUser.collegeName;
+            session.user.course = dbUser.course;
+            session.user.year = dbUser.year;
 
             // Check if user needs to complete profile (no phone)
             if (!dbUser.phone) {

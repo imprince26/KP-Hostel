@@ -57,6 +57,9 @@ export const users = pgTable(
     acceptedTermsAt: timestamp("acceptedTermsAt", { mode: "date" }),
     acceptedPrivacyAt: timestamp("acceptedPrivacyAt", { mode: "date" }),
     termsVersion: text("termsVersion"),
+    // Written on every successful sign-in so the account screen can show the
+    // exact date and time instead of an approximation.
+    lastLoginAt: timestamp("lastLoginAt", { mode: "date" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
   },

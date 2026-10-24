@@ -37,6 +37,9 @@ export const queryKeys = {
     all: ["student"] as const,
     applications: ["student", "applications"] as const,
     application: (id: string) => ["student", "application", id] as const,
+    profile: ["student", "profile"] as const,
+    payments: ["student", "payments"] as const,
+    preferences: ["student", "preferences"] as const,
   },
   notifications: ["notifications"] as const,
   public: {

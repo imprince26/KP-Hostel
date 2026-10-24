@@ -63,6 +63,17 @@ export type StudentApplication = AdmissionApplication & {
   userPhone?: string | null;
 };
 
+/**
+ * The student's own application detail.
+ *
+ * Internal columns (`adminNotes`, `reviewedBy`) are not selected by the route,
+ * so they are excluded from the type as well.
+ */
+export type StudentApplicationDetail = Omit<
+  AdmissionApplication,
+  "adminNotes" | "reviewedBy" | "userId"
+>;
+
 export type NotificationRecord = {
   id: string;
   type: NotificationType | string;
@@ -72,6 +83,74 @@ export type NotificationRecord = {
   actionUrl?: string | null;
   createdAt: string;
 };
+
+/** A fee row as returned by the student's own payments endpoint. */
+export type StudentPayment = {
+  id: string;
+  applicationId: string | null;
+  semester: Semester;
+  academicYear: string;
+  ddNumber: string | null;
+  bankName: string | null;
+  amountPaid: number | null;
+  paymentStatus: PaymentStatus;
+  paidDate: string | null;
+  notes: string | null;
+  createdAt: string;
+};
+
+export type StudentPaymentsResponse = {
+  payments: StudentPayment[];
+  totalPaid: number;
+  pendingPayments: number;
+};
+
+/** Per-user switch settings for notification delivery. */
+export type NotificationPreferences = {
+  id: string;
+  userId: string;
+  emailNotifications: boolean;
+  applicationUpdates: boolean;
+  announcementNotifications: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * The signed-in user's own profile.
+ *
+ * Deliberately excludes the password hash and the reset token; the client only
+ * needs `hasPassword` to know whether a password can be changed.
+ */
+export type ProfileRecord = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  emailVerified: string | null;
+  image: string | null;
+  avatar: string | null;
+  role: string;
+  phone: string | null;
+  bio: string | null;
+  dateOfBirth: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  guardianName: string | null;
+  guardianPhone: string | null;
+  collegeName: string | null;
+  course: string | null;
+  year: string | null;
+  acceptedTermsAt: string | null;
+  acceptedPrivacyAt: string | null;
+  termsVersion: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  hasPassword: boolean;
+};
+
 
 export type HostelBlock = {
   id: string;
