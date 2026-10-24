@@ -1,450 +1,366 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiFileText, FiClock, FiCheck, FiX, FiEye, FiFilter, FiAlertCircle } from "react-icons/fi";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "next-auth/react";
+import {
+  ArrowRight,
+  BookOpen,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Files,
+  Plus,
+  Search,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard, StatCardGrid } from "@/components/ui/stat-card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ApplicationProgress,
+  ApplicationStatusBadge,
+} from "@/components/application-status";
+import { queryKeys, useApiQuery } from "@/hooks/use-data";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import type { StudentApplication } from "@/lib/api-types";
 
-interface Application {
-  id: string;
-  applicationNumber: string;
-  status: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  collegeName: string;
-  course: string;
-  year: string;
-  assignedBlock?: string;
-  roomNumber?: string;
-  admissionStartDate?: string;
-  admissionEndDate?: string;
-  reviewComments?: string;
-  createdAt: string;
-  updatedAt: string;
+type FilterKey = "all" | "in_progress" | "approved" | "rejected";
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "in_progress", label: "In progress" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Not approved" },
+];
+
+const APPROVED_STATUSES = new Set(["approved", "admitted", "active"]);
+const IN_PROGRESS_STATUSES = new Set(["submitted", "under_review"]);
+
+function matchesFilter(application: StudentApplication, filter: FilterKey) {
+  switch (filter) {
+    case "in_progress":
+      return IN_PROGRESS_STATUSES.has(application.status);
+    case "approved":
+      return APPROVED_STATUSES.has(application.status);
+    case "rejected":
+      return application.status === "rejected";
+    default:
+      return true;
+  }
+}
+
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function ApplicationCard({ application }: { application: StudentApplication }) {
+  const submitted = formatDate(application.createdAt);
+  const hasRoom = Boolean(application.assignedBlock && application.roomNumber);
+
+  return (
+    <Card className="border-border/70 bg-card shadow-xs transition-shadow hover:shadow-md">
+      <CardContent className="space-y-4 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-mono text-sm font-semibold text-foreground">
+              {application.applicationNumber}
+            </p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CalendarDays className="size-3.5" />
+              Submitted {submitted ?? "—"}
+            </p>
+          </div>
+          <ApplicationStatusBadge status={application.status} />
+        </div>
+
+        <ApplicationProgress status={application.status} />
+
+        <div className="grid gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:grid-cols-2">
+          <div className="flex items-start gap-2">
+            <BookOpen className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">College</p>
+              <p className="truncate font-medium text-foreground">
+                {application.collegeName}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Course</p>
+              <p className="truncate font-medium text-foreground">
+                {application.course} · {application.year}
+              </p>
+            </div>
+          </div>
+
+          {hasRoom && (
+            <div className="flex items-start gap-2 sm:col-span-2">
+              <Building2 className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Room allotted</p>
+                <p className="font-medium text-foreground">
+                  Block {application.assignedBlock}, Room{" "}
+                  {application.roomNumber}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link href={`/student/applications/${application.id}`}>
+            View details
+            <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ApplicationsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <Skeleton key={index} className="h-64 w-full" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function StudentApplications() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [filteredApps, setFilteredApps] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [search, setSearch] = useState("");
+
+  const isStudent = status === "authenticated";
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/login");
-      return;
-    }
-
-    if (status === "authenticated") {
-      fetchApplications();
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (filterStatus === "all") {
-      setFilteredApps(applications);
-    } else {
-      setFilteredApps(applications.filter(app => app.status === filterStatus));
-    }
-  }, [filterStatus, applications]);
+  const applicationsQuery = useApiQuery<{ applications: StudentApplication[] }>(
+    queryKeys.student.applications,
+    "/api/admission/apply",
+    isStudent
+  );
 
-  const fetchApplications = async () => {
-    try {
-      const res = await fetch("/api/admission/apply");
-      const data = await res.json();
-      
-      if (data.applications) {
-        setApplications(data.applications);
-        setFilteredApps(data.applications);
-      }
-    } catch (error) {
-      console.error("Error fetching applications:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const applications = useMemo(
+    () => applicationsQuery.data?.applications ?? [],
+    [applicationsQuery.data]
+  );
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase());
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      submitted: { label: "Submitted", class: "bg-blue-100 text-blue-700 border-blue-300" },
-      under_review: { label: "Under Review", class: "bg-yellow-100 text-yellow-700 border-yellow-300" },
-      approved: { label: "Approved", class: "bg-green-100 text-green-700 border-green-300" },
-      rejected: { label: "Rejected", class: "bg-red-100 text-red-700 border-red-300" },
-      active: { label: "Active", class: "bg-purple-100 text-purple-700 border-purple-300" },
-    };
+  const counts = useMemo(
+    () => ({
+      all: applications.length,
+      in_progress: applications.filter((application) =>
+        IN_PROGRESS_STATUSES.has(application.status)
+      ).length,
+      approved: applications.filter((application) =>
+        APPROVED_STATUSES.has(application.status)
+      ).length,
+      rejected: applications.filter(
+        (application) => application.status === "rejected"
+      ).length,
+    }),
+    [applications]
+  );
 
-    const config = statusConfig[status as keyof typeof statusConfig] || {
-      label: status,
-      class: "bg-gray-100 text-gray-700 border-gray-300",
-    };
-
-    return (
-      <Badge variant="outline" className={`${config.class} font-medium`}>
-        {config.label}
-      </Badge>
+  const visible = useMemo(() => {
+    const filtered = applications.filter((application) =>
+      matchesFilter(application, filter)
     );
-  };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "submitted":
-      case "under_review":
-        return <FiClock className="w-5 h-5 text-yellow-600" />;
-      case "approved":
-      case "active":
-        return <FiCheck className="w-5 h-5 text-green-600" />;
-      case "rejected":
-        return <FiX className="w-5 h-5 text-red-600" />;
-      default:
-        return <FiFileText className="w-5 h-5 text-gray-600" />;
-    }
-  };
+    if (!debouncedSearch) return filtered;
 
-  if (loading) {
+    return filtered.filter((application) =>
+      [
+        application.applicationNumber,
+        application.collegeName,
+        application.course,
+        application.year,
+        application.assignedBlock ?? "",
+        application.roomNumber ?? "",
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(debouncedSearch)
+    );
+  }, [applications, filter, debouncedSearch]);
+
+  if (status === "loading" || (isStudent && applicationsQuery.isPending)) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading applications...</p>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
+        <ApplicationsSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <PageHeader
-          title="My Applications"
-          description="Track and manage your hostel admission applications"
-          className="text-center"
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:py-8">
+      <PageHeader
+        title="My applications"
+        description="Track every hostel application, its review status and your room allotment."
+        actions={
+          <Button asChild>
+            <Link href="/en/admission">
+              <Plus className="size-4" />
+              New application
+            </Link>
+          </Button>
+        }
+      />
+
+      <StatCardGrid columns={4}>
+        <StatCard
+          label="Applications"
+          value={counts.all}
+          icon={Files}
+          hint="All time"
         />
+        <StatCard
+          label="In progress"
+          value={counts.in_progress}
+          icon={Clock}
+          hint="Waiting on the office"
+        />
+        <StatCard
+          label="Approved"
+          value={counts.approved}
+          icon={CheckCircle2}
+          hint="Ready for admission"
+        />
+        <StatCard
+          label="Not approved"
+          value={counts.rejected}
+          icon={XCircle}
+          hint="See review comments"
+        />
+      </StatCardGrid>
 
-        {/* Filter Controls */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <FiFilter className="w-5 h-5" />
-              Filter Applications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => setFilterStatus("all")}
-                variant={filterStatus === "all" ? "default" : "outline"}
-                size="sm"
-              >
-                All Applications
-              </Button>
-              <Button
-                onClick={() => setFilterStatus("submitted")}
-                variant={filterStatus === "submitted" ? "default" : "outline"}
-                size="sm"
-              >
-                Submitted
-              </Button>
-              <Button
-                onClick={() => setFilterStatus("under_review")}
-                variant={filterStatus === "under_review" ? "default" : "outline"}
-                size="sm"
-              >
-                Under Review
-              </Button>
-              <Button
-                onClick={() => setFilterStatus("approved")}
-                variant={filterStatus === "approved" ? "default" : "outline"}
-                size="sm"
-              >
-                Approved
-              </Button>
-              <Button
-                onClick={() => setFilterStatus("rejected")}
-                variant={filterStatus === "rejected" ? "default" : "outline"}
-                size="sm"
-              >
-                Rejected
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Filters and search */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div
+          className="flex gap-1 overflow-x-auto rounded-lg bg-muted p-1"
+          role="tablist"
+          aria-label="Filter applications by status"
+        >
+          {FILTERS.map((item) => {
+            const active = filter === item.key;
 
-        {/* Applications List */}
-        {filteredApps.length === 0 ? (
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              <EmptyState
-                icon={FiFileText}
-                title="No applications found"
-                description={
-                  filterStatus === "all"
-                    ? "You haven't submitted any applications yet."
-                    : `No ${filterStatus.replace("_", " ")} applications found.`
+            return (
+              <button
+                key={item.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFilter(item.key)}
+                className={
+                  active
+                    ? "inline-flex shrink-0 items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-xs"
+                    : "inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 }
-                action={
-                  <Button
-                    onClick={() => router.push("/en/admission")}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Submit New Application
-                  </Button>
-                }
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredApps.map((app) => (
-              <Card key={app.id} className="shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="mt-1">
-                        {getStatusIcon(app.status)}
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <h3 className="text-xl font-semibold text-foreground">
-                            {app.applicationNumber}
-                          </h3>
-                          {getStatusBadge(app.status)}
-                        </div>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <p><strong className="text-foreground">Name:</strong> {app.fullName}</p>
-                          <p><strong className="text-foreground">College:</strong> {app.collegeName}</p>
-                          <p><strong className="text-foreground">Course:</strong> {app.course} - {app.year}</p>
-                          <p><strong className="text-foreground">Submitted:</strong> {new Date(app.createdAt).toLocaleDateString()}</p>
-                          {app.assignedBlock && app.roomNumber && (
-                            <p className="text-green-700">
-                              <strong>Room:</strong> Block {app.assignedBlock}, Room {app.roomNumber}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={() => router.push(`/student/applications/${app.id}`)}
-                        variant="outline"
-                      >
-                        <FiEye className="mr-2" />
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+              >
+                {item.label}
+                <span
+                  className={
+                    active
+                      ? "rounded-full bg-primary/10 px-1.5 text-[11px] font-semibold text-primary"
+                      : "rounded-full bg-background/60 px-1.5 text-[11px] font-semibold text-muted-foreground"
+                  }
+                >
+                  {counts[item.key]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="relative w-full lg:max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search application, college or room"
+            aria-label="Search applications"
+            className="pl-9"
+          />
+        </div>
       </div>
 
-      {/* Application Details Dialog */}
-      <Dialog open={!!selectedApp} onOpenChange={() => setSelectedApp(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl">
-              <FiFileText className="text-primary" />
-              Application Details
-            </DialogTitle>
-            <DialogDescription>
-              Application Number: <strong>{selectedApp?.applicationNumber}</strong>
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedApp && (
-            <div className="space-y-6">
-              {/* Status */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">Status</h4>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(selectedApp.status)}
-                  <span className="text-sm text-muted-foreground">
-                    Last updated: {new Date(selectedApp.updatedAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Personal Information */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Personal Information</h4>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Full Name</p>
-                    <p className="font-medium text-foreground">{selectedApp.fullName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium text-foreground">{selectedApp.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium text-foreground">{selectedApp.phone}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Educational Information */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Educational Information</h4>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">College/University</p>
-                    <p className="font-medium text-foreground">{selectedApp.collegeName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Course</p>
-                    <p className="font-medium text-foreground">{selectedApp.course}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Academic Year</p>
-                    <p className="font-medium text-foreground">{selectedApp.year}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Room Assignment (if approved) */}
-              {selectedApp.assignedBlock && selectedApp.roomNumber && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                    <FiCheck className="w-5 h-5" />
-                    Room Assignment
-                  </h4>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-green-700">Block</p>
-                      <p className="font-medium text-green-900">{selectedApp.assignedBlock}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-green-700">Room Number</p>
-                      <p className="font-medium text-green-900">{selectedApp.roomNumber}</p>
-                    </div>
-                    {selectedApp.admissionStartDate && (
-                      <>
-                        <div>
-                          <p className="text-sm text-green-700">Admission Start Date</p>
-                          <p className="font-medium text-green-900">
-                            {new Date(selectedApp.admissionStartDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-green-700">Admission End Date</p>
-                          <p className="font-medium text-green-900">
-                            {new Date(selectedApp.admissionEndDate!).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Review Comments (if any) */}
-              {selectedApp.reviewComments && (
-                <div className={`${
-                  selectedApp.status === "rejected"
-                    ? "bg-destructive/10 border-destructive/20"
-                    : "bg-blue-50 border-blue-200"
-                } border rounded-lg p-4`}>
-                  <h4 className={`font-semibold mb-2 flex items-center gap-2 ${
-                    selectedApp.status === "rejected" ? "text-destructive" : "text-blue-900"
-                  }`}>
-                    <FiAlertCircle className="w-5 h-5" />
-                    Review Comments
-                  </h4>
-                  <p className={selectedApp.status === "rejected" ? "text-destructive" : "text-blue-800"}>
-                    {selectedApp.reviewComments}
-                  </p>
-                </div>
-              )}
-
-              {/* Timeline */}
-              <div>
-                <h4 className="font-semibold text-foreground mb-3 pb-2 border-b">Application Timeline</h4>
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <FiFileText className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Application Submitted</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(selectedApp.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {selectedApp.status !== "submitted" && (
-                    <div className="flex gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        selectedApp.status === "rejected"
-                          ? "bg-destructive/10"
-                          : "bg-green-500/10"
-                      }`}>
-                        {selectedApp.status === "rejected" ? (
-                          <FiX className="w-4 h-4 text-destructive" />
-                        ) : (
-                          <FiCheck className="w-4 h-4 text-green-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Application {selectedApp.status === "rejected" ? "Rejected" : "Reviewed"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(selectedApp.updatedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Next Steps */}
-              {selectedApp.status === "approved" && (
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-primary mb-2">📋 Next Steps</h4>
-                  <ul className="space-y-2 text-sm text-primary/80">
-                    <li className="flex gap-2">
-                      <span>1.</span>
-                      <span>Visit hostel office during working hours (9 AM - 5 PM)</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>2.</span>
-                      <span>Bring original documents for verification</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>3.</span>
-                      <span>Complete payment via Demand Draft</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>4.</span>
-                      <span>Receive room keys and allotment letter</span>
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {applications.length === 0 ? (
+        <Card className="border-dashed bg-card">
+          <CardContent className="p-0">
+            <EmptyState
+              icon={FileText}
+              title="No applications yet"
+              description="Submit an application to be considered for a room at K.P. Vidhyarthi Bhavan."
+              action={
+                <Button asChild>
+                  <Link href="/en/admission">Apply for admission</Link>
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : visible.length === 0 ? (
+        <Card className="border-dashed bg-card">
+          <CardContent className="p-0">
+            <EmptyState
+              icon={Search}
+              title="Nothing matches that filter"
+              description="Try a different status or clear the search to see all of your applications."
+              action={
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFilter("all");
+                    setSearch("");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {visible.map((application) => (
+            <ApplicationCard key={application.id} application={application} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
