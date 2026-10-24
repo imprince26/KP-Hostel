@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Gujarati, Anek_Gujarati, Outfit, Plus_Jakarta_Sans, JetBrains_Mono, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import { locales } from "@/i18n/request";
 import { ToastProvider } from "@/components/toast-provider";
 import { SessionProvider } from "@/components/session-provider";
@@ -7,54 +7,157 @@ import { QueryProvider } from "@/components/query-provider";
 import { DisclaimerDialog } from "@/components/disclaimer-dialog";
 import "./globals.css";
 
-const outfit = Outfit({
+// The typefaces are vendored in ./fonts instead of being loaded through
+// `next/font/google`. Google Fonts occasionally answers with extensionless
+// `/l/font?kit=…&skey=…&v=…` URLs, and Turbopack then fails the build with
+// `next/font/google queries have exactly one entry` (vercel/next.js#99114).
+// Keeping the woff2 files in the repo makes builds deterministic and removes
+// the network request from the build entirely.
+
+const outfit = localFont({
+  src: "./fonts/outfit-latin.woff2",
   variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: "300 800",
   display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const plusJakartaSans = localFont({
+  src: "./fonts/plus-jakarta-sans-latin.woff2",
   variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: "300 800",
   display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
   variable: "--font-jetbrains",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
   display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const playfair = Playfair_Display({
+const playfair = localFont({
+  src: "./fonts/playfair-display-latin.woff2",
   variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: "400 900",
   display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: "./fonts/geist-latin.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "./fonts/geist-mono-latin.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
-const notoSansGujarati = Noto_Sans_Gujarati({
+// The Gujarati families ship a separate file per script, so each script gets
+// its own @font-face with a matching unicode-range.
+const notoSansGujarati = localFont({
+  src: "./fonts/noto-sans-gujarati-gujarati.woff2",
   variable: "--font-noto-sans-gujarati",
-  subsets: ["gujarati", "latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: "100 900",
+  display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value: "U+0951-0952, U+0964-0965, U+0A80-0AFF, U+200C-200D, U+20B9, U+25CC, U+A830-A839",
+    },
+  ],
 });
 
-const anekGujarati = Anek_Gujarati({
+const notoSansGujaratiLatin = localFont({
+  src: "./fonts/noto-sans-gujarati-latin.woff2",
+  variable: "--font-noto-sans-gujarati-latin",
+  weight: "100 900",
+  display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
+});
+
+const anekGujarati = localFont({
+  src: "./fonts/anek-gujarati-gujarati.woff2",
   variable: "--font-anek-gujarati",
-  subsets: ["gujarati", "latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+  weight: "100 800",
+  display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value: "U+0951-0952, U+0964-0965, U+0A80-0AFF, U+200C-200D, U+20B9, U+25CC, U+A830-A839",
+    },
+  ],
+});
+
+const anekGujaratiLatin = localFont({
+  src: "./fonts/anek-gujarati-latin.woff2",
+  variable: "--font-anek-gujarati-latin",
+  weight: "100 800",
+  display: "swap",
+  preload: false,
+  declarations: [
+    {
+      prop: "unicode-range",
+      value:
+        "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -172,7 +275,9 @@ export default function RootLayout({
     geistSans.variable,
     geistMono.variable,
     notoSansGujarati.variable,
+    notoSansGujaratiLatin.variable,
     anekGujarati.variable,
+    anekGujaratiLatin.variable,
   ].join(" ");
 
   return (

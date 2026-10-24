@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-jakarta), var(--font-geist-sans), var(--font-noto-sans-gujarati), var(--font-anek-gujarati), 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-jakarta), var(--font-geist-sans), var(--font-noto-sans-gujarati), var(--font-noto-sans-gujarati-latin), var(--font-anek-gujarati), var(--font-anek-gujarati-latin), 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-jetbrains), var(--font-geist-mono), 'Roboto Mono', 'Space Mono', monospace;
   --font-display: var(--font-outfit), 'League Spartan', 'Montserrat', var(--font-geist-sans), sans-serif;
   --font-heading: var(--font-outfit), 'League Spartan', 'Montserrat', sans-serif;
@@ -307,12 +307,12 @@
 
 /* Gujarati Font Support */
 :lang(gu) {
-  font-family: var(--font-noto-sans-gujarati), var(--font-anek-gujarati), 'Noto Sans Gujarati', 'Anek Gujarati', sans-serif;
+  font-family: var(--font-noto-sans-gujarati), var(--font-noto-sans-gujarati-latin), var(--font-anek-gujarati), var(--font-anek-gujarati-latin), 'Noto Sans Gujarati', 'Anek Gujarati', sans-serif;
 }
 
 /* Ensure Gujarati text uses appropriate fonts */
 .gu {
-  font-family: var(--font-noto-sans-gujarati), var(--font-anek-gujarati), 'Noto Sans Gujarati', 'Anek Gujarati', sans-serif;
+  font-family: var(--font-noto-sans-gujarati), var(--font-noto-sans-gujarati-latin), var(--font-anek-gujarati), var(--font-anek-gujarati-latin), 'Noto Sans Gujarati', 'Anek Gujarati', sans-serif;
 }
 
 /* Gujarati script font fallback */
