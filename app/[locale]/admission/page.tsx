@@ -1,79 +1,236 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useSession } from "next-auth/react";
-import { useRouter, useParams } from "next/navigation";
-import { format } from "date-fns";
 import { motion } from "motion/react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, AlertCircle, Upload, User, Phone, Book, MapPin, FileText, Home, Users, CheckCircle2, Shield, Clock, GraduationCap } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  GraduationCap,
+  Info,
+  Loader2,
+  MapPin,
+  ShieldCheck,
+  UploadCloud,
+  UserRound,
+  Users,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
-// Enhanced validation schema with all required fields
+/* schema */
+
 const admissionSchema = z.object({
-  // Personal Details
-  fullName: z.string().min(3, "Full name must be at least 3 characters"),
+  fullName: z.string().min(3, "Enter your full name"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  gender: z.enum(["male", "female", "other"], { message: "Gender is required" }),
+  gender: z.enum(["male", "female", "other"], { message: "Select a gender" }),
   caste: z.string().min(2, "Caste is required"),
   subCaste: z.string().min(2, "Sub-caste is required"),
-  
-  // Contact Information
-  email: z.string().email("Invalid email address"),
-  phone: z.string().regex(/^\d{10}$/, "Phone number must be 10 digits"),
-  
-  // Address
-  address: z.string().min(10, "Complete address is required"),
+
+  email: z.email("Enter a valid email address"),
+  phone: z.string().regex(/^\d{10}$/, "Enter a 10-digit phone number"),
+
+  address: z.string().min(10, "Enter your complete address"),
   city: z.string().min(2, "City is required"),
   state: z.string().min(2, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
-  
-  // Educational Details
+  pincode: z.string().regex(/^\d{6}$/, "Enter a 6-digit pincode"),
+
   collegeName: z.string().min(3, "College name is required"),
   course: z.string().min(2, "Course is required"),
-  year: z.enum(["1", "2", "3", "4"], { message: "Academic year is required" }),
+  year: z.enum(["1", "2", "3", "4"], { message: "Select your year of study" }),
   studentId: z.string().optional(),
-  
-  // Guardian Details
-  guardianName: z.string().min(3, "Guardian name is required"),
-  guardianPhone: z.string().regex(/^\d{10}$/, "Guardian phone must be 10 digits"),
-  guardianRelation: z.string().min(2, "Relation is required"),
-  
-  // Hostel Preferences
-  blockPreference: z.enum(["A", "B", "C", "D"], { message: "Block preference is required" }).optional(),
 
-  // Photo Upload
+  guardianName: z.string().min(3, "Guardian name is required"),
+  guardianPhone: z.string().regex(/^\d{10}$/, "Enter a 10-digit phone number"),
+  guardianRelation: z.string().min(2, "Relationship is required"),
+
+  blockPreference: z.enum(["A", "B", "C", "D"]).optional(),
   passportPhoto: z.string().optional(),
 });
 
 type AdmissionFormData = z.infer<typeof admissionSchema>;
+type RequiredField = keyof AdmissionFormData;
+
+const PROGRESS_SECTIONS: { label: string; fields: RequiredField[] }[] = [
+  {
+    label: "Personal details",
+    fields: ["fullName", "dateOfBirth", "gender", "caste", "subCaste"],
+  },
+  {
+    label: "Contact & address",
+    fields: ["email", "phone", "address", "city", "state", "pincode"],
+  },
+  {
+    label: "Education",
+    fields: ["collegeName", "course", "year"],
+  },
+  {
+    label: "Guardian",
+    fields: ["guardianName", "guardianPhone", "guardianRelation"],
+  },
+  {
+    label: "Passport photo",
+    fields: ["passportPhoto"],
+  },
+];
+
+const BLOCKS = ["A", "B", "C", "D"] as const;
+
+const NEXT_STEPS = [
+  "Check your email for the submission confirmation.",
+  "Visit the hostel office with your college ID, Aadhaar card and photographs.",
+  "The office reviews your application and records the decision on your dashboard.",
+  "Once approved, complete the admission formalities and pay the fees at the office.",
+];
+
+/* small parts */
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+
+  return (
+    <p className="flex items-center gap-1 text-xs text-destructive">
+      <AlertCircle className="size-3.5 shrink-0" />
+      {message}
+    </p>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  required,
+  error,
+  hint,
+  className,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  required?: boolean;
+  error?: string;
+  hint?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label htmlFor={htmlFor} className="text-sm font-medium text-foreground">
+        {label}
+        {required && <span className="ml-0.5 text-destructive">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
+      <FieldError message={error} />
+    </div>
+  );
+}
+
+function SectionCard({
+  id,
+  icon: Icon,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  icon: typeof UserRound;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card id={id} className="scroll-mt-24 overflow-hidden border-border/70 shadow-xs">
+      <CardHeader className="border-b border-border">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <CardDescription className="mt-0.5 text-sm">
+              {description}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 px-5 sm:px-6">{children}</CardContent>
+    </Card>
+  );
+}
+
+function FormSkeleton() {
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <div className="container mx-auto max-w-6xl px-4 pb-16 pt-28 md:pt-32">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="mt-3 h-4 w-full max-w-md" />
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-6">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-72 w-full" />
+          </div>
+          <Skeleton className="h-72 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* page */
 
 export default function AdmissionPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
+
+  if (status === "loading") {
+    return <FormSkeleton />;
+  }
+
+  return <AdmissionForm />;
+}
+
+function AdmissionForm() {
+  const { data: session } = useSession();
   const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as string || 'en';
-  
+  const params = useParams<{ locale?: string }>();
+  const locale = params?.locale ?? "en";
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [applicationNumber, setApplicationNumber] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [dateOfBirth, setDateOfBirth] = useState<Date>();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -81,87 +238,97 @@ export default function AdmissionPage() {
     formState: { errors },
     setValue,
     watch,
-    trigger,
   } = useForm<AdmissionFormData>({
     resolver: zodResolver(admissionSchema),
     defaultValues: {
-      fullName: session?.user?.name || "",
-      email: session?.user?.email || "",
-      phone: session?.user?.phone || "",
-      dateOfBirth: session?.user?.dateOfBirth || "",
-      gender: (session?.user?.gender as "male" | "female" | "other") || undefined,
-      caste: session?.user?.caste || "",
-      subCaste: session?.user?.subCaste || "",
-      address: session?.user?.address || "",
-      city: session?.user?.city || "",
-      state: session?.user?.state || "",
-      pincode: session?.user?.pincode || "",
-      guardianName: session?.user?.guardianName || "",
-      guardianPhone: session?.user?.guardianPhone || "",
-      collegeName: session?.user?.collegeName || "",
-      course: session?.user?.course || "",
-      year: (session?.user?.year as "1" | "2" | "3" | "4") || undefined,
+      fullName: session?.user?.name ?? "",
+      email: session?.user?.email ?? "",
+      phone: session?.user?.phone ?? "",
+      dateOfBirth: session?.user?.dateOfBirth ?? "",
+      gender: (session?.user?.gender as AdmissionFormData["gender"]) ?? undefined,
+      caste: session?.user?.caste ?? "",
+      subCaste: session?.user?.subCaste ?? "",
+      address: session?.user?.address ?? "",
+      city: session?.user?.city ?? "",
+      state: session?.user?.state ?? "",
+      pincode: session?.user?.pincode ?? "",
+      guardianName: session?.user?.guardianName ?? "",
+      guardianPhone: session?.user?.guardianPhone ?? "",
+      collegeName: session?.user?.collegeName ?? "",
+      course: session?.user?.course ?? "",
+      year: (session?.user?.year as AdmissionFormData["year"]) ?? undefined,
+      studentId: "",
+      blockPreference: undefined,
+      passportPhoto: "",
     },
   });
 
-  const passportPhoto = watch("passportPhoto");
+  const values = watch();
 
-  // Handle photo upload
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const isFilled = (field: RequiredField) => {
+    const value = values[field];
+    return typeof value === "string" && value.trim().length > 0;
+  };
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Photo size must be less than 5MB");
+  const totalFields = PROGRESS_SECTIONS.reduce(
+    (total, section) => total + section.fields.length,
+    0
+  );
+  const completedFields = PROGRESS_SECTIONS.reduce(
+    (total, section) => total + section.fields.filter(isFilled).length,
+    0
+  );
+  const percent = Math.round((completedFields / totalFields) * 100);
+
+  const handlePhoto = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Choose an image file (JPG or PNG)");
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("The photo must be smaller than 5 MB");
       return;
     }
 
     setIsUploadingPhoto(true);
-    setSubmitError(null);
+    setPhotoError(null);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/upload", {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to upload photo");
-      }
+      if (!response.ok) throw new Error("Upload failed");
 
-      const data = await res.json();
-      setValue("passportPhoto", data.url);
+      const data = (await response.json()) as { url?: string };
+      if (!data.url) throw new Error("Upload failed");
+
+      setValue("passportPhoto", data.url, { shouldValidate: true });
       setPhotoPreview(data.url);
-      toast.success("Photo uploaded successfully");
-    } catch (error) {
-      console.error("Photo upload error:", error);
-      toast.error("Failed to upload photo");
+      toast.success("Photo uploaded");
+    } catch {
+      toast.error("Could not upload the photo. Please try again.");
     } finally {
       setIsUploadingPhoto(false);
     }
   };
 
-  // Submit form
   const onSubmit = async (data: AdmissionFormData) => {
     if (!session) {
       router.push("/auth/login");
       return;
     }
 
-    // Validate passport photo
     if (!data.passportPhoto) {
-      setSubmitError("Please upload a passport size photo");
-      toast.error("Please upload a passport size photo");
-      setCurrentStep(5);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setPhotoError("A passport size photo is required");
+      document
+        .getElementById("photo")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -169,24 +336,27 @@ export default function AdmissionPage() {
     setSubmitError(null);
 
     try {
-      const res = await fetch("/api/admission/apply", {
+      const response = await fetch("/api/admission/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      const result = await res.json();
+      const result = (await response.json()) as {
+        applicationNumber?: string;
+        error?: string;
+      };
 
-      if (!res.ok) {
-        throw new Error(result.error || "Failed to submit application");
+      if (!response.ok || !result.applicationNumber) {
+        throw new Error(result.error ?? "Could not submit the application");
       }
 
       setApplicationNumber(result.applicationNumber);
-      toast.success("Application submitted successfully!");
+      toast.success("Application submitted");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
-      console.error("Submission error:", error);
       const message =
-        error instanceof Error ? error.message : "Failed to submit application";
+        error instanceof Error ? error.message : "Could not submit the application";
       setSubmitError(message);
       toast.error(message);
     } finally {
@@ -194,385 +364,233 @@ export default function AdmissionPage() {
     }
   };
 
-  // Step navigation
-  const nextStep = async () => {
-    let fieldsToValidate: (keyof AdmissionFormData)[] = [];
-    
-    switch (currentStep) {
-      case 1:
-        fieldsToValidate = ["fullName", "dateOfBirth", "gender", "caste", "subCaste"];
-        break;
-      case 2:
-        fieldsToValidate = ["email", "phone", "address", "city", "state", "pincode"];
-        break;
-      case 3:
-        fieldsToValidate = ["collegeName", "course", "year"];
-        break;
-      case 4:
-        fieldsToValidate = ["guardianName", "guardianPhone", "guardianRelation"];
-        break;
-    }
+  /* success screen */
 
-    const isValid = await trigger(fieldsToValidate);
-    if (isValid) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const prevStep = () => {
-    setCurrentStep(currentStep - 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const steps = [
-    { number: 1, title: "Personal Details", icon: User },
-    { number: 2, title: "Contact & Address", icon: MapPin },
-    { number: 3, title: "Educational Info", icon: Book },
-    { number: 4, title: "Guardian Details", icon: Users },
-    { number: 5, title: "Photo Upload", icon: Upload },
-  ];
-
-  // Success screen
   if (applicationNumber) {
     return (
-      <div className="min-h-screen bg-white pt-28 pb-16 px-4">
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-muted/30">
+        <div className="container mx-auto max-w-3xl px-4 pb-16 pt-28 md:pt-32">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
           >
-            <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="bg-linear-to-r from-primary/10 to-primary/5 text-gray-900 p-12 text-center relative overflow-hidden border-b border-primary/10">
-                <div className="absolute inset-0 opacity-5">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    }}
-                  />
-                </div>
-                <div className="relative z-10">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    className="inline-flex items-center justify-center w-24 h-24 bg-primary rounded-full mb-6 shadow-2xl"
-                  >
-                    <Check className="w-14 h-14 text-white" />
-                  </motion.div>
-                  <h1 className="text-4xl font-bold mb-3 text-gray-900">Application Submitted!</h1>
-                  <p className="text-gray-600 text-xl">Your hostel admission application has been successfully submitted</p>
-                </div>
-              </div>
-              
-            <CardContent className="p-8 sm:p-12 space-y-6">
-              <div className="bg-linear-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-xl p-6 shadow-sm">
-                <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Your Application Number</p>
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <p className="text-3xl sm:text-4xl font-bold text-primary tracking-wider font-mono">{applicationNumber}</p>
+            <div className="border-b border-border bg-primary/5 px-6 py-10 text-center">
+              <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                <Check className="size-8" />
+              </span>
+              <h1 className="mt-5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                Application submitted
+              </h1>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                Your hostel admission application has reached the hostel office.
+              </p>
+            </div>
+
+            <div className="space-y-6 p-6 sm:p-8">
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Application number
+                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <p className="font-mono text-2xl font-bold tracking-wide text-primary sm:text-3xl">
+                    {applicationNumber}
+                  </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-primary/30 hover:bg-primary/5"
                     onClick={() => {
                       navigator.clipboard.writeText(applicationNumber);
-                      toast.success("Copied to clipboard!");
+                      toast.success("Application number copied");
                     }}
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                    <Copy className="size-4" />
                     Copy
                   </Button>
                 </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Keep this number safe. You will need it to track your
+                  application and at the hostel office.
+                </p>
               </div>
 
-              <Alert className="border-accent bg-accent shadow-sm">
-                <AlertCircle className="h-5 w-5 text-accent-foreground" />
-                <AlertDescription className="text-accent-foreground">
-                  <strong className="block mb-2 text-base font-semibold">Important: Save Your Application Number</strong>
-                  <p className="text-sm leading-relaxed">Please note down this application number for future reference. You will need it to track your application status.</p>
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-4 pt-4">
-                <h3 className="font-semibold text-xl text-gray-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-orange-500" />
-                  Next Steps
-                </h3>
-                <ol className="space-y-3">
-                  {[
-                    "Check your email for application confirmation and further instructions",
-                    "Visit the hostel office with required documents (College ID, Aadhar Card, Photos)",
-                    "Complete the offline admission formalities at the office",
-                    "Track your application status in the student dashboard",
-                    "Wait for approval notification from the admin team"
-                  ].map((step, index) => (
-                    <li key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <span className="shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+              <div>
+                <h2 className="text-sm font-semibold text-foreground">
+                  What happens next
+                </h2>
+                <ol className="mt-3 space-y-3">
+                  {NEXT_STEPS.map((step, index) => (
+                    <li key={step} className="flex gap-3 text-sm">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                         {index + 1}
                       </span>
-                      <span className="text-gray-700 leading-relaxed">{step}</span>
+                      <span className="leading-relaxed text-muted-foreground">
+                        {step}
+                      </span>
                     </li>
                   ))}
                 </ol>
               </div>
 
-              <div className="pt-4 flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={() => router.push("/student/dashboard")}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 h-12 text-base"
-                >
-                  Go to Dashboard
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button asChild className="h-11 flex-1">
+                  <Link href="/student/applications">
+                    Track my application
+                    <ArrowRight className="size-4" />
+                  </Link>
                 </Button>
-                <Button
-                  onClick={() => router.push("/student/applications")}
-                  variant="outline"
-                  className="flex-1 h-12 text-base"
-                >
-                  View My Applications
+                <Button asChild variant="outline" className="h-11 flex-1">
+                  <Link href="/student/dashboard">Go to dashboard</Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
           </motion.div>
         </div>
       </div>
     );
   }
 
-  // Application form
-  return (
-    <div className="min-h-screen bg-muted/20 pb-16">
-      {/* Header Banner */}
-      <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-background border-b border-border">
-        <div className="container px-4 mx-auto max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-            <GraduationCap className="h-3.5 w-3.5" />
-            <span>Hostel Admissions</span>
-          </div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4"
-          >
-            Admission{" "}
-            <span className="text-primary font-serif italic">
-              Application
-            </span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
-          >
-            Complete your hostel admission application in 5 structured steps.
-          </motion.p>
+  /* form */
 
+  return (
+    <div className="min-h-screen bg-muted/30">
+      {/* Hero */}
+      <section className="border-b border-border bg-background">
+        <div className="container mx-auto max-w-6xl px-4 pb-10 pt-28 md:pt-32">
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-6"
+            className="max-w-2xl"
           >
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              <span>5 Step Process</span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
-              <Shield className="w-4 h-4 text-primary" />
-              <span>Secure Verification</span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs sm:text-sm font-medium text-foreground">
-              <Clock className="w-4 h-4 text-primary" />
-              <span>Quick Submission</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              <GraduationCap className="size-3.5" />
+              Hostel admissions
+            </span>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Apply for{" "}
+              <span className="font-serif italic text-primary">admission</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              One form, about five minutes. Fill in your details, upload a
+              passport photo and submit. The hostel office reviews every
+              application.
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                { icon: Clock, label: "About 5 minutes" },
+                { icon: ShieldCheck, label: "Reviewed by the hostel office" },
+                { icon: CheckCircle2, label: "Track it on your dashboard" },
+              ].map((item) => (
+                <span
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1.5 text-xs font-medium text-foreground"
+                >
+                  <item.icon className="size-3.5 text-primary" />
+                  {item.label}
+                </span>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Form Container */}
-      <div className="py-4 sm:py-6 lg:py-8">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          {!session && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <Alert className="border-destructive/50 bg-destructive/10 shadow-sm">
-                <AlertCircle className="h-5 w-5 text-destructive" />
+      <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
+          <div className="min-w-0 space-y-5">
+            {/* Mobile progress */}
+            <div className="rounded-xl border border-border bg-card p-4 shadow-xs lg:hidden">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-foreground">
+                  Application progress
+                </span>
+                <span className="tabular-nums text-muted-foreground">
+                  {completedFields}/{totalFields}
+                </span>
+              </div>
+              <Progress value={percent} className="mt-2 h-2" />
+            </div>
+
+            {!session && (
+              <Alert className="border-destructive/30 bg-destructive/5">
+                <AlertCircle className="size-4 text-destructive" />
                 <AlertDescription className="text-destructive">
-                  Please login to submit your application.{" "}
-                  <Button
-                    variant="link"
-                    className="px-1 h-auto text-destructive font-semibold underline"
-                    onClick={() => router.push("/auth/login")}
-                  >
-                    Login here
-                  </Button>
+                  <span className="flex flex-wrap items-center gap-1">
+                    Sign in to submit this application.
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 font-semibold text-destructive underline"
+                      onClick={() => router.push("/auth/login")}
+                    >
+                      Sign in
+                    </Button>
+                  </span>
                 </AlertDescription>
               </Alert>
-            </motion.div>
-          )}
+            )}
 
-        {/* Progress Steps */}
-        <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="flex items-center justify-between max-w-4xl mx-auto px-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.number;
-              const isCompleted = currentStep > step.number;
-              
-              return (
-                <div key={step.number} className="flex-1 relative">
-                  <div className="flex flex-col items-center">
-                    {/* Circle */}
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={cn(
-                        "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-2 transition-all duration-300 relative z-10",
-                        isActive && "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-110",
-                        isCompleted && "border-primary bg-primary text-primary-foreground shadow-md",
-                        !isActive && !isCompleted && "border-muted bg-card text-muted-foreground"
-                      )}
-                    >
-                      {isCompleted ? (
-                        <Check className="w-5 h-5 sm:w-6 sm:h-6" />
-                      ) : (
-                        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                      )}
-                    </motion.div>
-                    
-                    {/* Label */}
-                    <p
-                      className={cn(
-                        "mt-3 text-xs sm:text-sm font-medium text-center transition-colors hidden sm:block",
-                        isActive && "text-primary",
-                        isCompleted && "text-primary",
-                        !isActive && !isCompleted && "text-muted-foreground"
-                      )}
-                    >
-                      {step.title}
-                    </p>
-                  </div>
-                  
-                  {/* Connecting Line */}
-                  {index < steps.length - 1 && (
-                    <div className="absolute top-6 sm:top-7 left-[calc(50%+24px)] sm:left-[calc(50%+28px)] w-[calc(100%-48px)] sm:w-[calc(100%-56px)] h-0.5 -z-10">
-                      <div
-                        className={cn(
-                          "h-full transition-all duration-300",
-                          currentStep > step.number ? "bg-primary" : "bg-muted"
-                        )}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Application Form */}
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
-        >
-          {/* Step 1: Personal Information */}
-          {currentStep === 1 && (
-            <Card className="shadow-xl border-t-4 border-t-primary overflow-hidden">
-              <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b border-primary/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg">
-                    <User className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl text-foreground">Personal Information</CardTitle>
-                    <CardDescription className="text-muted-foreground">Please provide your personal details</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-8 space-y-6 bg-card">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-base font-medium">Full Name *</Label>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <SectionCard
+                id="personal"
+                icon={UserRound}
+                title="Personal details"
+                description="As printed on your college documents."
+              >
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field
+                    label="Full name"
+                    htmlFor="fullName"
+                    required
+                    error={errors.fullName?.message}
+                    className="sm:col-span-2"
+                  >
                     <Input
                       id="fullName"
-                      {...register("fullName")}
-                      placeholder="Enter your full name"
+                      autoComplete="name"
+                      placeholder="Your full name"
                       className={cn("h-11", errors.fullName && "border-destructive")}
+                      {...register("fullName")}
                     />
-                    {errors.fullName && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.fullName.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth" className="text-base font-medium">Date of Birth *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full h-11 justify-start text-left font-normal",
-                            !dateOfBirth && "text-muted-foreground",
-                            errors.dateOfBirth && "border-destructive"
-                          )}
-                          suppressHydrationWarning={true}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {dateOfBirth ? format(dateOfBirth, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={dateOfBirth}
-                          onSelect={(date) => {
-                            setDateOfBirth(date);
-                            if (date && date instanceof Date && !isNaN(date.getTime())) {
-                              setValue("dateOfBirth", format(date, "yyyy-MM-dd"));
-                            } else {
-                              setValue("dateOfBirth", "");
-                            }
-                          }}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          autoFocus
-                          captionLayout="dropdown"
-                          startMonth={new Date(1990, 0)}
-                          endMonth={new Date( 2015 , 0)}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {errors.dateOfBirth && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.dateOfBirth.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  <Field
+                    label="Date of birth"
+                    htmlFor="dateOfBirth"
+                    required
+                    error={errors.dateOfBirth?.message}
+                  >
+                    <DatePicker
+                      id="dateOfBirth"
+                      value={values.dateOfBirth}
+                      onChange={(value) =>
+                        setValue("dateOfBirth", value, { shouldValidate: true })
+                      }
+                      placeholder="Select date of birth"
+                      fromYear={1990}
+                      toYear={2015}
+                      invalid={Boolean(errors.dateOfBirth)}
+                      className="[&>button:first-child]:h-11"
+                    />
+                  </Field>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="gender" className="text-base font-medium">Gender *</Label>
-                    <Select onValueChange={(value) => setValue("gender", value as "male" | "female" | "other")}>
-                      <SelectTrigger className={cn("h-11", errors.gender && "border-destructive")}>
+                  <Field
+                    label="Gender"
+                    htmlFor="gender"
+                    required
+                    error={errors.gender?.message}
+                  >
+                    <Select
+                      defaultValue={values.gender}
+                      onValueChange={(value) =>
+                        setValue("gender", value as AdmissionFormData["gender"], {
+                          shouldValidate: true,
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        id="gender"
+                        className={cn("h-11", errors.gender && "border-destructive")}
+                      >
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
@@ -581,465 +599,532 @@ export default function AdmissionPage() {
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.gender && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.gender.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="caste" className="text-base font-medium">Caste *</Label>
+                  <Field
+                    label="Caste"
+                    htmlFor="caste"
+                    required
+                    error={errors.caste?.message}
+                  >
                     <Input
                       id="caste"
-                      {...register("caste")}
                       placeholder="Enter caste"
                       className={cn("h-11", errors.caste && "border-destructive")}
+                      {...register("caste")}
                     />
-                    {errors.caste && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.caste.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="subCaste" className="text-base font-medium">Sub-Caste *</Label>
+                  <Field
+                    label="Sub-caste"
+                    htmlFor="subCaste"
+                    required
+                    error={errors.subCaste?.message}
+                  >
                     <Input
                       id="subCaste"
-                      {...register("subCaste")}
                       placeholder="Enter sub-caste"
                       className={cn("h-11", errors.subCaste && "border-destructive")}
+                      {...register("subCaste")}
                     />
-                    {errors.subCaste && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.subCaste.message}
-                      </p>
-                    )}
-                  </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 2: Contact Information */}
-          {currentStep === 2 && (
-            <Card className="shadow-xl border-t-4 border-t-primary overflow-hidden">
-                <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b border-primary/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg">
-                            <MapPin className="w-6 h-6" />
-                    </div>
-                  <div>
-                    <CardTitle className="text-2xl text-foreground">Contact & Address</CardTitle>
-                    <CardDescription className="text-muted-foreground">Provide your contact details and address</CardDescription>
-                  </div>
+                  </Field>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6 bg-card">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-base font-medium">Email Address *</Label>
+              </SectionCard>
+
+              <SectionCard
+                id="contact"
+                icon={MapPin}
+                title="Contact & address"
+                description="How the hostel office can reach you."
+              >
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field
+                    label="Email address"
+                    htmlFor="email"
+                    required
+                    error={errors.email?.message}
+                  >
                     <Input
                       id="email"
                       type="email"
-                      {...register("email")}
-                      placeholder="your.email@example.com"
+                      autoComplete="email"
+                      placeholder="you@example.com"
                       className={cn("h-11", errors.email && "border-destructive")}
+                      {...register("email")}
                     />
-                    {errors.email && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-base font-medium">Phone Number *</Label>
+                  <Field
+                    label="Phone number"
+                    htmlFor="phone"
+                    required
+                    error={errors.phone?.message}
+                    hint="10-digit mobile number"
+                  >
                     <Input
                       id="phone"
-                      {...register("phone")}
-                      placeholder="10-digit mobile number"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
                       maxLength={10}
+                      placeholder="9876543210"
                       className={cn("h-11", errors.phone && "border-destructive")}
+                      {...register("phone")}
                     />
-                    {errors.phone && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.phone.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  </Field>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="text-base font-medium">Complete Address *</Label>
-                  <Textarea
-                    id="address"
-                    {...register("address")}
-                    placeholder="House/Flat No., Street, Area, Landmark"
-                    rows={3}
-                    className={cn(errors.address && "border-destructive")}
-                  />
-                  {errors.address && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.address.message}
-                    </p>
-                  )}
-                </div>
+                  <Field
+                    label="Complete address"
+                    htmlFor="address"
+                    required
+                    error={errors.address?.message}
+                    className="sm:col-span-2"
+                  >
+                    <Textarea
+                      id="address"
+                      rows={3}
+                      placeholder="House / flat number, street, area, landmark"
+                      className={cn(errors.address && "border-destructive")}
+                      {...register("address")}
+                    />
+                  </Field>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-base font-medium">City *</Label>
+                  <Field
+                    label="City"
+                    htmlFor="city"
+                    required
+                    error={errors.city?.message}
+                  >
                     <Input
                       id="city"
-                      {...register("city")}
-                      placeholder="City"
+                      autoComplete="address-level2"
+                      placeholder="Ahmedabad"
                       className={cn("h-11", errors.city && "border-destructive")}
+                      {...register("city")}
                     />
-                    {errors.city && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.city.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="state" className="text-base font-medium">State *</Label>
+                  <div className="grid grid-cols-2 gap-5">
+                    <Field
+                      label="State"
+                      htmlFor="state"
+                      required
+                      error={errors.state?.message}
+                    >
+                      <Input
+                        id="state"
+                        autoComplete="address-level1"
+                        placeholder="Gujarat"
+                        className={cn("h-11", errors.state && "border-destructive")}
+                        {...register("state")}
+                      />
+                    </Field>
+
+                    <Field
+                      label="Pincode"
+                      htmlFor="pincode"
+                      required
+                      error={errors.pincode?.message}
+                    >
+                      <Input
+                        id="pincode"
+                        inputMode="numeric"
+                        autoComplete="postal-code"
+                        maxLength={6}
+                        placeholder="380001"
+                        className={cn("h-11", errors.pincode && "border-destructive")}
+                        {...register("pincode")}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard
+                id="education"
+                icon={BookOpen}
+                title="Education"
+                description="Your current college and course."
+              >
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field
+                    label="College / university"
+                    htmlFor="collegeName"
+                    required
+                    error={errors.collegeName?.message}
+                    className="sm:col-span-2"
+                  >
                     <Input
-                      id="state"
-                      {...register("state")}
-                      placeholder="State"
-                      className={cn("h-11", errors.state && "border-destructive")}
+                      id="collegeName"
+                      placeholder="Name of your college or university"
+                      className={cn(
+                        "h-11",
+                        errors.collegeName && "border-destructive"
+                      )}
+                      {...register("collegeName")}
                     />
-                    {errors.state && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.state.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="pincode" className="text-base font-medium">Pincode *</Label>
-                    <Input
-                      id="pincode"
-                      {...register("pincode")}
-                      placeholder="6-digit pincode"
-                      maxLength={6}
-                      className={cn("h-11", errors.pincode && "border-destructive")}
-                    />
-                    {errors.pincode && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.pincode.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Educational Information */}
-          {currentStep === 3 && (
-            <Card className="shadow-xl border-t-4 border-t-primary overflow-hidden">
-              <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b border-primary/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg">
-                    <Book className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl text-foreground">Educational Information</CardTitle>
-                    <CardDescription className="text-muted-foreground">Tell us about your academic background</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6 bg-card">
-                <div className="space-y-2">
-                  <Label htmlFor="collegeName" className="text-base font-medium">College/University Name *</Label>
-                  <Input
-                    id="collegeName"
-                    {...register("collegeName")}
-                    placeholder="Enter your college or university name"
-                    className={cn("h-11", errors.collegeName && "border-destructive")}
-                  />
-                  {errors.collegeName && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.collegeName.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="course" className="text-base font-medium">Course/Degree *</Label>
+                  <Field
+                    label="Course / degree"
+                    htmlFor="course"
+                    required
+                    error={errors.course?.message}
+                  >
                     <Input
                       id="course"
-                      {...register("course")}
-                      placeholder="e.g., B.Tech, B.Com, M.Sc, MBA"
+                      placeholder="e.g. B.Tech, B.Com, M.Sc"
                       className={cn("h-11", errors.course && "border-destructive")}
+                      {...register("course")}
                     />
-                    {errors.course && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.course.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="year" className="text-base font-medium">Current Year *</Label>
-                    <Select onValueChange={(value) => setValue("year", value as "1" | "2" | "3" | "4")}>
-                      <SelectTrigger className={cn("h-11", errors.year && "border-destructive")} suppressHydrationWarning={true}>
-                        <SelectValue placeholder="Select academic year" />
+                  <Field
+                    label="Year of study"
+                    htmlFor="year"
+                    required
+                    error={errors.year?.message}
+                  >
+                    <Select
+                      defaultValue={values.year}
+                      onValueChange={(value) =>
+                        setValue("year", value as AdmissionFormData["year"], {
+                          shouldValidate: true,
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        id="year"
+                        className={cn("h-11", errors.year && "border-destructive")}
+                      >
+                        <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">1st Year</SelectItem>
-                        <SelectItem value="2">2nd Year</SelectItem>
-                        <SelectItem value="3">3rd Year</SelectItem>
-                        <SelectItem value="4">4th Year</SelectItem>
+                        <SelectItem value="1">1st year</SelectItem>
+                        <SelectItem value="2">2nd year</SelectItem>
+                        <SelectItem value="3">3rd year</SelectItem>
+                        <SelectItem value="4">4th year</SelectItem>
                       </SelectContent>
                     </Select>
-                    {errors.year && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.year.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  </Field>
 
-                <div className="space-y-2">
-                  <Label htmlFor="studentId" className="text-base font-medium">Student ID (Optional)</Label>
-                  <Input
-                    id="studentId"
-                    {...register("studentId")}
-                    placeholder="Your college student ID number"
-                    className="h-11"
-                  />
-                  <p className="text-sm text-muted-foreground">If you have a student ID, please provide it</p>
+                  <Field
+                    label="Student ID"
+                    htmlFor="studentId"
+                    hint="Optional"
+                    className="sm:col-span-2"
+                  >
+                    <Input
+                      id="studentId"
+                      placeholder="Your college student ID number"
+                      className="h-11"
+                      {...register("studentId")}
+                    />
+                  </Field>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </SectionCard>
 
-          {/* Step 4: Guardian Information */}
-          {currentStep === 4 && (
-            <Card className="shadow-xl border-t-4 border-t-primary overflow-hidden">
-                <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b border-primary/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl text-foreground">Guardian Information</CardTitle>
-                    <CardDescription className="text-muted-foreground">Emergency contact details</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6 bg-card">
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="guardianName" className="text-base font-medium">Guardian Name *</Label>
+              <SectionCard
+                id="guardian"
+                icon={Users}
+                title="Guardian & preference"
+                description="Emergency contact and your preferred block."
+              >
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <Field
+                    label="Guardian name"
+                    htmlFor="guardianName"
+                    required
+                    error={errors.guardianName?.message}
+                  >
                     <Input
                       id="guardianName"
-                      {...register("guardianName")}
                       placeholder="Guardian's full name"
-                      className={cn("h-11", errors.guardianName && "border-destructive")}
+                      className={cn(
+                        "h-11",
+                        errors.guardianName && "border-destructive"
+                      )}
+                      {...register("guardianName")}
                     />
-                    {errors.guardianName && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.guardianName.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="guardianPhone" className="text-base font-medium">Guardian Phone *</Label>
+                  <Field
+                    label="Guardian phone"
+                    htmlFor="guardianPhone"
+                    required
+                    error={errors.guardianPhone?.message}
+                  >
                     <Input
                       id="guardianPhone"
-                      {...register("guardianPhone")}
-                      placeholder="10-digit number"
+                      type="tel"
+                      inputMode="numeric"
                       maxLength={10}
-                      className={cn("h-11", errors.guardianPhone && "border-destructive")}
+                      placeholder="9876543210"
+                      className={cn(
+                        "h-11",
+                        errors.guardianPhone && "border-destructive"
+                      )}
+                      {...register("guardianPhone")}
                     />
-                    {errors.guardianPhone && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.guardianPhone.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="guardianRelation" className="text-base font-medium">Relation *</Label>
+                  <Field
+                    label="Relationship"
+                    htmlFor="guardianRelation"
+                    required
+                    error={errors.guardianRelation?.message}
+                  >
                     <Input
                       id="guardianRelation"
+                      placeholder="e.g. Father, Mother"
+                      className={cn(
+                        "h-11",
+                        errors.guardianRelation && "border-destructive"
+                      )}
                       {...register("guardianRelation")}
-                      placeholder="e.g., Father, Mother, Uncle"
-                      className={cn("h-11", errors.guardianRelation && "border-destructive")}
                     />
-                    {errors.guardianRelation && (
-                      <p className="text-sm text-destructive flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.guardianRelation.message}
-                      </p>
-                    )}
-                  </div>
+                  </Field>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="blockPreference" className="text-base font-medium">Hostel Block Preference (Optional)</Label>
-                  <Select onValueChange={(value) => setValue("blockPreference", value as "A" | "B" | "C" | "D")}>
-                    <SelectTrigger className={cn("h-11", errors.blockPreference && "border-destructive")} suppressHydrationWarning={true}>
-                      <SelectValue placeholder="Select block preference" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">Block A</SelectItem>
-                      <SelectItem value="B">Block B</SelectItem>
-                      <SelectItem value="C">Block C</SelectItem>
-                      <SelectItem value="D">Block D</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.blockPreference && (
-                    <p className="text-sm text-destructive flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.blockPreference.message}
-                    </p>
-                  )}
-                  <p className="text-sm text-muted-foreground">Subject to availability</p>
+                  <Label className="text-sm font-medium text-foreground">
+                    Block preference
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {BLOCKS.map((block) => {
+                      const active = values.blockPreference === block;
+
+                      return (
+                        <button
+                          key={block}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() =>
+                            setValue("blockPreference", active ? undefined : block, {
+                              shouldValidate: true,
+                            })
+                          }
+                          className={cn(
+                            "flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
+                            active
+                              ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
+                              : "border-border text-foreground hover:border-primary/40 hover:bg-muted/50"
+                          )}
+                        >
+                          Block {block}
+                          {active ? (
+                            <CheckCircle2 className="size-4" />
+                          ) : (
+                            <span className="size-4 rounded-full border border-border" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Allotment depends on availability.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </SectionCard>
 
-          {/* Step 5: Photo Upload */}
-          {currentStep === 5 && (
-            <Card className="shadow-xl border-t-4 border-t-primary overflow-hidden">
-              <CardHeader className="bg-linear-to-r from-primary/10 to-primary/5 border-b border-primary/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl text-foreground">Passport Size Photo</CardTitle>
-                    <CardDescription className="text-muted-foreground">Upload a recent passport size photograph</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6 bg-card">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="photo" className="text-base font-medium">Upload Photo * (Max 5MB)</Label>
-                    <Input
-                      id="photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      disabled={isUploadingPhoto}
-                      className={cn("h-11 cursor-pointer", errors.passportPhoto && "border-destructive")}
-                    />
-                    {errors.passportPhoto && (
-                      <p className="text-sm text-destructive flex items-center gap-1 mt-2">
-                        <AlertCircle className="w-3 h-3" />
-                        {errors.passportPhoto.message}
-                      </p>
-                    )}
-                    <p className="text-sm text-muted-foreground mt-2">Accepted formats: JPG, PNG, JPEG (Max size: 5MB)</p>
-                  </div>
+              <SectionCard
+                id="photo"
+                icon={UploadCloud}
+                title="Passport photo"
+                description="A recent photograph used on your admission record."
+              >
+                <input
+                  ref={fileInputRef}
+                  id="photo-input"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={isUploadingPhoto}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void handlePhoto(file);
+                  }}
+                />
 
-                  {isUploadingPhoto && (
-                    <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-                      <span className="text-primary font-medium">Uploading photo...</span>
-                    </div>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Upload passport photo"
+                  onClick={() => !isUploadingPhoto && fileInputRef.current?.click()}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={() => setDragActive(false)}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    setDragActive(false);
+                    const file = event.dataTransfer.files?.[0];
+                    if (file) void handlePhoto(file);
+                  }}
+                  className={cn(
+                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors",
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-muted/40",
+                    photoError && "border-destructive/60"
                   )}
-
-                  {photoPreview && !isUploadingPhoto && (
-                    <div className="flex items-center gap-6 p-6 bg-accent border-2 border-accent rounded-lg">
-                      {/* Local object URL preview: next/image cannot optimise a
-                          blob: URL, so a plain img is the correct choice here. */}
+                >
+                  {photoPreview ? (
+                    <>
+                      {/* Cloudinary preview: next/image would need the upload
+                          host in remotePatterns, so a plain img is used here. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photoPreview}
-                        alt="Preview"
-                        className="w-32 h-32 rounded-lg object-cover border-4 border-accent shadow-lg"
+                        alt="Uploaded passport photo"
+                        className="size-28 rounded-lg border border-border object-cover shadow-sm"
                       />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-accent-foreground mb-2">
-                          <Check className="w-5 h-5" />
-                          <span className="font-semibold text-lg">Photo uploaded successfully!</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Your photo has been uploaded and will be used for your application.</p>
-                      </div>
-                    </div>
+                      <p className="text-sm font-medium text-foreground">
+                        Photo uploaded
+                      </p>
+                      <span className="text-xs font-medium text-primary underline underline-offset-4">
+                        Choose a different photo
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <UploadCloud className="size-5" />
+                      </span>
+                      <p className="text-sm font-medium text-foreground">
+                        Drag a photo here, or browse
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        JPG, PNG or JPEG · maximum 5 MB
+                      </p>
+                    </>
+                  )}
+
+                  {isUploadingPhoto && (
+                    <span className="flex items-center gap-2 text-xs font-medium text-primary">
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Uploading...
+                    </span>
                   )}
                 </div>
+
+                <FieldError message={photoError ?? undefined} />
+              </SectionCard>
+
+              {submitError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="size-4" />
+                  <AlertDescription>{submitError}</AlertDescription>
+                </Alert>
+              )}
+
+              <Card className="border-border/70 shadow-xs">
+                <CardContent className="space-y-4 p-5 sm:p-6">
+                  <div className="flex items-start gap-3 rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
+                    <Info className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <p>
+                      Submitting sends your application to the hostel office for
+                      review. Final admission and fee payment are completed in
+                      person at the office.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      {completedFields} of {totalFields} required details
+                      completed
+                    </p>
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={isSubmitting || isUploadingPhoto || !session}
+                      className="h-11 w-full sm:w-auto"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="size-4" />
+                          Submit application
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </form>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <Card className="hidden border-border/70 shadow-xs lg:block">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Application progress</CardTitle>
+                <CardDescription className="text-xs">
+                  {completedFields} of {totalFields} required details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-foreground">{percent}% complete</span>
+                  </div>
+                  <Progress value={percent} className="mt-2 h-2" />
+                </div>
+
+                <ul className="space-y-2.5">
+                  {PROGRESS_SECTIONS.map((section) => {
+                    const done = section.fields.every(isFilled);
+                    const filled = section.fields.filter(isFilled).length;
+
+                    return (
+                      <li
+                        key={section.label}
+                        className="flex items-center justify-between gap-2 text-sm"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "flex size-5 items-center justify-center rounded-full border",
+                              done
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border text-muted-foreground"
+                            )}
+                          >
+                            {done ? (
+                              <Check className="size-3" />
+                            ) : (
+                              <span className="size-1.5 rounded-full bg-current" />
+                            )}
+                          </span>
+                          <span
+                            className={cn(
+                              done ? "text-foreground" : "text-muted-foreground"
+                            )}
+                          >
+                            {section.label}
+                          </span>
+                        </span>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {filled}/{section.fields.length}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </CardContent>
             </Card>
-          )}
-
-          {/* Error Alert */}
-          {submitError && (
-            <Alert variant="destructive" className="shadow-lg">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{submitError}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between gap-4 pt-4">
-            {currentStep > 1 && (
-              <Button
-                type="button"
-                onClick={prevStep}
-                variant="outline"
-                className="h-12 px-8"
-                disabled={isSubmitting}
-              >
-                Previous
-              </Button>
-            )}
-            {currentStep < 5 ? (
-              <Button
-                type="button"
-                onClick={nextStep}
-                className="ml-auto h-12 px-8 bg-primary hover:bg-primary/90"
-              >
-                Next Step
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={isSubmitting || isUploadingPhoto || !session}
-                className="ml-auto h-12 px-8 bg-primary hover:bg-primary/90 text-lg font-semibold"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-5 h-5 mr-2" />
-                    Submit Application
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </form>
-
- 
+          </aside>
         </div>
       </div>
     </div>
